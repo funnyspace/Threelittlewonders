@@ -28,7 +28,7 @@ Visit http://localhost:8000.
 ## Publish on GitHub Pages
 
 1. Use the existing repository `funnyspace/Threelittlewonders`.
-2. Upload `index.html`, `styles.css`, `content.js`, `preprimary.js`, `curriculum.js`, `school-curriculum.js`, `app.js`, `curriculum-ui.js`, `favicon.svg` and `README.md` to its root.
+2. Upload `index.html`, `styles.css`, `content.js`, `preprimary.js`, `curriculum.js`, `school-curriculum.js`, `secondary-curriculum.js`, `app.js`, `curriculum-ui.js`, `favicon.svg` and `README.md` to its root.
 3. In the repository, go to **Settings → Pages**.
 4. Choose **Deploy from a branch**, select `main` and `/ (root)`, then save.
 5. Your GitHub Pages URL will normally be `https://funnyspace.github.io/Threelittlewonders/` once deployment completes.
@@ -78,6 +78,16 @@ The website provides 276 new curriculum topics organized by class and learning a
 - **Class 6:** English/Hindi/Sanskrit, mathematics, science, social science, art and physical education (28 topics).
 - **Class 7:** Three language subjects, advanced mathematics, science, social science, art, physical education, skill education, and computational thinking/AI (28 topics).
 
-**Total learning roadmap:** 356 topics for Nursery through Class 7, in addition to the existing 71 interactive starter lessons. Classes 8, 9 and 10 still contain their original starter lessons, and no new roadmap topics were requested for those classes.
+**Total learning roadmap:** 409 topics for Nursery through Class 10, including 53 new Class 8–10 roadmap topics, in addition to the existing 71 interactive starter lessons. The Class 8–10 outlines use the subjects and themes requested for the website; they are not a verified exhaustive CBSE or NCERT syllabus.
 
 These new entries are structured topic cards with simple practice activities and local progress tracking. They are not full textbook chapters, official board-approved syllabus mappings, or complete lessons with quizzes.
+
+## Class 8 to Class 10 learning roadmaps
+
+The website includes 53 additional topic cards in `secondary-curriculum.js`. They use the existing guided activity and local practice tracker, so no new account or backend is required.
+
+- **Class 8 (34 topics, seven learning areas):** English, Hindi, Sanskrit / Urdu, Mathematics (rational numbers, equations, algebra, geometry, mensuration, exponents, proportion, data handling, basic probability), Science (crop production, microorganisms, materials, force, pressure, sound, light, electricity, natural resources, environment, biology), Social Science (modern Indian history, resources, agriculture, industries, constitution, parliament, judiciary, social justice), Art, Physical Education, Vocational Education.
+- **Class 9 (11 topics, five learning areas):** English and Hindi, Core Mathematics, integrated Science (Physics, Chemistry and Biology), an optional Science Advanced extension, and Social Science (History, Geography, Political Science / Civics and Economics).
+- **Class 10 (eight topics, two learning areas):** Core subjects English, Hindi, Mathematics, Science and Social Science; internal assessment topics Health & Physical Education, Work Experience and Art Education.
+
+The Science Advanced activity is explicitly labelled optional and is not presented as part of every learner's core science pathway. Students should use the subject and level approved by their own school. The website is a guided practice roadmap; it does not promise exhaustive chapters, official affiliation, or board-approved syllabus mapping.
