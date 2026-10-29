@@ -28,7 +28,7 @@ Visit http://localhost:8000.
 ## Publish on GitHub Pages
 
 1. Use the existing repository `funnyspace/Threelittlewonders`.
-2. Upload `index.html`, `styles.css`, `content.js`, `preprimary.js`, `curriculum.js`, `school-curriculum.js`, `secondary-curriculum.js`, `app.js`, `curriculum-ui.js`, `favicon.svg` and `README.md` to its root.
+2. Upload `index.html`, `styles.css`, `content.js`, `preprimary.js`, `curriculum.js`, `school-curriculum.js`, `secondary-curriculum.js`, `app.js`, `curriculum-ui.js`, `site-navigation.js`, `favicon.svg` and `README.md` to its root.
 3. In the repository, go to **Settings → Pages**.
 4. Choose **Deploy from a branch**, select `main` and `/ (root)`, then save.
 5. Your GitHub Pages URL will normally be `https://funnyspace.github.io/Threelittlewonders/` once deployment completes.
@@ -91,3 +91,12 @@ The website includes 53 additional topic cards in `secondary-curriculum.js`. The
 - **Class 10 (eight topics, two learning areas):** Core subjects English, Hindi, Mathematics, Science and Social Science; internal assessment topics Health & Physical Education, Work Experience and Art Education.
 
 The Science Advanced activity is explicitly labelled optional and is not presented as part of every learner's core science pathway. Students should use the subject and level approved by their own school. The website is a guided practice roadmap; it does not promise exhaustive chapters, official affiliation, or board-approved syllabus mapping.
+
+
+## One-section navigation and Contact page
+
+The header now presents **Home**, **Explore courses**, **Contact**, and **How it works**, with **My learning** as a separate destination. Each link shows only its own main section; the footer and site header remain visible across views. Home displays the hero section only.
+
+The URL hash controls the view, so direct links such as `#home`, `#explore`, `#contact`, `#how-it-works`, and `#my-learning` remain usable without a backend. Routing is implemented in `site-navigation.js`. The former standalone call-to-action strip has been removed because the homepage hero already contains the learning buttons.
+
+Contact is a static page linking to the public repository's GitHub Issues creation page. Posting feedback requires a GitHub account. No contact form data is collected or stored by this website, and visitors are instructed not to post children's private information. A dedicated public contact email can be added if one is provided later.
