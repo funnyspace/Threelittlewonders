@@ -1,11 +1,11 @@
 # Threelittlewonders 🌟
 
-**Little lessons. Big wonders!** A child-friendly, mobile-ready learning website with foundation skills and sample starter lessons for Classes 1 through 10.
+**Little lessons. Big wonders!** A child-friendly, mobile-ready learning website with pre-primary skills and sample starter lessons for Nursery, LKG, UKG and Classes 1 through 10.
 
 ## What's included
 
-- 55 short, grade-appropriate starter lessons across Maths, English, Science, EVS, Social Science, General Knowledge and Computer basics.
-- A Foundation and Class 1 to Class 10 selector.
+- 71 short, grade-appropriate starter lessons across Maths, English, Science, EVS, Social Science, General Knowledge and Computer basics.
+- A Nursery, LKG, UKG and Class 1 to Class 10 selector.
 - Search and subject filters.
 - Readable lesson cards with clear explanations, examples and mini-challenges.
 - Two-question practice quizzes with retry feedback.
@@ -50,3 +50,8 @@ Built with HTML, CSS and vanilla JavaScript; no package installation required.
 ## Brand logo
 
 The site header, footer, and favicon use three vertical RGB bars (red, green, blue).
+
+
+## Pre-primary levels
+
+Nursery, LKG and UKG are shown before Class 1. Lessons for these levels are added in `preprimary.js`. Previous grade-0 progress remains valid under UKG.
