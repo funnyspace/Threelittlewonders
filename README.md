@@ -28,7 +28,7 @@ Visit http://localhost:8000.
 ## Publish on GitHub Pages
 
 1. Use the existing repository `funnyspace/Threelittlewonders`.
-2. Upload `index.html`, `styles.css`, `content.js`, `preprimary.js`, `curriculum.js`, `school-curriculum.js`, `secondary-curriculum.js`, `app.js`, `curriculum-ui.js`, `site-navigation.js`, `favicon.svg` and `README.md` to its root.
+2. Upload `index.html`, `styles.css`, `content.js`, `preprimary.js`, `curriculum.js`, `school-curriculum.js`, `secondary-curriculum.js`, `app.js`, `curriculum-ui.js`, `contact-form.js`, `site-navigation.js`, `favicon.svg` and `README.md` to its root.
 3. In the repository, go to **Settings → Pages**.
 4. Choose **Deploy from a branch**, select `main` and `/ (root)`, then save.
 5. Your GitHub Pages URL will normally be `https://funnyspace.github.io/Threelittlewonders/` once deployment completes.
@@ -99,4 +99,14 @@ The header now presents **Home**, **Explore courses**, **Contact**, and **How it
 
 The URL hash controls the view, so direct links such as `#home`, `#explore`, `#contact`, `#how-it-works`, and `#my-learning` remain usable without a backend. Routing is implemented in `site-navigation.js`. The former standalone call-to-action strip has been removed because the homepage hero already contains the learning buttons.
 
-Contact is a static page linking to the public repository's GitHub Issues creation page. Posting feedback requires a GitHub account. No contact form data is collected or stored by this website, and visitors are instructed not to post children's private information. A dedicated public contact email can be added if one is provided later.
+Contact now includes the supplied email address, Patna, Bihar location, support hours and a parent/guardian enquiry form. The form builds a `mailto:` draft and opens the user's default email application. **There is no email delivery backend**, and the visitor must press Send in their email app. No enquiry form contents are stored in the website. The WhatsApp business number and official social account URLs were not provided, so they appear only as clearly identified placeholders, not clickable fake links.
+
+## Footer and website information pages
+
+The compact footer shows **ThreeLittleWonders | Learn • Explore • Grow**, working internal links for About Us, Contact Us, Privacy Policy, Terms & Conditions, Child Safety and FAQs, plus a mailto Email link. WhatsApp and Facebook/Instagram/YouTube labels are non-clickable until the actual business number and official social profile URLs are supplied.
+
+The brief information sections are written to match the current static implementation; they should be reviewed and, where appropriate, approved by the business before launch. Contact details shown on the page are the details provided for this update; this edit does not independently verify that the mailbox is active.
+
+### Contact form behaviour
+
+The parent/guardian form requests a name and email address, optional contact phone, optional class (Nursery to Class 10), required purpose, and required message. Submission prepares an email addressed to `hello@threelittlewonders.com` using `contact-form.js`. A working email application is required to send it. The site cannot confirm delivery. For server-side form delivery or inbox tracking, a backend or a suitable hosted form service is required.
