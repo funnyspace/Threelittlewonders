@@ -10,7 +10,9 @@
   <link rel="stylesheet" href="styles.css" />
   <script src="content.js" defer></script>
   <script src="preprimary.js" defer></script>
+  <script src="curriculum.js" defer></script>
   <script src="app.js" defer></script>
+  <script src="curriculum-ui.js" defer></script>
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to content</a>
@@ -62,6 +64,21 @@
       <div class="container">
         <div class="section-heading explore-heading"><div><span class="kicker">✿ FIND YOUR NEXT ADVENTURE</span><h2>What will you <em>explore</em> today?</h2><p>Pick your class, choose a subject, and let the discoveries begin.</p></div><div class="class-picker"><label for="classSelect">I'm learning in</label><select id="classSelect" aria-label="Select your class"></select><span class="select-arrow">⌄</span></div></div>
         <div class="grade-shortcuts" id="gradeShortcuts" role="group" aria-label="Select a class"></div>
+        <section class="curriculum-section" id="curriculumSection" aria-labelledby="curriculumHeading" hidden>
+          <div class="curriculum-heading">
+            <div><span class="kicker">✦ YOUR LEARNING ROADMAP</span>
+              <h3 id="curriculumHeading"><span id="curriculumGrade"></span> learning areas</h3>
+              <p id="topicSummary"></p>
+            </div>
+            <div class="curriculum-progress"><span id="topicProgress">0 topics practised</span>
+              <div class="topic-progress-track" id="topicProgressTrack" role="progressbar" aria-label="Curriculum topics practised" aria-valuemin="0" aria-valuemax="0" aria-valuenow="0"><div id="topicProgressFill"></div></div>
+            </div>
+          </div>
+          <div class="curriculum-groups" id="curriculumGroups"></div>
+          <div class="topic-panel" id="topicPanel" tabindex="-1" role="region" aria-live="polite" aria-label="Selected learning topic" hidden></div>
+          <p class="curriculum-help">Choose a topic for a guided activity, then mark it as practised. Activities are not graded tests. Progress stays in this browser.</p>
+        </section>
+        <div class="starter-heading"><div><span class="kicker">✿ LEARN AND PLAY</span><h3>Quick interactive lessons</h3></div><p>Explore a lesson, try two fun questions and collect stars.</p></div>
         <div class="course-toolbar"><div class="subject-filters" id="subjectFilters" role="group" aria-label="Filter by subject"></div><div class="search-box"><span aria-hidden="true">⌕</span><input type="search" id="searchInput" placeholder="Search a lesson..." aria-label="Search lessons"></div></div>
         <div class="course-grid" id="courseGrid" aria-live="polite"></div>
         <div class="empty-state" id="emptyState" hidden><div>🔎</div><h3>No lessons found yet</h3><p>Try another subject or a different search.</p><button class="btn btn-secondary" id="clearFiltersBtn">Clear filters</button></div>
