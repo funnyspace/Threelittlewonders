@@ -2,10 +2,11 @@
 'use strict';
 const LESSONS=window.TLW_LESSONS||[];
 const SUBJECTS=window.TLW_SUBJECTS||{};
-const STORE_KEY='threeelittlewonders-progress-v1';
+const STORE_KEY='Threelittlewonders-progress-v1';
+const LEGACY_STORE_KEY='threeelittlewonders-progress-v1';
 const $=id=>document.getElementById(id);
 const safe=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-function load(){try{const v=JSON.parse(localStorage.getItem(STORE_KEY)||'{}');return {grade:Number.isInteger(v.grade)&&v.grade>=0&&v.grade<=10?v.grade:3,completed:Array.isArray(v.completed)?[...new Set(v.completed.filter(x=>typeof x==='string'))]:[]}}catch{return {grade:3,completed:[]}}}
+function load(){try{const v=JSON.parse(localStorage.getItem(STORE_KEY)||localStorage.getItem(LEGACY_STORE_KEY)||'{}');return {grade:Number.isInteger(v.grade)&&v.grade>=0&&v.grade<=10?v.grade:3,completed:Array.isArray(v.completed)?[...new Set(v.completed.filter(x=>typeof x==='string'))]:[]}}catch{return {grade:3,completed:[]}}}
 let state=load(),subject='All',query='',currentLesson=null,currentQuestion=0,questionAnswered=false,returnFocus=null,toastTimer;
 function persist(){try{localStorage.setItem(STORE_KEY,JSON.stringify(state))}catch{showToast('Progress cannot be saved in this browser.')}}
 const gradeName=g=>g===0?'Foundation':`Class ${g}`;
