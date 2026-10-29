@@ -15,6 +15,7 @@
   <script src="secondary-curriculum.js" defer></script>
   <script src="app.js" defer></script>
   <script src="curriculum-ui.js" defer></script>
+  <script src="contact-form.js" defer></script>
   <script src="site-navigation.js" defer></script>
 </head>
 <body>
@@ -91,26 +92,126 @@
     </section>
     <section class="daily-section section-padding" id="my-learning" hidden><div class="container daily-grid"><div class="daily-copy"><span class="kicker">✦ YOUR LITTLE LEARNING CORNER</span><h2>A little progress<br><em>every day.</em></h2><p>Every lesson you finish is a win! Collect stars, build your confidence, and keep your curiosity going.</p><div class="progress-pills"><span>🌟 <strong id="totalStars">0</strong> stars earned</span><span>✅ <strong id="completedCount">0</strong> lessons finished</span></div><button class="btn btn-primary" id="continueBtn">Continue learning <span aria-hidden="true">↗</span></button><p class="save-note">Progress is saved on this device, in this browser.</p></div><div class="progress-card"><div class="progress-top"><div class="progress-icon">🏆</div><span class="progress-label">MY LEARNING JOURNEY</span></div><div class="progress-card-title">You're doing <span>great!</span></div><div class="progress-stat"><strong id="progressPercent">0%</strong><span>of starter lessons completed for your class</span></div><div class="progress-track"><div class="progress-fill" id="progressFill" style="width:0%"></div></div><div class="progress-card-footer"><span id="progressSubtitle">Your next adventure is waiting.</span><span>✨</span></div></div></div></section>
     <section class="contact-section section-padding" id="contact" aria-labelledby="contactTitle" hidden>
-      <div class="container contact-shell">
-        <div class="contact-intro">
+      <div class="container">
+        <div class="contact-page-header">
           <span class="kicker">✦ CONNECT WITH US</span>
-          <h2 id="contactTitle">We're here for <em>curious minds.</em></h2>
-          <p>Have a question, an idea for a lesson, or feedback about Threelittlewonders? We welcome suggestions from parents, teachers and guardians.</p>
-          <div class="contact-bubbles" aria-hidden="true"><span>💬</span><span>💡</span><span>🌟</span></div>
+          <h2 id="contactTitle">Get in <em>touch.</em></h2>
+          <h3>Contact ThreeLittleWonders</h3>
+          <p class="contact-tagline">We’re here to help you learn, explore and grow.</p>
+          <p>Have a question about our learning resources, classes, worksheets or activities? Get in touch with the ThreeLittleWonders team.</p>
         </div>
-        <div class="contact-card">
-          <span class="contact-icon" aria-hidden="true">✉️</span>
-          <h3>Get in touch</h3>
-          <p>Share a question, report an issue, or request a new learning topic through our public GitHub feedback page.</p>
-          <a class="btn btn-primary contact-link" href="https://github.com/funnyspace/Threelittlewonders/issues/new" target="_blank" rel="noopener noreferrer">Send feedback on GitHub <span aria-hidden="true">↗</span></a>
-          <p class="contact-small">GitHub sign-in is required. Messages posted there are public.</p>
-          <div class="contact-privacy"><strong>For parents and guardians:</strong> Please do not include children's names, addresses, phone numbers, school information or other private details in a public message.</div>
+        <div class="contact-details-grid">
+          <div class="contact-details-card">
+            <div class="contact-details-row"><span class="contact-detail-emoji" aria-hidden="true">📧</span><div><h4>Email</h4><a href="mailto:hello@threelittlewonders.com">hello@threelittlewonders.com</a></div></div>
+            <div class="contact-details-row"><span class="contact-detail-emoji" aria-hidden="true">📱</span><div><h4>Call / WhatsApp</h4><p>Your Business Number <span class="contact-soon">(to be added)</span></p></div></div>
+            <div class="contact-details-row"><span class="contact-detail-emoji" aria-hidden="true">📍</span><div><h4>Location</h4><p>Patna, Bihar, India</p></div></div>
+            <div class="contact-details-row"><span class="contact-detail-emoji" aria-hidden="true">🕐</span><div><h4>Support Hours</h4><p>Monday – Saturday</p><p>9:00 AM – 6:00 PM</p></div></div>
+            <div class="contact-social">
+              <h3>Connect With Us</h3>
+              <p>Facebook <span aria-hidden="true">|</span> Instagram <span aria-hidden="true">|</span> YouTube</p>
+              <small>Official social profile links will be added when available.</small>
+            </div>
+          </div>
+          <div class="contact-form-card">
+            <h3>Send Us a Message</h3>
+            <p class="contact-form-intro">Fill in the details below to prepare an email to our team. Fields marked * are required.</p>
+            <form id="contactForm">
+              <div class="contact-field">
+                <label for="contactParent">Parent / Guardian Name <span aria-hidden="true">*</span></label>
+                <input id="contactParent" name="parentName" type="text" autocomplete="name" placeholder="Enter your name" maxlength="100" required />
+              </div>
+              <div class="contact-field">
+                <label for="contactEmail">Email Address <span aria-hidden="true">*</span></label>
+                <input id="contactEmail" name="email" type="email" autocomplete="email" placeholder="Enter your email" maxlength="254" required />
+              </div>
+              <div class="contact-field">
+                <label for="contactPhone">Mobile / WhatsApp Number</label>
+                <input id="contactPhone" name="phone" type="tel" autocomplete="tel" inputmode="tel" placeholder="Enter your contact number" maxlength="24" />
+              </div>
+              <div class="contact-field">
+                <label for="contactGrade">Class / Grade</label>
+                <select id="contactGrade" name="grade">
+                  <option value="">Select class</option>
+                  <option>Nursery</option><option>LKG</option><option>UKG</option>
+                  <option>Class 1</option><option>Class 2</option><option>Class 3</option>
+                  <option>Class 4</option><option>Class 5</option><option>Class 6</option>
+                  <option>Class 7</option><option>Class 8</option><option>Class 9</option>
+                  <option>Class 10</option><option>General enquiry</option>
+                </select>
+              </div>
+              <div class="contact-field">
+                <label for="contactPurpose">Purpose of Contact <span aria-hidden="true">*</span></label>
+                <select id="contactPurpose" name="purpose" required>
+                  <option value="">Select your enquiry type</option>
+                  <option>Learning Resources</option><option>Classes</option>
+                  <option>Worksheets</option><option>Learning Activities</option>
+                  <option>Feedback / Suggestion</option><option>Technical Support</option>
+                  <option>Other</option>
+                </select>
+              </div>
+              <div class="contact-field">
+                <label for="contactMessage">Message <span aria-hidden="true">*</span></label>
+                <textarea id="contactMessage" name="message" rows="5" maxlength="1500" placeholder="How can we help you?" required></textarea>
+              </div>
+              <button class="btn btn-primary contact-send-button" type="submit">SEND MESSAGE <span aria-hidden="true">↗</span></button>
+              <p id="contactFormStatus" class="contact-form-status" role="status" aria-live="polite">This opens your email app with a prepared message. Please press Send in your email app to deliver it.</p>
+              <p class="contact-form-privacy">For safety, please provide a parent or guardian’s contact details, not a child’s personal information. The website does not save enquiry details.</p>
+            </form>
+          </div>
         </div>
       </div>
     </section>
     <section class="how-section section-padding" id="how-it-works" hidden><div class="container"><div class="center-heading"><span class="kicker">✦ LEARNING MADE SIMPLE</span><h2>Three little steps to <em>big discoveries.</em></h2><p>No complicated stuff. Just easy, fun learning every day.</p></div><div class="steps-grid"><article class="step-card"><div class="step-illustration step-pick">🎒<span class="step-spark">✳</span></div><div class="step-index">01</div><h3>Pick your class</h3><p>Choose your school level and find just-right lessons made for you.</p></article><article class="step-card"><div class="step-illustration step-learn">📖<span class="step-spark">✦</span></div><div class="step-index">02</div><h3>Learn something new</h3><p>Understand one idea at a time with clear examples and helpful hints.</p></article><article class="step-card"><div class="step-illustration step-win">🏅<span class="step-spark">✳</span></div><div class="step-index">03</div><h3>Quiz, smile, repeat!</h3><p>Test what you know, collect stars and feel proud of every step.</p></article></div></div></section>
+    <section class="info-page section-padding" id="about" aria-labelledby="aboutTitle" hidden>
+      <div class="container info-page-inner"><span class="kicker">✦ OUR STORY</span><h2 id="aboutTitle">About ThreeLittleWonders</h2>
+        <p><strong>Learn • Explore • Grow.</strong> ThreeLittleWonders is a child-friendly learning website offering introductory lessons, quizzes and guided activities from Nursery to Class 10.</p>
+        <p>Parents, caregivers and educators can explore age-appropriate learning roadmaps. Our current content is a growing set of starter resources, not a complete board-approved textbook syllabus.</p>
+        <a class="btn btn-primary" href="#explore">Explore learning resources ↗</a>
+      </div>
+    </section>
+    <section class="info-page section-padding" id="privacy" aria-labelledby="privacyTitle" hidden>
+      <div class="container info-page-inner"><span class="kicker">✦ YOUR INFORMATION</span><h2 id="privacyTitle">Privacy Policy</h2>
+        <p>Learning progress and activity practice are saved locally in your browser. They are not synced to an account or to our own database. Clearing browser storage may remove progress.</p>
+        <p>The contact form prepares a message in your email application. It does not send or store your enquiry on this website. Any email you choose to send is handled by your email provider and the receiving mailbox.</p>
+        <p>This site is hosted on GitHub Pages, which may process technical request information to deliver the site. Please provide only a parent or guardian’s details when contacting us, and avoid sharing children’s private information.</p>
+        <p>For questions, email <a href="mailto:hello@threelittlewonders.com">hello@threelittlewonders.com</a>.</p>
+      </div>
+    </section>
+    <section class="info-page section-padding" id="terms" aria-labelledby="termsTitle" hidden>
+      <div class="container info-page-inner"><span class="kicker">✦ USING OUR WEBSITE</span><h2 id="termsTitle">Terms &amp; Conditions</h2>
+        <p>ThreeLittleWonders provides introductory educational resources for general learning and practice. Topics and examples may differ from a child’s school or board curriculum and should be checked against official school materials.</p>
+        <p>Adult guidance is recommended for younger learners, practical activities and use of external websites. We may revise or add educational content as the website develops.</p>
+        <p>The website currently has no online payment, student account or direct messaging service. Contact us for questions or corrections using the Contact page.</p>
+      </div>
+    </section>
+    <section class="info-page section-padding" id="child-safety" aria-labelledby="safetyTitle" hidden>
+      <div class="container info-page-inner"><span class="kicker">✦ CHILD FIRST</span><h2 id="safetyTitle">Child Safety</h2>
+        <p>Young children should use online learning resources with a parent, guardian or teacher. Practical activities should use safe materials and appropriate adult supervision.</p>
+        <p>Do not post or send a child’s full name, school, address, private photographs, passwords or other identifying information. The enquiry form asks for a parent or guardian’s name and contact details.</p>
+        <p>External services, including email apps and any future social links, may have their own age requirements and privacy policies. Adults should review these before use.</p>
+      </div>
+    </section>
+    <section class="info-page section-padding" id="faqs" aria-labelledby="faqTitle" hidden>
+      <div class="container info-page-inner"><span class="kicker">✦ COMMON QUESTIONS</span><h2 id="faqTitle">Frequently Asked Questions</h2>
+        <h3>Which classes are included?</h3><p>Nursery, LKG, UKG and Classes 1 to 10 have starter learning material. The topic roadmaps offer guided practice rather than full school textbooks.</p>
+        <h3>Is learning progress saved?</h3><p>Yes. Progress is saved in your current browser on this device, without an account. Clearing browser storage can remove it.</p>
+        <h3>How do I send a message?</h3><p>Open Contact, complete the enquiry form and press Send Message. Your email app opens a prepared draft that you must send yourself.</p>
+        <h3>Are there downloadable worksheets and live classes?</h3><p>The current site focuses on starter lessons and guided activities. Additional resources can be introduced as they are developed.</p>
+      </div>
+    </section>
   </main>
-  <footer class="site-footer"><div class="container footer-inner"><a class="brand footer-brand" href="#home"><span class="brand-mark" aria-hidden="true"><span class="rgb-bar"></span><span class="rgb-bar"></span><span class="rgb-bar"></span></span><span class="brand-text">Three<span>little</span>wonders<span class="brand-dot">.</span></span></a><p>Making learning a little more wonderful, every day. 💛</p><span>© <span id="currentYear"></span> Threelittlewonders</span></div></footer>
+  <footer class="site-footer">
+    <div class="container footer-compact">
+      <div class="footer-heading"><a href="#home"><strong>ThreeLittleWonders</strong></a><span aria-hidden="true">|</span><span>Learn • Explore • Grow</span></div>
+      <nav class="footer-links" aria-label="Footer information">
+        <a href="#about">About Us</a><a href="#contact">Contact Us</a><a href="#privacy">Privacy Policy</a><a href="#terms">Terms &amp; Conditions</a><a href="#child-safety">Child Safety</a><a href="#faqs">FAQs</a>
+      </nav>
+      <div class="footer-contact-links">
+        <a href="mailto:hello@threelittlewonders.com">Email</a><span>WhatsApp</span><span>Facebook</span><span>Instagram</span><span>YouTube</span>
+      </div>
+      <small>© <span id="currentYear"></span> ThreeLittleWonders. WhatsApp and social profile links will be added when available.</small>
+    </div>
+  </footer>
   <div class="modal-backdrop" id="lessonModal" hidden><section class="lesson-modal" role="dialog" aria-modal="true" aria-labelledby="lessonTitle"><header class="modal-header"><div class="modal-header-left"><span class="modal-subject-icon" id="modalSubjectIcon">📚</span><div><p class="modal-kicker" id="modalMeta">LET'S LEARN</p><h2 id="lessonTitle">Your lesson</h2></div></div><button class="close-btn" id="closeLesson" aria-label="Close lesson">✕</button></header><div class="lesson-steps" aria-label="Lesson stages"><span class="stage active" id="stageLearn">1. Learn</span><span class="stage" id="stageQuiz">2. Try a quiz</span><span class="stage" id="stageComplete">3. Celebrate</span></div><div class="lesson-body" id="lessonBody"></div><div class="modal-footer" id="lessonFooter"></div></section></div>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 </body>
