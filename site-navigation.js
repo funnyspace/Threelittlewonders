@@ -3,7 +3,7 @@
    No learning data is removed or reloaded when switching sections. */
 (()=>{
   'use strict';
-  const viewIds=['home','explore','contact','how-it-works','my-learning'];
+  const viewIds=['home','explore','contact','how-it-works','my-learning','about','privacy','terms','child-safety','faqs'];
   const views=new Map(viewIds.map(id=>[id,document.getElementById(id)]));
   const pageLinks=document.querySelectorAll('a[href^="#"]');
   function currentView(){
@@ -24,7 +24,7 @@
       else link.removeAttribute('aria-current');
     }
     document.title=(active==='home'?'Threelittlewonders':({
-      explore:'Explore courses',contact:'Contact','how-it-works':'How it works','my-learning':'My learning'
+      explore:'Explore courses',contact:'Contact','how-it-works':'How it works','my-learning':'My learning',about:'About Us',privacy:'Privacy Policy',terms:'Terms & Conditions','child-safety':'Child Safety',faqs:'FAQs'
     }[active]+' | Threelittlewonders'));
     window.scrollTo(0,0);
   }
