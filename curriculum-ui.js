@@ -1,4 +1,4 @@
-/* Pre-primary learning roadmap UI. Separate activity progress from quiz stars. */
+/* Learning roadmap UI for Nursery through Class 10. Practice progress is separate from lesson quiz stars. */
 (()=>{
 'use strict';
 const DATA=window.TLW_CURRICULUM||{};
@@ -12,7 +12,7 @@ try{
 }catch{}
 let selected=null;
 const grade=()=>String($('classSelect').value);
-const gradeLabel=()=>({'-2':'Nursery','-1':'LKG','0':'UKG'}[grade()]||'');
+const gradeLabel=()=>({'-2':'Nursery','-1':'LKG','0':'UKG'}[grade()]||('Class '+grade()));
 function topics(){
  return (DATA[grade()]||[]).flatMap((group,gi)=>group.topics.map((topic,ti)=>({
   title:topic.title,activity:topic.activity,area:group.area,icon:group.icon,
