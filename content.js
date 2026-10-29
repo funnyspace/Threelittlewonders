@@ -1,6 +1,6 @@
 /* Starter curriculum for Threelittlewonders. All lesson copy is bundled locally.
    Add more lessons with add(grade, subject, title, description, emoji, concept, example, tip, quiz1, quiz2).
-   Grade 0 = Foundation; grades 1-10 = school classes. */
+   Grade -2 = Nursery, grade -1 = LKG, grade 0 = UKG, grades 1-10 = school classes. */
 window.TLW_SUBJECTS = {
   'Maths': { icon:'🔢', color:'#eaf2ff', label:'Maths' },
   'English': { icon:'📚', color:'#fff0e0', label:'English' },
