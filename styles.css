@@ -36,3 +36,76 @@
   .brand:not(.footer-brand) .brand-mark{width:38px;height:38px;padding:6px 7px;gap:4px;border-radius:13px;}
   .brand:not(.footer-brand) .brand-mark .rgb-bar{width:5px;height:21px;}
 }
+
+
+/* Nursery, LKG and UKG learning roadmap */
+.curriculum-section{
+ margin:9px 0 46px;
+ border:1px solid #e5e9e1;
+ border-radius:22px;
+ padding:25px;
+ background:linear-gradient(180deg,#fbfff9,#ffffff 85%);
+ box-shadow:0 14px 28px rgba(36,94,73,.055);
+}
+.curriculum-heading{
+ display:flex;
+ align-items:flex-end;
+ justify-content:space-between;
+ gap:20px;
+ margin-bottom:21px;
+}
+.curriculum-heading h3,.starter-heading h3{
+ margin:0 0 5px;
+ font-size:26px;
+ font-weight:900;
+ letter-spacing:-.6px;
+}
+.curriculum-heading p,.starter-heading p{
+ color:#6c8070;
+ font-size:13px;
+ margin:0;
+}
+.curriculum-progress{min-width:190px;text-align:right;font-size:12px;font-weight:800;color:var(--green);}
+.topic-progress-track{width:190px;max-width:100%;height:9px;border-radius:20px;margin:9px 0 0 auto;background:#e7eee7;overflow:hidden;}
+#topicProgressFill{display:block;width:0;height:100%;background:linear-gradient(90deg,#6bbd8e,#2c9061);border-radius:inherit;transition:width .25s;}
+.curriculum-groups{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;}
+.curriculum-area{padding:17px;border:1px solid #e8ede5;border-radius:16px;background:#fff;min-width:0;}
+.curriculum-area-heading{display:flex;align-items:center;gap:8px;margin-bottom:13px;}
+.curriculum-area-heading>span{font-size:23px;line-height:1;}
+.curriculum-area-heading h4{font-family:Nunito,'Trebuchet MS',sans-serif;font-size:16px;font-weight:900;margin:0;line-height:1.3;}
+.curriculum-area-heading small{font-size:10px;font-weight:800;color:#819486;margin-left:auto;white-space:nowrap;}
+.topic-chip-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.topic-chip{
+ width:100%;min-width:0;display:flex;align-items:center;justify-content:space-between;
+ gap:7px;min-height:46px;text-align:left;font-size:12px;line-height:1.4;
+ font-weight:750;color:#476152;background:#f8faf7;border:1px solid #e9eee7;
+ border-radius:10px;padding:10px 11px;transition:background .18s,border-color .18s;
+}
+.topic-chip span:last-child{color:#9bada1;font-size:17px;font-weight:900;flex:none;}
+.topic-chip:hover{background:#edf7ef;border-color:#c8ddcd;}
+.topic-chip.selected{background:#e3f1e8;border-color:#74af8b;color:#22533d;}
+.topic-chip.practised span:last-child{color:#2c9061;}
+.topic-panel{margin-top:18px;background:#eff7ed;border:1px solid #d9eada;border-radius:15px;padding:23px;outline-offset:4px;}
+.topic-panel-label{color:#377255;font-size:10px;font-weight:900;letter-spacing:1.3px;}
+.topic-panel h4{font-family:Nunito,'Trebuchet MS',sans-serif;margin:7px 0 9px;font-size:23px;}
+.topic-panel p{max-width:720px;line-height:1.8;color:#54725d;font-size:14px;margin:0;}
+.topic-panel-footer{border-top:1px solid #d5e5d4;padding-top:15px;margin-top:17px;display:flex;align-items:center;justify-content:space-between;gap:15px;}
+.topic-panel-footer span{color:#638370;font-size:12px;font-weight:700;}
+.curriculum-help{color:#839184;font-size:11px;margin:16px 0 0;}
+.starter-heading{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;margin:28px 0 6px;}
+.starter-heading .kicker{margin-bottom:5px;}
+@media(max-width:780px){
+ .curriculum-section{padding:17px;margin-bottom:37px;}
+ .curriculum-heading{align-items:flex-start;flex-direction:column;gap:13px;}
+ .curriculum-progress{text-align:left;}
+ .topic-progress-track{margin-left:0;}
+ .curriculum-groups{grid-template-columns:1fr;}
+ .starter-heading{align-items:flex-start;flex-direction:column;}
+}
+@media(max-width:420px){
+ .topic-chip-grid{grid-template-columns:1fr;}
+ .curriculum-area-heading h4{font-size:15px;}
+ .topic-panel{padding:16px;}
+ .topic-panel-footer{align-items:stretch;flex-direction:column;}
+ .curriculum-heading h3{font-size:22px;}
+}
