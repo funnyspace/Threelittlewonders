@@ -46,3 +46,7 @@ You can also deploy this static site on Netlify, Cloudflare Pages or another sta
 Board-aligned course mapping, comprehensive chapter explanations, richer question banks, teacher/parent dashboards, student authentication, age-appropriate content moderation, multilingual accessibility, and secure synced progress. If accounts for children are introduced, implement suitable child-privacy and parental consent requirements before collecting personal data.
 
 Built with HTML, CSS and vanilla JavaScript; no package installation required.
+
+## Brand logo
+
+The site header, footer, and favicon use three vertical RGB bars (red, green, blue).
