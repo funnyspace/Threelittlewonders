@@ -67,3 +67,17 @@ The learning roadmap now includes the complete set of 80 requested pre-primary t
 Select any topic to see a short guided practice activity. Families can mark a topic as practised (and reverse the selection), with local-browser storage under `Threelittlewonders-curriculum-progress-v1`. Topic practice does not affect quiz stars or lesson completion.
 
 The topic list is a learning roadmap with short practice prompts, not a complete syllabus-aligned course or a full set of interactive lessons. Existing 71 two-question starter lessons remain available below the roadmap.
+
+## Class 1 through Class 7 learning roadmaps
+
+The website provides 276 new curriculum topics organized by class and learning area, with a short guided activity for each topic. These appear when Class 1, 2, 3, 4, 5, 6, or 7 is selected. The new content is stored in `school-curriculum.js`, which extends (and does not replace) `curriculum.js`.
+
+- **Class 1:** Hindi/English language skills, mathematics, and World Around Us (26 topics).
+- **Class 2:** Hindi/English language skills, mathematics, and environmental learning (26 topics).
+- **Classes 3, 4 and 5:** Hindi/English, mathematics, The World Around Us, art, physical education, vocational education, and computational thinking/AI (56 topics per class; grade-specific activity levels).
+- **Class 6:** English/Hindi/Sanskrit, mathematics, science, social science, art and physical education (28 topics).
+- **Class 7:** Three language subjects, advanced mathematics, science, social science, art, physical education, skill education, and computational thinking/AI (28 topics).
+
+**Total learning roadmap:** 356 topics for Nursery through Class 7, in addition to the existing 71 interactive starter lessons. Classes 8, 9 and 10 still contain their original starter lessons, and no new roadmap topics were requested for those classes.
+
+These new entries are structured topic cards with simple practice activities and local progress tracking. They are not full textbook chapters, official board-approved syllabus mappings, or complete lessons with quizzes.
