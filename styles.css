@@ -140,3 +140,68 @@
  .contact-intro>p{font-size:14px}
  .contact-card{padding:24px}
 }
+
+
+/* Contact and compact footer, October 2026 */
+.contact-page-header{max-width:790px;margin:0 auto 37px;text-align:center}
+.contact-page-header h2{font-size:clamp(34px,5vw,54px);line-height:1.12;letter-spacing:-1.6px;margin:13px 0 10px}
+.contact-page-header h2 em{color:var(--orange)}
+.contact-page-header h3{font-family:Nunito,'Trebuchet MS',sans-serif;font-size:22px;font-weight:900;margin:13px 0 4px}
+.contact-page-header p{font-size:14px;line-height:1.8;color:#637769;margin:8px auto}
+.contact-page-header .contact-tagline{font-weight:800;color:var(--green);font-size:16px}
+.contact-details-grid{display:grid;grid-template-columns:minmax(0,.87fr) minmax(0,1.13fr);gap:24px;align-items:start}
+.contact-details-card,.contact-form-card{background:white;border:1px solid #e4eae2;border-radius:24px;padding:clamp(20px,3.2vw,34px);box-shadow:0 17px 48px rgba(30,75,51,.07)}
+.contact-details-row{display:flex;align-items:flex-start;gap:14px;padding:15px 0;border-bottom:1px solid #edf1eb}
+.contact-details-row:first-child{padding-top:0}
+.contact-detail-emoji{display:grid;place-items:center;flex:none;width:42px;height:42px;border-radius:13px;background:#f1f6ef;font-size:20px}
+.contact-details-row h4{font-family:Nunito,'Trebuchet MS',sans-serif;font-weight:900;font-size:14px;margin:0 0 3px}
+.contact-details-row p{margin:0;color:#66796b;font-size:13px;line-height:1.75}
+.contact-details-row a{font-size:13px;font-weight:700;color:var(--green);overflow-wrap:anywhere;text-decoration:underline;text-underline-offset:3px}
+.contact-soon{color:#909a90;font-size:11px}
+.contact-social{padding-top:23px}
+.contact-social h3{font-size:19px;margin:0 0 8px}
+.contact-social p{color:#536956;font-weight:800;font-size:13px;word-spacing:4px;margin:0}
+.contact-social small{display:block;color:#8a988c;margin-top:8px;font-size:11px}
+.contact-form-card h3{font-family:Nunito,'Trebuchet MS',sans-serif;font-size:25px;font-weight:900;margin:0 0 5px}
+.contact-form-intro{font-size:13px;color:#728374;line-height:1.7;margin-bottom:22px}
+.contact-field{display:flex;flex-direction:column;gap:7px;margin-bottom:15px}
+.contact-field label{font-size:13px;font-weight:800;color:#355845}
+.contact-field label span{color:#c75335}
+.contact-field input,.contact-field select,.contact-field textarea{
+ width:100%;min-width:0;background:#fffefa;border:1px solid #dce7dd;border-radius:11px;
+ padding:11px 13px;color:#263e30;font-family:inherit;font-size:14px;
+ transition:box-shadow .15s,border-color .15s
+}
+.contact-field textarea{min-height:118px;resize:vertical;line-height:1.7}
+.contact-field input:focus,.contact-field select:focus,.contact-field textarea:focus{
+ outline:2px solid #9dd0ae;outline-offset:1px;border-color:#65aa82
+}
+.contact-field input::placeholder,.contact-field textarea::placeholder{color:#939f95}
+.contact-send-button{display:inline-flex;align-items:center;gap:13px;margin-top:5px}
+.contact-form-status{font-size:12px;color:#58745f;line-height:1.7;margin:17px 0 0}
+.contact-form-privacy{border-top:1px solid #e9eee7;padding-top:13px;margin:14px 0 0;color:#819183;font-size:11px;line-height:1.7}
+.site-footer{padding:28px 0}
+.footer-compact{display:flex;flex-direction:column;align-items:center;text-align:center;gap:12px}
+.footer-heading{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:center;color:#536a57;font-size:13px}
+.footer-heading a{color:var(--green);font-family:Nunito,'Trebuchet MS',sans-serif;font-size:18px}
+.footer-links,.footer-contact-links{display:flex;gap:7px 0;flex-wrap:wrap;justify-content:center;align-items:center}
+.footer-links a,.footer-contact-links a,.footer-contact-links span{font-size:12px;color:#64746a;font-weight:750}
+.footer-links>*:not(:last-child)::after,.footer-contact-links>*:not(:last-child)::after{content:"|";padding:0 11px;color:#a6b1a7;font-weight:400}
+.footer-links a:hover,.footer-contact-links a:hover{color:var(--green);text-decoration:underline}
+.footer-contact-links span{color:#9ca79f;cursor:default}
+.footer-compact small{font-size:10px;color:#8a978c;line-height:1.6}
+.info-page{min-height:calc(100vh - 230px);background:linear-gradient(160deg,#fbf9f3,#eff6ef)}
+.info-page-inner{max-width:840px;background:white;border:1px solid #e8eee5;border-radius:22px;padding:clamp(25px,4vw,52px);box-shadow:0 12px 35px rgba(34,62,43,.05)}
+.info-page-inner h2{font-size:clamp(30px,3.7vw,46px);margin:10px 0 21px}
+.info-page-inner h3{font-size:18px;margin:23px 0 5px}
+.info-page-inner p{font-size:14px;line-height:1.85;color:#587061}
+.info-page-inner p:last-child{margin-bottom:0}
+.info-page-inner a:not(.btn){text-decoration:underline;overflow-wrap:anywhere;color:var(--green)}
+@media(max-width:780px){
+ .contact-details-grid{grid-template-columns:1fr;gap:16px}
+ .contact-page-header{text-align:left;margin-bottom:23px}
+ .contact-page-header h2{font-size:38px}
+ .contact-page-header h3{font-size:20px}
+ .contact-details-card,.contact-form-card{padding:22px;border-radius:17px}
+ .footer-compact{gap:13px}
+}
