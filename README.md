@@ -1,4 +1,4 @@
-# threeelittlewonders 🌟
+# Threelittlewonders 🌟
 
 **Little lessons. Big wonders!** A child-friendly, mobile-ready learning website with foundation skills and sample starter lessons for Classes 1 through 10.
 
@@ -27,11 +27,11 @@ Visit http://localhost:8000.
 
 ## Publish on GitHub Pages
 
-1. Create a new GitHub repository named `threeelittlewonders`.
+1. Use the existing repository `funnyspace/Threelittlewonders`.
 2. Upload `index.html`, `styles.css`, `content.js`, `app.js`, `favicon.svg` and `README.md` to its root.
 3. In the repository, go to **Settings → Pages**.
 4. Choose **Deploy from a branch**, select `main` and `/ (root)`, then save.
-5. Your GitHub Pages URL will normally be `https://YOUR-USERNAME.github.io/threeelittlewonders/` once deployment completes.
+5. Your GitHub Pages URL will normally be `https://funnyspace.github.io/Threelittlewonders/` once deployment completes.
 
 You can also deploy this static site on Netlify, Cloudflare Pages or another static web host.
 
@@ -39,7 +39,7 @@ You can also deploy this static site on Netlify, Cloudflare Pages or another sta
 
 - **Brand**: Edit the heading and footer in `index.html`, along with the palette in `styles.css`.
 - **Curriculum**: Add or update lessons in `content.js` using the `add()` helper. All data is local and is not downloaded from a third-party service.
-- **Progress**: Stored under the browser key `threeelittlewonders-progress-v1`. Clearing browser storage clears progress.
+- **Progress**: Stored under the browser key `Threelittlewonders-progress-v1`. The former `threeelittlewonders-progress-v1` key is supported for migration. Clearing browser storage clears progress.
 
 ## Future production features
 
