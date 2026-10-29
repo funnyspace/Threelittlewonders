@@ -15,6 +15,7 @@
   <script src="secondary-curriculum.js" defer></script>
   <script src="app.js" defer></script>
   <script src="curriculum-ui.js" defer></script>
+  <script src="site-navigation.js" defer></script>
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to content</a>
@@ -28,13 +29,14 @@
       <nav class="main-nav" aria-label="Main menu">
         <a class="nav-link active" href="#home">Home</a>
         <a class="nav-link" href="#explore">Explore courses</a>
+        <a class="nav-link" href="#contact">Contact</a>
         <a class="nav-link" href="#how-it-works">How it works</a>
       </nav>
       <a class="nav-progress" href="#my-learning"><span aria-hidden="true">⭐</span> My learning <span id="navStars" class="nav-stars">0</span></a>
       <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Open menu" aria-expanded="false" aria-controls="mobileMenu">☰</button>
     </div>
     <div id="mobileMenu" class="mobile-menu" hidden>
-      <a href="#home">Home</a><a href="#explore">Explore courses</a><a href="#how-it-works">How it works</a><a href="#my-learning">My learning ⭐</a>
+      <a href="#home">Home</a><a href="#explore">Explore courses</a><a href="#contact">Contact</a><a href="#how-it-works">How it works</a><a href="#my-learning">My learning ⭐</a>
     </div>
   </header>
   <main id="main">
@@ -62,7 +64,7 @@
       </div>
       <div class="container hero-footer"><div><span>🎒</span> Nursery to Class 10</div><div><span>🧩</span> Bite-sized learning</div><div><span>🏆</span> Fun quizzes & rewards</div><div><span>🌱</span> Progress at your pace</div></div>
     </section>
-    <section class="explore-section section-padding" id="explore">
+    <section class="explore-section section-padding" id="explore" hidden>
       <div class="container">
         <div class="section-heading explore-heading"><div><span class="kicker">✿ FIND YOUR NEXT ADVENTURE</span><h2>What will you <em>explore</em> today?</h2><p>Pick your class, choose a subject, and let the discoveries begin.</p></div><div class="class-picker"><label for="classSelect">I'm learning in</label><select id="classSelect" aria-label="Select your class"></select><span class="select-arrow">⌄</span></div></div>
         <div class="grade-shortcuts" id="gradeShortcuts" role="group" aria-label="Select a class"></div>
@@ -87,9 +89,26 @@
         <div class="curriculum-note"><span>💛</span><p><strong>Growing with you!</strong> These are sample starter lessons, not yet a complete school syllabus. New lessons and subjects can be added as the website grows.</p></div>
       </div>
     </section>
-    <section class="daily-section section-padding" id="my-learning"><div class="container daily-grid"><div class="daily-copy"><span class="kicker">✦ YOUR LITTLE LEARNING CORNER</span><h2>A little progress<br><em>every day.</em></h2><p>Every lesson you finish is a win! Collect stars, build your confidence, and keep your curiosity going.</p><div class="progress-pills"><span>🌟 <strong id="totalStars">0</strong> stars earned</span><span>✅ <strong id="completedCount">0</strong> lessons finished</span></div><button class="btn btn-primary" id="continueBtn">Continue learning <span aria-hidden="true">↗</span></button><p class="save-note">Progress is saved on this device, in this browser.</p></div><div class="progress-card"><div class="progress-top"><div class="progress-icon">🏆</div><span class="progress-label">MY LEARNING JOURNEY</span></div><div class="progress-card-title">You're doing <span>great!</span></div><div class="progress-stat"><strong id="progressPercent">0%</strong><span>of starter lessons completed for your class</span></div><div class="progress-track"><div class="progress-fill" id="progressFill" style="width:0%"></div></div><div class="progress-card-footer"><span id="progressSubtitle">Your next adventure is waiting.</span><span>✨</span></div></div></div></section>
-    <section class="how-section section-padding" id="how-it-works"><div class="container"><div class="center-heading"><span class="kicker">✦ LEARNING MADE SIMPLE</span><h2>Three little steps to <em>big discoveries.</em></h2><p>No complicated stuff. Just easy, fun learning every day.</p></div><div class="steps-grid"><article class="step-card"><div class="step-illustration step-pick">🎒<span class="step-spark">✳</span></div><div class="step-index">01</div><h3>Pick your class</h3><p>Choose your school level and find just-right lessons made for you.</p></article><article class="step-card"><div class="step-illustration step-learn">📖<span class="step-spark">✦</span></div><div class="step-index">02</div><h3>Learn something new</h3><p>Understand one idea at a time with clear examples and helpful hints.</p></article><article class="step-card"><div class="step-illustration step-win">🏅<span class="step-spark">✳</span></div><div class="step-index">03</div><h3>Quiz, smile, repeat!</h3><p>Test what you know, collect stars and feel proud of every step.</p></article></div></div></section>
-    <section class="cta-section"><div class="container cta-banner"><div class="cta-decoration decoration-left">✿</div><div><span class="kicker">✷ YOUR ADVENTURE STARTS HERE</span><h2>Ready to make your brain sparkle?</h2><p>Big dreams start with one little lesson.</p></div><a href="#explore" class="btn btn-white">Let's get learning! ↗</a><div class="cta-decoration decoration-right">✦</div></div></section>
+    <section class="daily-section section-padding" id="my-learning" hidden><div class="container daily-grid"><div class="daily-copy"><span class="kicker">✦ YOUR LITTLE LEARNING CORNER</span><h2>A little progress<br><em>every day.</em></h2><p>Every lesson you finish is a win! Collect stars, build your confidence, and keep your curiosity going.</p><div class="progress-pills"><span>🌟 <strong id="totalStars">0</strong> stars earned</span><span>✅ <strong id="completedCount">0</strong> lessons finished</span></div><button class="btn btn-primary" id="continueBtn">Continue learning <span aria-hidden="true">↗</span></button><p class="save-note">Progress is saved on this device, in this browser.</p></div><div class="progress-card"><div class="progress-top"><div class="progress-icon">🏆</div><span class="progress-label">MY LEARNING JOURNEY</span></div><div class="progress-card-title">You're doing <span>great!</span></div><div class="progress-stat"><strong id="progressPercent">0%</strong><span>of starter lessons completed for your class</span></div><div class="progress-track"><div class="progress-fill" id="progressFill" style="width:0%"></div></div><div class="progress-card-footer"><span id="progressSubtitle">Your next adventure is waiting.</span><span>✨</span></div></div></div></section>
+    <section class="contact-section section-padding" id="contact" aria-labelledby="contactTitle" hidden>
+      <div class="container contact-shell">
+        <div class="contact-intro">
+          <span class="kicker">✦ CONNECT WITH US</span>
+          <h2 id="contactTitle">We're here for <em>curious minds.</em></h2>
+          <p>Have a question, an idea for a lesson, or feedback about Threelittlewonders? We welcome suggestions from parents, teachers and guardians.</p>
+          <div class="contact-bubbles" aria-hidden="true"><span>💬</span><span>💡</span><span>🌟</span></div>
+        </div>
+        <div class="contact-card">
+          <span class="contact-icon" aria-hidden="true">✉️</span>
+          <h3>Get in touch</h3>
+          <p>Share a question, report an issue, or request a new learning topic through our public GitHub feedback page.</p>
+          <a class="btn btn-primary contact-link" href="https://github.com/funnyspace/Threelittlewonders/issues/new" target="_blank" rel="noopener noreferrer">Send feedback on GitHub <span aria-hidden="true">↗</span></a>
+          <p class="contact-small">GitHub sign-in is required. Messages posted there are public.</p>
+          <div class="contact-privacy"><strong>For parents and guardians:</strong> Please do not include children's names, addresses, phone numbers, school information or other private details in a public message.</div>
+        </div>
+      </div>
+    </section>
+    <section class="how-section section-padding" id="how-it-works" hidden><div class="container"><div class="center-heading"><span class="kicker">✦ LEARNING MADE SIMPLE</span><h2>Three little steps to <em>big discoveries.</em></h2><p>No complicated stuff. Just easy, fun learning every day.</p></div><div class="steps-grid"><article class="step-card"><div class="step-illustration step-pick">🎒<span class="step-spark">✳</span></div><div class="step-index">01</div><h3>Pick your class</h3><p>Choose your school level and find just-right lessons made for you.</p></article><article class="step-card"><div class="step-illustration step-learn">📖<span class="step-spark">✦</span></div><div class="step-index">02</div><h3>Learn something new</h3><p>Understand one idea at a time with clear examples and helpful hints.</p></article><article class="step-card"><div class="step-illustration step-win">🏅<span class="step-spark">✳</span></div><div class="step-index">03</div><h3>Quiz, smile, repeat!</h3><p>Test what you know, collect stars and feel proud of every step.</p></article></div></div></section>
   </main>
   <footer class="site-footer"><div class="container footer-inner"><a class="brand footer-brand" href="#home"><span class="brand-mark" aria-hidden="true"><span class="rgb-bar"></span><span class="rgb-bar"></span><span class="rgb-bar"></span></span><span class="brand-text">Three<span>little</span>wonders<span class="brand-dot">.</span></span></a><p>Making learning a little more wonderful, every day. 💛</p><span>© <span id="currentYear"></span> Threelittlewonders</span></div></footer>
   <div class="modal-backdrop" id="lessonModal" hidden><section class="lesson-modal" role="dialog" aria-modal="true" aria-labelledby="lessonTitle"><header class="modal-header"><div class="modal-header-left"><span class="modal-subject-icon" id="modalSubjectIcon">📚</span><div><p class="modal-kicker" id="modalMeta">LET'S LEARN</p><h2 id="lessonTitle">Your lesson</h2></div></div><button class="close-btn" id="closeLesson" aria-label="Close lesson">✕</button></header><div class="lesson-steps" aria-label="Lesson stages"><span class="stage active" id="stageLearn">1. Learn</span><span class="stage" id="stageQuiz">2. Try a quiz</span><span class="stage" id="stageComplete">3. Celebrate</span></div><div class="lesson-body" id="lessonBody"></div><div class="modal-footer" id="lessonFooter"></div></section></div>
