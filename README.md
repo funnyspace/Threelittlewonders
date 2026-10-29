@@ -28,7 +28,7 @@ Visit http://localhost:8000.
 ## Publish on GitHub Pages
 
 1. Use the existing repository `funnyspace/Threelittlewonders`.
-2. Upload `index.html`, `styles.css`, `content.js`, `app.js`, `favicon.svg` and `README.md` to its root.
+2. Upload `index.html`, `styles.css`, `content.js`, `preprimary.js`, `curriculum.js`, `school-curriculum.js`, `app.js`, `curriculum-ui.js`, `favicon.svg` and `README.md` to its root.
 3. In the repository, go to **Settings → Pages**.
 4. Choose **Deploy from a branch**, select `main` and `/ (root)`, then save.
 5. Your GitHub Pages URL will normally be `https://funnyspace.github.io/Threelittlewonders/` once deployment completes.
