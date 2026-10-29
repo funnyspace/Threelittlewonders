@@ -109,3 +109,34 @@
  .topic-panel-footer{align-items:stretch;flex-direction:column;}
  .curriculum-heading h3{font-size:22px;}
 }
+
+
+/* Page-style navigation: only the selected section is shown. */
+[hidden]{display:none!important}
+.main-nav{gap:22px}
+.main-nav .nav-link.active,.mobile-menu a.active,.nav-progress.active{color:var(--green);font-weight:900}
+.contact-section{min-height:calc(100vh - 220px);background:linear-gradient(155deg,#fbf9f3 0%,#eef6ef 100%)}
+.contact-shell{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:clamp(28px,6vw,94px);align-items:center}
+.contact-intro h2{font-size:clamp(35px,4vw,57px);line-height:1.13;letter-spacing:-1.5px;margin:17px 0}
+.contact-intro h2 em{color:var(--orange)}
+.contact-intro>p{max-width:510px;font-size:16px;line-height:1.85;color:#5f7465}
+.contact-bubbles{display:flex;align-items:center;gap:14px;margin-top:30px}
+.contact-bubbles span{display:grid;place-items:center;background:white;box-shadow:0 10px 22px #2a4c3320;width:57px;height:57px;border-radius:18px;font-size:26px}
+.contact-bubbles span:nth-child(2){background:#fff0df;transform:translateY(-9px)}
+.contact-bubbles span:nth-child(3){background:#e6f3eb}
+.contact-card{background:white;border:1px solid #e4eae2;border-radius:26px;padding:clamp(23px,3vw,42px);box-shadow:0 25px 65px rgba(30,75,51,.09)}
+.contact-icon{display:grid;place-items:center;width:65px;height:65px;background:#f9e9df;border-radius:19px;font-size:30px}
+.contact-card h3{font-size:27px;font-weight:900;margin:20px 0 9px}
+.contact-card>p{color:#657568;line-height:1.8;font-size:14px}
+.contact-card .contact-link{display:inline-flex;align-items:center;gap:12px;margin-top:14px}
+.contact-card .contact-small{font-size:12px;color:#8c978e;margin-top:13px}
+.contact-privacy{margin-top:20px;border-top:1px solid #e9ede8;padding-top:16px;color:#65806f;font-size:12px;line-height:1.75}
+.contact-privacy strong{color:#315c43}
+@media(max-width:1050px){.main-nav{gap:14px}}
+@media(max-width:780px){
+ .contact-shell{grid-template-columns:1fr;gap:23px}
+ .contact-section{min-height:0}
+ .contact-intro h2{font-size:38px}
+ .contact-intro>p{font-size:14px}
+ .contact-card{padding:24px}
+}
