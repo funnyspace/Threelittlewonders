@@ -1,4 +1,4 @@
-/* Starter curriculum for threeelittlewonders. All lesson copy is bundled locally.
+/* Starter curriculum for Threelittlewonders. All lesson copy is bundled locally.
    Add more lessons with add(grade, subject, title, description, emoji, concept, example, tip, quiz1, quiz2).
    Grade 0 = Foundation; grades 1-10 = school classes. */
 window.TLW_SUBJECTS = {
