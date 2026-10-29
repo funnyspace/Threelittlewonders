@@ -55,3 +55,15 @@ The site header, footer, and favicon use three vertical RGB bars (red, green, bl
 ## Pre-primary levels
 
 Nursery, LKG and UKG are shown before Class 1. Lessons for these levels are added in `preprimary.js`. Previous grade-0 progress remains valid under UKG.
+
+## Nursery, LKG and UKG learning topics
+
+The learning roadmap now includes the complete set of 80 requested pre-primary topic headings:
+
+- **Nursery:** 19 topics grouped into communication and early literacy, early mathematics, nature and everyday life, creativity/play/movement, and feelings/friendship.
+- **LKG:** 32 topics under Language (9), Mathematics (12), and Environmental awareness (11).
+- **UKG:** 29 topics under Language (8), Mathematics (10), and Environmental learning (11).
+
+Select any topic to see a short guided practice activity. Families can mark a topic as practised (and reverse the selection), with local-browser storage under `Threelittlewonders-curriculum-progress-v1`. Topic practice does not affect quiz stars or lesson completion.
+
+The topic list is a learning roadmap with short practice prompts, not a complete syllabus-aligned course or a full set of interactive lessons. Existing 71 two-question starter lessons remain available below the roadmap.
