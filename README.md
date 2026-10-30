@@ -114,7 +114,7 @@ The parent/guardian form requests a name and email address, optional contact pho
 
 ## Nursery Maths: five new interactive lessons
 
-The Nursery **Quick interactive lessons → Maths** filter includes five additional topic cards: **Number Awareness**, **Counting Objects**, **Colours**, **Shapes**, and **Big/Small, More/Less**. Each has a short picture/emoji-supported explanation, example, activity and two-question quiz. The previous Nursery lessons remain intact. Total site starter lessons: **87**.
+The Nursery **Quick interactive lessons → Maths** filter includes five additional topic cards: **Number Awareness**, **Counting Objects**, **Colours**, **Shapes**, and **Big/Small, More/Less**. Each has a short picture/emoji-supported explanation, example, activity and two-question quiz. The previous Nursery lessons remain intact. Total site starter lessons: **95**.
 
 
 ## Nursery English interactive lessons
@@ -124,4 +124,9 @@ Nursery → Quick interactive lessons → English now includes **Listening and S
 
 ## Nursery Hindi, EVS and subject order
 
-Nursery → Quick interactive lessons now uses the subject order **English → Hindi → Maths → EVS**. The former Nursery **General Knowledge** subject has been removed. Hindi includes **सुनना और बोलना**, **चित्र पहचान**, **शब्द भंडार**, and **हिंदी कविताएँ**. EVS adds **Nature and Surroundings**, **Family and Community**, **Good Habits**, and **Social-Emotional Learning**. Existing Nursery English, Maths and EVS lessons remain available. Total site starter lessons: **87**.
+Nursery → Quick interactive lessons now uses the subject order **English → Hindi → Maths → EVS**. The former Nursery **General Knowledge** subject has been removed. Hindi includes **सुनना और बोलना**, **चित्र पहचान**, **शब्द भंडार**, and **हिंदी कविताएँ**. EVS adds **Nature and Surroundings**, **Family and Community**, **Good Habits**, and **Social-Emotional Learning**. Existing Nursery English, Maths and EVS lessons remain available. Total site starter lessons: **95**.
+
+
+## LKG and UKG subject structure
+
+LKG and UKG Quick interactive lessons now follow the same four-subject order as Nursery: **English → Hindi → Maths → EVS**. LKG adds four Hindi lessons: **वर्ण पहचान**, **चित्र और शब्द**, **शब्द भंडार**, and **हिंदी कविताएँ**; its existing **Big and Small** lesson is classified under Maths. UKG adds four Hindi lessons: **अक्षर और ध्वनि**, **सरल शब्द**, **सरल वाक्य**, and **कहानी सुनना और बोलना**; **Days of the Week** is classified under EVS. Neither LKG nor UKG shows a General Knowledge subject. Total site starter lessons: **95**.
