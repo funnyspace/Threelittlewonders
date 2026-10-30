@@ -13,10 +13,11 @@
   <script src="curriculum.js" defer></script>
   <script src="school-curriculum.js" defer></script>
   <script src="secondary-curriculum.js" defer></script>
-  <script src="app.js?v=20261030-selected-class-only" defer></script>
+  <script src="app.js?v=20261030-start-learning-flow" defer></script>
   <script src="curriculum-ui.js?v=20261030-preprimary-hide" defer></script>
   <script src="contact-form.js" defer></script>
   <script src="site-navigation.js" defer></script>
+  <script src="start-learning.js" defer></script>
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to content</a>
@@ -47,7 +48,7 @@
           <div class="eyebrow"><span class="eyebrow-dot"></span> THE HAPPY PLACE TO LEARN</div>
           <h1>Little lessons.<br><span class="underline-swoosh">Big wonders<span class="exclamation">!</span></span></h1>
           <p class="hero-description">From Nursery, LKG and UKG to Class 10, explore school subjects with tiny lessons, easy explanations, and quizzes that make learning feel like play.</p>
-          <div class="hero-actions"><a href="#explore" class="btn btn-primary">Start learning <span aria-hidden="true">↗</span></a><a href="#how-it-works" class="btn btn-light"><span class="play-circle">▶</span> See how it works</a></div>
+          <div class="hero-actions"><a href="#explore" class="btn btn-primary" id="startLearningBtn">Start learning <span aria-hidden="true">↗</span></a><a href="#how-it-works" class="btn btn-light"><span class="play-circle">▶</span> See how it works</a></div>
           <div class="hero-trust"><div class="avatar-stack" aria-hidden="true"><span>👧</span><span>👦</span><span>🧒</span></div><span><strong>Made for curious minds</strong><br>Learn at your own happy pace</span></div>
         </div>
         <div class="hero-art" aria-label="Friendly illustration of a growing learning adventure" role="img">
@@ -68,13 +69,14 @@
     <section class="explore-section section-padding" id="explore" hidden>
       <div class="container">
         <div class="section-heading explore-heading"><div><span class="kicker">✿ FIND YOUR NEXT ADVENTURE</span><h2>What will you <em>explore</em> today?</h2><p>Pick your class, choose a subject, and let the discoveries begin.</p></div><div class="class-picker"><label for="classSelect">I'm learning in</label><select id="classSelect" aria-label="Select your class"></select><span class="select-arrow">⌄</span></div></div>
+        <div class="learning-step-heading"><span>STEP 1</span><strong>Choose your class</strong><small>Tap your class to start learning.</small></div>
         <div class="grade-shortcuts" id="gradeShortcuts" role="group" aria-label="Select a class"></div>
 
         <section class="class-subject-section" id="classSubjectSection" aria-labelledby="classSubjectTitle">
           <div class="class-subject-heading">
             <div>
               <span id="subjectGradeName" class="visually-hidden"></span>
-              <span class="kicker">✦ SUBJECTS</span>
+              <span class="kicker">STEP 2 · SUBJECTS</span>
               <h3 id="classSubjectTitle">Choose a subject</h3>
               <p>Select a subject below to see its interactive lessons.</p>
             </div>
