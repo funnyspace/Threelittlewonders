@@ -13,7 +13,6 @@ function persist(){try{localStorage.setItem(STORE_KEY,JSON.stringify(state))}cat
 const gradeName=g=>g===-2?'Nursery':g===-1?'LKG':g===0?'UKG':`Class ${g}`;
 const subjectIcon=s=>SUBJECTS[s]?.icon||'📚';
 function showToast(msg){const t=$('toast');t.textContent=msg;t.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),2400)}
-function beginLearningFlow(){classChoicesOpen=true;subject='';query='';$('searchInput').value='';renderAll();const roadmap=$('curriculumSection');if(roadmap)roadmap.hidden=true;const lessons=$('lessonResultsSection');if(lessons)lessons.hidden=true;requestAnimationFrame(()=>requestAnimationFrame(()=>$('gradeShortcuts')?.scrollIntoView({behavior:'smooth',block:'center'})));}
 function setGrade(g){if(!Number.isInteger(g)||!GRADE_LEVELS.includes(g))return;state.grade=g;subject='';query='';classChoicesOpen=false;$('searchInput').value='';persist();renderAll();requestAnimationFrame(()=>$('classSubjectSection')?.scrollIntoView({behavior:'smooth',block:'start'}))}
 function renderGradeSelectors(){
  $('classSelect').innerHTML=GRADE_LEVELS.map(g=>`<option value="${g}" ${state.grade===g?'selected':''}>${gradeName(g)}</option>`).join('');
@@ -62,7 +61,7 @@ function renderProgress(){
  $('progressFill').style.width=pct+'%';
  $('progressSubtitle').textContent=pct===100?'You finished every starter lesson in '+gradeName(state.grade)+'! 🎉':`${doneGrade} of ${gradeLessons.length} ${gradeName(state.grade)} lessons completed`;
 }
-function renderAll(){renderGradeSelectors();renderSubjectFilters();$('classSubjectSection').hidden=classChoicesOpen;renderCourses();renderProgress();const roadmap=$('curriculumSection');if(classChoicesOpen&&roadmap)roadmap.hidden=true;if(state.grade>=-2&&state.grade<=0&&roadmap)roadmap.hidden=true;}
+function renderAll(){renderGradeSelectors();renderSubjectFilters();renderCourses();renderProgress();if(state.grade>=-2&&state.grade<=0){const roadmap=$('curriculumSection');if(roadmap)roadmap.hidden=true;}}
 function openLesson(id){const lesson=LESSONS.find(l=>l.id===id);if(!lesson)return;currentLesson=lesson;currentQuestion=0;questionAnswered=false;returnFocus=document.activeElement;$('lessonModal').hidden=false;document.body.classList.add('modal-open');$('lessonTitle').textContent=lesson.title;$('modalSubjectIcon').textContent=subjectIcon(lesson.subject);$('modalMeta').textContent=`${gradeName(lesson.grade).toUpperCase()} · ${lesson.subject.toUpperCase()} · ${lesson.minutes} MIN`;
  showLearn();$('closeLesson').focus();}
 function stage(which){['Learn','Quiz','Complete'].forEach(s=>{const x=$('stage'+s);x.classList.toggle('active',s===which);x.classList.toggle('done',({Learn:0,Quiz:1,Complete:2}[s]||0)<({Learn:0,Quiz:1,Complete:2}[which]||0))})}
@@ -112,7 +111,7 @@ function closeLesson(){if($('lessonModal').hidden)return;$('lessonModal').hidden
 function continueLearning(){const next=LESSONS.find(l=>l.grade===state.grade&&!state.completed.includes(l.id))||LESSONS.find(l=>l.grade===state.grade);if(next)openLesson(next.id);else showToast('Choose a class to start learning!')}
 function installEvents(){
  $('classSelect').addEventListener('change',e=>setGrade(Number(e.target.value)));
- $('gradeShortcuts').addEventListener('click',e=>{const gradeBtn=e.target.closest('[data-grade]');if(gradeBtn){setGrade(Number(gradeBtn.dataset.grade));return;}const changeBtn=e.target.closest('[data-change-class]');if(changeBtn){beginLearningFlow();}});
+ $('gradeShortcuts').addEventListener('click',e=>{const gradeBtn=e.target.closest('[data-grade]');if(gradeBtn){setGrade(Number(gradeBtn.dataset.grade));return;}const changeBtn=e.target.closest('[data-change-class]');if(changeBtn){classChoicesOpen=true;renderGradeSelectors();requestAnimationFrame(()=>$('gradeShortcuts')?.scrollIntoView({behavior:'smooth',block:'center'}));}});
  $('subjectFilters').addEventListener('click',e=>{const btn=e.target.closest('[data-subject]');if(btn){subject=btn.dataset.subject;query='';$('searchInput').value='';renderSubjectFilters();renderCourses();requestAnimationFrame(()=>$('lessonResultsSection')?.scrollIntoView({behavior:'smooth',block:'start'}))}});
  $('searchInput').addEventListener('input',e=>{query=e.target.value.trim().toLowerCase();renderCourses()});
  $('courseGrid').addEventListener('click',e=>{const btn=e.target.closest('[data-lesson-id]');if(btn)openLesson(btn.dataset.lessonId)});
