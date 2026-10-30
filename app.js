@@ -8,12 +8,12 @@ const $=id=>document.getElementById(id);
 const safe=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const GRADE_LEVELS=[-2,-1,0,...Array.from({length:10},(_,i)=>i+1)];
 function load(){try{const v=JSON.parse(localStorage.getItem(STORE_KEY)||localStorage.getItem(LEGACY_STORE_KEY)||'{}');return {grade:Number.isInteger(v.grade)&&GRADE_LEVELS.includes(v.grade)?v.grade:3,completed:Array.isArray(v.completed)?[...new Set(v.completed.filter(x=>typeof x==='string'))]:[]}}catch{return {grade:3,completed:[]}}}
-let state=load(),subject='',query='',classChoicesOpen=true,currentLesson=null,currentQuestion=0,questionAnswered=false,returnFocus=null,toastTimer;
+let state=load(),subject='',query='',classChoicesOpen=true,currentTopicId='',currentLesson=null,currentQuestion=0,questionAnswered=false,returnFocus=null,toastTimer;
 function persist(){try{localStorage.setItem(STORE_KEY,JSON.stringify(state))}catch{showToast('Progress cannot be saved in this browser.')}}
 const gradeName=g=>g===-2?'Nursery':g===-1?'LKG':g===0?'UKG':`Class ${g}`;
 const subjectIcon=s=>SUBJECTS[s]?.icon||'📚';
 function showToast(msg){const t=$('toast');t.textContent=msg;t.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),2400)}
-function setGrade(g){if(!Number.isInteger(g)||!GRADE_LEVELS.includes(g))return;state.grade=g;subject='';query='';classChoicesOpen=false;$('searchInput').value='';persist();renderAll();requestAnimationFrame(()=>$('classSubjectSection')?.scrollIntoView({behavior:'smooth',block:'start'}))}
+function setGrade(g){if(!Number.isInteger(g)||!GRADE_LEVELS.includes(g))return;state.grade=g;subject='';query='';currentTopicId='';classChoicesOpen=false;$('searchInput').value='';persist();renderAll();requestAnimationFrame(()=>$('classSubjectSection')?.scrollIntoView({behavior:'smooth',block:'start'}))}
 function renderGradeSelectors(){
  $('classSelect').innerHTML=GRADE_LEVELS.map(g=>`<option value="${g}" ${state.grade===g?'selected':''}>${gradeName(g)}</option>`).join('');
  const classPicker=document.querySelector('.class-picker');
@@ -40,6 +40,7 @@ function renderCourses(){
   lessonSection.hidden=true;
   $('courseGrid').innerHTML='';
   $('emptyState').hidden=true;
+  currentTopicId='';
   return;
  }
  lessonSection.hidden=false;
@@ -47,11 +48,59 @@ function renderCourses(){
  $('selectedSubjectTitle').textContent=subject;
  $('selectedSubjectPill').innerHTML=`<span aria-hidden="true">${allSubjects?'✦':subjectIcon(subject)}</span><strong>${safe(subject)}</strong> · ${gradeName(state.grade)}`;
  const lessons=LESSONS.filter(l=>l.grade===state.grade&&(allSubjects||l.subject===subject)&&(!query||[l.title,l.subject,l.description,l.concept].some(t=>t.toLowerCase().includes(query))));
- $('courseGrid').innerHTML=lessons.map(l=>{
- const done=state.completed.includes(l.id),visual=SUBJECTS[l.subject]?.color||'#f7f3eb';
- return `<article class="course-card"><div class="course-visual" style="background:${visual}"><span class="visual-emoji" aria-hidden="true">${safe(l.emoji)}</span><span class="visual-small" aria-hidden="true">✦</span><span class="card-top-tag">${l.minutes} min lesson</span>${done?'<span class="completed-label">✓ Completed</span>':''}</div><div class="course-content"><div class="course-subject">${safe(l.subject)} · ${gradeName(l.grade)}</div><h3>${safe(l.title)}</h3><p>${safe(l.description)}</p><div class="course-meta"><small><span>📘</span> Learn + quick quiz</small><button class="course-open" data-lesson-id="${safe(l.id)}" aria-label="${done?'Review':'Start'} ${safe(l.title)}">↗</button></div></div></article>`
- }).join('');
- $('emptyState').hidden=lessons.length>0;
+ if(!lessons.length){
+  currentTopicId='';
+  $('courseGrid').innerHTML='';
+  $('emptyState').hidden=false;
+  return;
+ }
+ $('emptyState').hidden=true;
+ if(!lessons.some(l=>l.id===currentTopicId))currentTopicId=lessons[0].id;
+ const selected=lessons.find(l=>l.id===currentTopicId)||lessons[0];
+ const done=state.completed.includes(selected.id);
+ const richNote=(selected.activities?.length||selected.rhymes?.length||selected.stories?.length)
+   ? '<div class="topic-rich-note">✨ This topic includes additional guided learning content. Select <strong>Read</strong> to view everything.</div>'
+   : '';
+ $('courseGrid').innerHTML=`
+  <div class="topic-browser">
+   <aside class="topic-list-panel" aria-label="Topics in ${safe(subject)}">
+    <div class="topic-list-header"><span>TOPICS</span><strong>${lessons.length}</strong></div>
+    <div class="topic-list">
+     ${lessons.map((l,i)=>`<button type="button" class="topic-list-item ${l.id===selected.id?'active':''}" data-topic-id="${safe(l.id)}" aria-pressed="${l.id===selected.id}">
+       <span class="topic-list-number">${i+1}</span>
+       <span class="topic-list-copy">${allSubjects?'<small>'+safe(l.subject)+'</small>':''}<strong>${safe(l.title)}</strong></span>
+       ${state.completed.includes(l.id)?'<span class="topic-list-done" title="Completed">✓</span>':''}
+      </button>`).join('')}
+    </div>
+   </aside>
+   <article class="topic-content-panel" aria-live="polite">
+    <div class="topic-content-top">
+     <div>
+      <span class="topic-content-subject">${subjectIcon(selected.subject)} ${safe(selected.subject)} · ${gradeName(selected.grade)}</span>
+      <h3>${safe(selected.title)}</h3>
+      <p class="topic-content-description">${safe(selected.description)}</p>
+     </div>
+     <span class="topic-time">${selected.minutes} min</span>
+    </div>
+    <div class="topic-content-block">
+     <span class="topic-content-label">🌱 What you will learn</span>
+     <p>${safe(selected.concept)}</p>
+    </div>
+    <div class="topic-content-block topic-example-block">
+     <span class="topic-content-label">💡 Easy example</span>
+     <p>${safe(selected.example)}</p>
+    </div>
+    <div class="topic-content-block topic-activity-block">
+     <span class="topic-content-label">🌟 Try this</span>
+     <p>${safe(selected.tip)}</p>
+    </div>
+    ${richNote}
+    <div class="topic-content-actions">
+     <span class="topic-read-status">${done?'✓ Completed · Read again':'📖 Full lesson + quick quiz'}</span>
+     <button type="button" class="btn btn-primary topic-read-btn" data-read-lesson="${safe(selected.id)}">Read</button>
+    </div>
+   </article>
+  </div>`;
 }
 function renderProgress(){
  const gradeLessons=LESSONS.filter(l=>l.grade===state.grade),doneGrade=gradeLessons.filter(l=>state.completed.includes(l.id)).length;
@@ -116,9 +165,9 @@ function continueLearning(){const next=LESSONS.find(l=>l.grade===state.grade&&!s
 function installEvents(){
  $('classSelect').addEventListener('change',e=>setGrade(Number(e.target.value)));
  $('gradeShortcuts').addEventListener('click',e=>{const gradeBtn=e.target.closest('[data-grade]');if(gradeBtn){setGrade(Number(gradeBtn.dataset.grade));return;}const changeBtn=e.target.closest('[data-change-class]');if(changeBtn){classChoicesOpen=true;renderGradeSelectors();requestAnimationFrame(()=>$('gradeShortcuts')?.scrollIntoView({behavior:'smooth',block:'center'}));}});
- $('subjectFilters').addEventListener('click',e=>{const btn=e.target.closest('[data-subject]');if(btn){subject=btn.dataset.subject;query='';$('searchInput').value='';renderSubjectFilters();renderCourses();requestAnimationFrame(()=>$('lessonResultsSection')?.scrollIntoView({behavior:'smooth',block:'start'}))}});
+ $('subjectFilters').addEventListener('click',e=>{const btn=e.target.closest('[data-subject]');if(btn){subject=btn.dataset.subject;query='';currentTopicId='';$('searchInput').value='';renderSubjectFilters();renderCourses();requestAnimationFrame(()=>$('lessonResultsSection')?.scrollIntoView({behavior:'smooth',block:'start'}))}});
  $('searchInput').addEventListener('input',e=>{query=e.target.value.trim().toLowerCase();renderCourses()});
- $('courseGrid').addEventListener('click',e=>{const btn=e.target.closest('[data-lesson-id]');if(btn)openLesson(btn.dataset.lessonId)});
+ $('courseGrid').addEventListener('click',e=>{const topic=e.target.closest('[data-topic-id]');if(topic){currentTopicId=topic.dataset.topicId;renderCourses();return;}const read=e.target.closest('[data-read-lesson]');if(read)openLesson(read.dataset.readLesson);});
  $('clearFiltersBtn').addEventListener('click',()=>{query='';$('searchInput').value='';renderCourses()});
  $('continueBtn').addEventListener('click',continueLearning);
  $('closeLesson').addEventListener('click',closeLesson);
