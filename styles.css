@@ -323,3 +323,31 @@
 @media(max-width:390px){
   .subject-choice-grid{grid-template-columns:1fr}
 }
+
+
+/* Selected class above subjects */
+.grade-shortcuts.selected-class-only{overflow:visible;padding:10px 0 16px;margin-top:10px}
+.selected-class-display{
+  display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+  width:100%;padding:15px 17px;border:1px solid #dfe8df;border-radius:15px;
+  background:linear-gradient(135deg,#fffdf8,#eef7ef);
+  box-shadow:0 8px 20px rgba(45,83,57,.05)
+}
+.selected-class-display .selected-class-label{
+  font-size:10px;font-weight:900;letter-spacing:1.2px;text-transform:uppercase;color:#7c8c81
+}
+.selected-class-display strong{
+  font-family:Nunito,'Trebuchet MS',sans-serif;font-size:24px;line-height:1.2;color:#244b35
+}
+.change-class-btn{
+  margin-left:auto;border:1px solid #b8d0bd;background:#fff;color:#2d6b49;
+  border-radius:999px;padding:8px 13px;font-size:11px;font-weight:900
+}
+.change-class-btn:hover{background:#edf7ef;border-color:#8eb49a}
+.class-subject-section{margin-top:4px}
+@media(max-width:600px){
+  .selected-class-display{align-items:flex-start;gap:7px;padding:13px}
+  .selected-class-display .selected-class-label{width:100%}
+  .selected-class-display strong{font-size:21px}
+  .change-class-btn{margin-left:auto}
+}
