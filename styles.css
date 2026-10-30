@@ -374,3 +374,44 @@
  .learning-step-heading{align-items:flex-start}
  .learning-step-heading small{width:100%;padding-left:62px}
 }
+
+
+/* Class-selected subject-only screen */
+#explore.class-selected-mode{
+  padding-top:34px;
+}
+#explore.class-selected-mode #exploreHeading,
+#explore.class-selected-mode #classChoiceHeading,
+#explore.class-selected-mode #gradeShortcuts,
+#explore.class-selected-mode #curriculumSection,
+#explore.class-selected-mode #curriculumNote{
+  display:none!important;
+}
+#explore.class-selected-mode #classSubjectSection{
+  display:block!important;
+  max-width:980px;
+  margin:0 auto;
+}
+#explore.class-selected-mode .class-subject-heading{
+  justify-content:center;
+  text-align:center;
+  margin-bottom:22px;
+}
+#explore.class-selected-mode .class-subject-heading>div{
+  width:100%;
+}
+#explore.class-selected-mode .class-subject-heading h3{
+  font-size:clamp(30px,4vw,44px);
+  margin:7px 0 6px;
+}
+#explore.class-selected-mode .class-subject-heading p{
+  font-size:14px;
+}
+#explore.class-selected-mode .subject-choice-grid{
+  margin-top:4px;
+}
+@media(max-width:680px){
+  #explore.class-selected-mode{padding-top:20px}
+  #explore.class-selected-mode #classSubjectSection{padding:16px}
+  #explore.class-selected-mode .class-subject-heading h3{font-size:28px}
+}
