@@ -353,3 +353,101 @@
 }
 
 .visually-hidden{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
+
+
+/* Topic browser: topics on the left, selected content on the right */
+.course-grid{display:block}
+.topic-browser{
+  display:grid;
+  grid-template-columns:minmax(230px,31%) minmax(0,1fr);
+  gap:18px;
+  align-items:start;
+}
+.topic-list-panel,.topic-content-panel{
+  border:1px solid #e4e9e1;
+  border-radius:18px;
+  background:#fff;
+  box-shadow:0 8px 24px rgba(37,76,48,.05);
+}
+.topic-list-panel{overflow:hidden;position:sticky;top:92px}
+.topic-list-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:15px 16px;border-bottom:1px solid #e7ece5;background:#f7faf6;
+  color:#617568;font-size:10px;font-weight:900;letter-spacing:1.3px
+}
+.topic-list-header strong{
+  display:grid;place-items:center;min-width:27px;height:27px;padding:0 8px;
+  border-radius:999px;background:#e7f2e9;color:#2f6a48;font-size:11px
+}
+.topic-list{display:flex;flex-direction:column;max-height:620px;overflow:auto}
+.topic-list-item{
+  width:100%;display:flex;align-items:center;gap:11px;text-align:left;
+  padding:13px 14px;border:0;border-bottom:1px solid #edf0eb;background:#fff;
+  color:#40594a;cursor:pointer;transition:background .15s,border-color .15s
+}
+.topic-list-item:last-child{border-bottom:0}
+.topic-list-item:hover{background:#f7fbf7}
+.topic-list-item.active{background:#eaf4ed;color:#215b3d}
+.topic-list-number{
+  display:grid;place-items:center;flex:none;width:29px;height:29px;
+  border-radius:9px;background:#f1f5f0;color:#698072;font-size:11px;font-weight:900
+}
+.topic-list-item.active .topic-list-number{background:#d8eadc;color:#215b3d}
+.topic-list-copy{display:flex;min-width:0;flex:1;flex-direction:column;gap:2px}
+.topic-list-copy small{
+  color:#849489;font-size:9px;font-weight:900;letter-spacing:.8px;text-transform:uppercase
+}
+.topic-list-copy strong{font-size:12px;line-height:1.4}
+.topic-list-done{
+  display:grid;place-items:center;flex:none;width:23px;height:23px;border-radius:50%;
+  background:#e4f2e7;color:#267047;font-size:11px;font-weight:900
+}
+.topic-content-panel{padding:24px}
+.topic-content-top{
+  display:flex;align-items:flex-start;justify-content:space-between;gap:18px;
+  padding-bottom:20px;border-bottom:1px solid #e9ede7
+}
+.topic-content-subject{
+  display:inline-block;margin-bottom:8px;color:#65806d;font-size:11px;font-weight:900
+}
+.topic-content-top h3{
+  margin:0 0 8px;font-family:Nunito,'Trebuchet MS',sans-serif;
+  font-size:clamp(24px,3vw,34px);line-height:1.2;color:#1f4632
+}
+.topic-content-description{margin:0;color:#69796f;font-size:13px;line-height:1.75}
+.topic-time{
+  flex:none;border-radius:999px;padding:7px 11px;background:#f5f7f2;
+  color:#708076;font-size:10px;font-weight:900;white-space:nowrap
+}
+.topic-content-block{
+  margin-top:16px;padding:16px 17px;border:1px solid #e7ece5;
+  border-radius:14px;background:#fbfcfa
+}
+.topic-content-label{
+  display:block;margin-bottom:7px;color:#345a43;font-size:11px;font-weight:900;
+  letter-spacing:.2px
+}
+.topic-content-block p{margin:0;color:#56695c;font-size:13px;line-height:1.75}
+.topic-example-block{background:#f2f8f1}
+.topic-activity-block{background:#fff8ec}
+.topic-rich-note{
+  margin-top:16px;padding:12px 14px;border-radius:12px;background:#f1f5ff;
+  color:#53667f;font-size:12px;line-height:1.65
+}
+.topic-content-actions{
+  display:flex;align-items:center;justify-content:space-between;gap:16px;
+  margin-top:22px;padding-top:18px;border-top:1px solid #e9ede7
+}
+.topic-read-status{color:#728077;font-size:11px;font-weight:800}
+.topic-read-btn{min-width:112px;justify-content:center}
+@media(max-width:820px){
+  .topic-browser{grid-template-columns:1fr}
+  .topic-list-panel{position:static}
+  .topic-list{max-height:280px}
+}
+@media(max-width:520px){
+  .topic-content-panel{padding:18px}
+  .topic-content-top{flex-direction:column;gap:8px}
+  .topic-content-actions{align-items:stretch;flex-direction:column}
+  .topic-read-btn{width:100%}
+}
