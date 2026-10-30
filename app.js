@@ -20,10 +20,18 @@ function renderGradeSelectors(){
 }
 function renderSubjectFilters(){
  const subjects=[...new Set(LESSONS.filter(x=>x.grade===state.grade).map(x=>x.subject))];
+ if(state.grade===-2){
+  const nurseryOrder={English:0,Hindi:1,Maths:2,EVS:3};
+  subjects.sort((a,b)=>(nurseryOrder[a]??99)-(nurseryOrder[b]??99));
+ }
  $('subjectFilters').innerHTML=['All',...subjects].map(s=>`<button class="subject-btn ${subject===s?'active':''}" data-subject="${safe(s)}" aria-pressed="${subject===s}">${s==='All'?'✦ All subjects':subjectIcon(s)+' '+safe(s)}</button>`).join('');
 }
 function renderCourses(){
- const lessons=LESSONS.filter(l=>l.grade===state.grade&&(subject==='All'||l.subject===subject)&&(!query||[l.title,l.subject,l.description,l.concept].some(t=>t.toLowerCase().includes(query))));
+ let lessons=LESSONS.filter(l=>l.grade===state.grade&&(subject==='All'||l.subject===subject)&&(!query||[l.title,l.subject,l.description,l.concept].some(t=>t.toLowerCase().includes(query))));
+ if(state.grade===-2&&subject==='All'){
+  const nurseryOrder={English:0,Hindi:1,Maths:2,EVS:3};
+  lessons=lessons.map((lesson,index)=>({lesson,index})).sort((a,b)=>((nurseryOrder[a.lesson.subject]??99)-(nurseryOrder[b.lesson.subject]??99))||(a.index-b.index)).map(x=>x.lesson);
+ }
  $('courseGrid').innerHTML=lessons.map(l=>{
  const done=state.completed.includes(l.id),visual=SUBJECTS[l.subject]?.color||'#f7f3eb';
  return `<article class="course-card"><div class="course-visual" style="background:${visual}"><span class="visual-emoji" aria-hidden="true">${safe(l.emoji)}</span><span class="visual-small" aria-hidden="true">✦</span><span class="card-top-tag">${l.minutes} min lesson</span>${done?'<span class="completed-label">✓ Completed</span>':''}</div><div class="course-content"><div class="course-subject">${safe(l.subject)} · ${gradeName(l.grade)}</div><h3>${safe(l.title)}</h3><p>${safe(l.description)}</p><div class="course-meta"><small><span>📘</span> Learn + quick quiz</small><button class="course-open" data-lesson-id="${safe(l.id)}" aria-label="${done?'Review':'Start'} ${safe(l.title)}">↗</button></div></div></article>`
