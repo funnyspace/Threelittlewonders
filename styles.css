@@ -207,3 +207,32 @@
  .contact-details-card,.contact-form-card{padding:22px;border-radius:17px}
  .footer-compact{gap:13px}
 }
+
+
+/* Rich Nursery English lesson content */
+.rich-lesson-section{margin-top:24px;padding-top:21px;border-top:1px solid #e6ebe4}
+.rich-lesson-section>h4{font-family:Nunito,'Trebuchet MS',sans-serif;font-size:19px;font-weight:900;color:#264a37;margin:0 0 14px}
+.lesson-activity-table{display:flex;flex-direction:column;border:1px solid #e4eae3;border-radius:14px;overflow:hidden;background:#fff}
+.lesson-activity-row{display:grid;grid-template-columns:minmax(170px,.8fr) minmax(0,1.6fr);border-bottom:1px solid #e8ede7}
+.lesson-activity-row:last-child{border-bottom:0}
+.lesson-activity-name,.lesson-activity-example{padding:12px 14px;font-size:12px;line-height:1.65}
+.lesson-activity-name{display:flex;align-items:flex-start;gap:9px;background:#f6faf5;color:#315944}
+.lesson-activity-example{color:#5b6d60;background:#fff}
+.lesson-activity-number,.rich-index{display:inline-grid;place-items:center;flex:none;width:25px;height:25px;border-radius:50%;background:#e5f3e9;color:#286346;font-size:11px;font-weight:900}
+.rhyme-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.rhyme-card,.story-card{border:1px solid #e5ebe2;border-radius:15px;background:#fff;padding:16px}
+.rhyme-card{position:relative;background:linear-gradient(145deg,#fffaf0,#fff)}
+.rhyme-card h5,.story-card h5{font-family:Nunito,'Trebuchet MS',sans-serif;font-size:15px;font-weight:900;color:#334c40;margin:5px 0 11px}
+.rhyme-text,.story-text{font-size:12px;line-height:1.75;color:#596e61;margin:0}
+.story-list{display:flex;flex-direction:column;gap:13px}
+.story-card{background:linear-gradient(145deg,#f7fbff,#fff)}
+.story-heading{display:flex;align-items:center;gap:10px}
+.story-heading h5{margin:0}
+.story-text{margin:12px 0 0}
+.story-moral{margin-top:14px;padding:10px 12px;border-radius:10px;background:#fff2d8;color:#735b31;font-size:12px;line-height:1.6}
+@media(max-width:600px){
+ .lesson-activity-row{grid-template-columns:1fr}
+ .lesson-activity-name{padding-bottom:7px}
+ .lesson-activity-example{padding-top:7px}
+ .rhyme-grid{grid-template-columns:1fr}
+}
