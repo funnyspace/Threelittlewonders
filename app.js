@@ -69,7 +69,7 @@ function completeLesson(){if(!currentLesson)return;stage('Complete');const alrea
  footer('Keep that curious mind shining!','Explore more',()=>{closeLesson();window.location.hash='#explore';});
 }
 function closeLesson(){if($('lessonModal').hidden)return;$('lessonModal').hidden=true;document.body.classList.remove('modal-open');currentLesson=null;if(returnFocus&&typeof returnFocus.focus==='function')returnFocus.focus()}
-function continueLearning(){const next=LESSONS.find(l=>l.grade===state.grade&&!state.completed.includes(l.id))||LESSONS.find(l=>l.grade===state.grade);if(next)openLesson(next.id);else showToast('Choose a class to start learning!')}
+function continueLearning(){if(state.grade===-2){window.location.hash='#explore';return;}const next=LESSONS.find(l=>l.grade===state.grade&&!state.completed.includes(l.id))||LESSONS.find(l=>l.grade===state.grade);if(next)openLesson(next.id);else showToast('Choose a class to start learning!')}
 function installEvents(){
  $('classSelect').addEventListener('change',e=>setGrade(Number(e.target.value)));
  $('gradeShortcuts').addEventListener('click',e=>{const btn=e.target.closest('[data-grade]');if(btn)setGrade(Number(btn.dataset.grade))});
