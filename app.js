@@ -30,8 +30,9 @@ function renderSubjectFilters(){
  const subjects=[...new Set(LESSONS.filter(x=>x.grade===state.grade).map(x=>x.subject))];
  const preferredOrder={English:0,Hindi:1,Sanskrit:2,Urdu:3,Maths:4,Science:5,EVS:6,'Social Science':7,Computer:8,'General Knowledge':9};
  subjects.sort((a,b)=>(preferredOrder[a]??99)-(preferredOrder[b]??99)||a.localeCompare(b));
+ const choices=['All Subjects',...subjects];
  $('subjectGradeName').textContent=gradeName(state.grade);
- $('subjectFilters').innerHTML=subjects.map(s=>`<button class="subject-btn subject-choice ${subject===s?'active':''}" data-subject="${safe(s)}" aria-pressed="${subject===s}"><span class="subject-choice-icon" aria-hidden="true">${subjectIcon(s)}</span><span class="subject-choice-name">${safe(s)}</span><span class="subject-choice-arrow" aria-hidden="true">→</span></button>`).join('');
+ $('subjectFilters').innerHTML=choices.map(s=>`<button class="subject-btn subject-choice ${subject===s?'active':''}" data-subject="${safe(s)}" aria-pressed="${subject===s}"><span class="subject-choice-icon" aria-hidden="true">${s==='All Subjects'?'✦':subjectIcon(s)}</span><span class="subject-choice-name">${safe(s)}</span></button>`).join('');
 }
 function renderCourses(){
  const lessonSection=$('lessonResultsSection');
@@ -42,9 +43,10 @@ function renderCourses(){
   return;
  }
  lessonSection.hidden=false;
+ const allSubjects=subject==='All Subjects';
  $('selectedSubjectTitle').textContent=subject;
- $('selectedSubjectPill').innerHTML=`<span aria-hidden="true">${subjectIcon(subject)}</span><strong>${safe(subject)}</strong> · ${gradeName(state.grade)}`;
- const lessons=LESSONS.filter(l=>l.grade===state.grade&&l.subject===subject&&(!query||[l.title,l.subject,l.description,l.concept].some(t=>t.toLowerCase().includes(query))));
+ $('selectedSubjectPill').innerHTML=`<span aria-hidden="true">${allSubjects?'✦':subjectIcon(subject)}</span><strong>${safe(subject)}</strong> · ${gradeName(state.grade)}`;
+ const lessons=LESSONS.filter(l=>l.grade===state.grade&&(allSubjects||l.subject===subject)&&(!query||[l.title,l.subject,l.description,l.concept].some(t=>t.toLowerCase().includes(query))));
  $('courseGrid').innerHTML=lessons.map(l=>{
  const done=state.completed.includes(l.id),visual=SUBJECTS[l.subject]?.color||'#f7f3eb';
  return `<article class="course-card"><div class="course-visual" style="background:${visual}"><span class="visual-emoji" aria-hidden="true">${safe(l.emoji)}</span><span class="visual-small" aria-hidden="true">✦</span><span class="card-top-tag">${l.minutes} min lesson</span>${done?'<span class="completed-label">✓ Completed</span>':''}</div><div class="course-content"><div class="course-subject">${safe(l.subject)} · ${gradeName(l.grade)}</div><h3>${safe(l.title)}</h3><p>${safe(l.description)}</p><div class="course-meta"><small><span>📘</span> Learn + quick quiz</small><button class="course-open" data-lesson-id="${safe(l.id)}" aria-label="${done?'Review':'Start'} ${safe(l.title)}">↗</button></div></div></article>`
