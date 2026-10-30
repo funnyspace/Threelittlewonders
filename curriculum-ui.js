@@ -22,7 +22,7 @@ function topics(){
 function render(){
  const groups=DATA[grade()]||[];
  const section=$('curriculumSection');
- section.hidden=grade()==='-2'||groups.length===0;
+ section.hidden=['-2','-1','0'].includes(grade())||groups.length===0;
  if(section.hidden){selected=null;return;}
  const all=topics(),done=all.filter(t=>practised.includes(t.key)).length;
  $('curriculumGrade').textContent=gradeLabel();
