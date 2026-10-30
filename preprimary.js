@@ -10,22 +10,15 @@ add(-2,'English','Vocabulary Development','Learn and use new words for familiar 
 
 const nurseryListening=window.TLW_LESSONS.find(l=>l.grade===-2&&l.subject==='English'&&l.title==='Listening and Speaking');
 if(nurseryListening)nurseryListening.activities=[
-  ['Introduce Yourself','Teacher: “What is your name?” Child: “My name is Riya.”'],
-  ['Greetings','“Good morning.” “Hello.” “Thank you.” “Bye-bye.”'],
-  ['Identify an Object','Teacher shows a ball: “What is this?” Child: “It is a ball.”'],
-  ['Simple Yes/No Questions','“Is this an apple?” “Yes.” / “No.”'],
-  ['Follow Instructions','“Stand up.” “Sit down.” “Clap your hands.” “Touch your nose.”'],
-  ['Talk About Colours','“What colour is the apple?” Child: “Red.”'],
-  ['Talk About Family','“Who is she?” Child: “She is my mother.”'],
-  ['Animal Sounds','“What does a cow say?” Child: “Moo.”'],
-  ['Complete the Sentence','“I like ___.” Child: “I like mango.”'],
-  ['Picture Talk','Show a park picture and ask: “What can you see?” Child: “Tree, ball, boy.”'],
-  ['Daily Needs','“I want water.” “Please help me.” “May I go?”'],
-  ['Action Words','“Run.” “Jump.” “Eat.” “Sleep.” Ask the child to say and act.'],
-  ['Listening Game','“Touch your head, then clap twice.”'],
-  ['Feelings','“How are you?” Child: “I am happy.”'],
-  ['Short Conversation','Teacher: “Do you like bananas?” Child: “Yes, I do.”']
-];
+  ['Introduce Yourself','Teacher: “What is your name?”\nChild: “My name is Riya.”','The child learns to listen and answer in a short complete sentence.'],
+  ['Identify an Object','Teacher: “What is this?”\nChild: “It is an apple.”\nTeacher: “What colour is the apple?”\nChild: “It is red.”','Object recognition, vocabulary and sentence formation.'],
+  ['Identify an Animal','Teacher: “What animal is this?”\nChild: “It is a dog.”\nTeacher: “What sound does a dog make?”\nChild: “Woof! Woof!”','Listening, animal vocabulary and sound association.'],
+  ['Talk About a Picture','Teacher: “Who is this?”\nChild: “A boy.”\nTeacher: “What is he doing?”\nChild: “He is playing.”\nTeacher: “What is he playing with?”\nChild: “A ball.”\nTeacher: “What colour is the ball?”\nChild: “Yellow.”','Observation, listening comprehension and speaking.'],
+  ['Greetings','Teacher: “What do you say when you meet your teacher in the morning?”\nChild: “Good morning.”\nOther words: Hello · Thank you · Please · Sorry · Bye-bye','Polite words and daily communication.'],
+  ['Follow Instructions','Stand up.\nSit down.\nClap your hands.\nTouch your nose.','The child listens, understands the instruction and responds physically.'],
+  ['Talk About Family','Teacher: “Who is he?”\nChild: “He is my father.”\nTeacher: “Who is she?”\nChild: “She is my mother.”\nTeacher: “Who is this?”\nChild: “He is my brother.”\nTeacher: “Who is this?”\nChild: “She is my sister.”','Family vocabulary and sentence formation.'],
+  ['Yes / No Questions','Teacher: “Is this an apple?”\nChild: “No.”\nTeacher: “Is this an orange?”\nChild: “Yes.”','The child listens carefully and answers correctly.']
+]
 
 const nurseryRhymesStories=window.TLW_LESSONS.find(l=>l.grade===-2&&l.subject==='English'&&l.title==='Rhymes and Stories');
 if(nurseryRhymesStories){
