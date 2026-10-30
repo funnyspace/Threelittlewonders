@@ -55,8 +55,28 @@ function openLesson(id){const lesson=LESSONS.find(l=>l.id===id);if(!lesson)retur
  showLearn();$('closeLesson').focus();}
 function stage(which){['Learn','Quiz','Complete'].forEach(s=>{const x=$('stage'+s);x.classList.toggle('active',s===which);x.classList.toggle('done',({Learn:0,Quiz:1,Complete:2}[s]||0)<({Learn:0,Quiz:1,Complete:2}[which]||0))})}
 function footer(left,button,action){const e=$('lessonFooter');e.innerHTML=`<span class="modal-helper">${safe(left)}</span><button class="btn btn-primary" id="modalAction">${safe(button)} <span aria-hidden="true">↗</span></button>`; $('modalAction').addEventListener('click',action)}
+function renderRichLesson(l){
+ const blocks=[];
+ if(Array.isArray(l.activities)&&l.activities.length){
+  blocks.push('<section class="rich-lesson-section"><h4>🗣️ Listening & Speaking Activities</h4><div class="lesson-activity-table">'+
+   l.activities.map((row,i)=>'<div class="lesson-activity-row"><div class="lesson-activity-name"><span class="lesson-activity-number">'+(i+1)+'</span><strong>'+safe(row[0])+'</strong></div><div class="lesson-activity-example">'+safe(row[1])+'</div></div>').join('')+
+   '</div></section>');
+ }
+ if(Array.isArray(l.rhymes)&&l.rhymes.length){
+  blocks.push('<section class="rich-lesson-section"><h4>🎵 Nursery Rhymes</h4><div class="rhyme-grid">'+
+   l.rhymes.map((r,i)=>'<article class="rhyme-card"><span class="rich-index">'+(i+1)+'</span><h5>'+safe(r.title)+'</h5><p class="rhyme-text">'+safe(r.text).replace(/\n/g,'<br>')+'</p></article>').join('')+
+   '</div></section>');
+ }
+ if(Array.isArray(l.stories)&&l.stories.length){
+  blocks.push('<section class="rich-lesson-section"><h4>📖 Nursery Stories</h4><div class="story-list">'+
+   l.stories.map((story,i)=>'<article class="story-card"><div class="story-heading"><span class="rich-index">'+(i+1)+'</span><h5>'+safe(story.title)+'</h5></div><p class="story-text">'+safe(story.text).replace(/\n\n/g,'</p><p class="story-text">').replace(/\n/g,'<br>')+'</p><div class="story-moral"><strong>Moral:</strong> '+safe(story.moral)+'</div></article>').join('')+
+   '</div></section>');
+ }
+ return blocks.join('');
+}
 function showLearn(){if(!currentLesson)return;stage('Learn');const l=currentLesson;
- $('lessonBody').innerHTML=`<div class="concept-label">🌱 LET'S UNDERSTAND</div><h3>${safe(l.title)}</h3><p class="explain-text">${safe(l.concept)}</p><div class="example-card"><strong>💡 Here's an easy example</strong><p>${safe(l.example)}</p></div><div class="tip-card"><span>🌟</span><span><strong>Little challenge:</strong> ${safe(l.tip)}</span></div>`;
+ const rich=renderRichLesson(l);
+ $('lessonBody').innerHTML=`<div class="concept-label">🌱 LET'S UNDERSTAND</div><h3>${safe(l.title)}</h3><p class="explain-text">${safe(l.concept)}</p><div class="example-card"><strong>💡 Here's an easy example</strong><p>${safe(l.example)}</p></div><div class="tip-card"><span>🌟</span><span><strong>Little challenge:</strong> ${safe(l.tip)}</span></div>${rich}`;
  footer('Step 1 of 3 · Read and discover','Try a quiz',()=>{currentQuestion=0;showQuiz()});}
 function showQuiz(){if(!currentLesson)return;stage('Quiz');questionAnswered=false;const q=currentLesson.questions[currentQuestion];
  $('lessonBody').innerHTML=`<div class="quiz-number">🧩 QUICK QUIZ · QUESTION ${currentQuestion+1} OF ${currentLesson.questions.length}</div><h3>${safe(q.text)}</h3><p class="explain-text">Choose the answer that feels right. You can try again if you need to!</p><div class="answer-grid">${q.options.map((op,i)=>`<button class="answer-option" data-answer="${i}">${String.fromCharCode(65+i)}. ${safe(op)}</button>`).join('')}</div><div id="quizFeedback" aria-live="polite"></div>`;
