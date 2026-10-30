@@ -16,12 +16,14 @@ function showToast(msg){const t=$('toast');t.textContent=msg;t.classList.add('sh
 function setGrade(g){if(!Number.isInteger(g)||!GRADE_LEVELS.includes(g))return;state.grade=g;subject='';query='';classChoicesOpen=false;$('searchInput').value='';persist();renderAll();requestAnimationFrame(()=>$('classSubjectSection')?.scrollIntoView({behavior:'smooth',block:'start'}))}
 function renderGradeSelectors(){
  $('classSelect').innerHTML=GRADE_LEVELS.map(g=>`<option value="${g}" ${state.grade===g?'selected':''}>${gradeName(g)}</option>`).join('');
+ const classPicker=document.querySelector('.class-picker');
+ if(classPicker)classPicker.hidden=!classChoicesOpen;
  if(classChoicesOpen){
   $('gradeShortcuts').classList.remove('selected-class-only');
   $('gradeShortcuts').innerHTML=GRADE_LEVELS.map(g=>`<button class="grade-chip ${state.grade===g?'selected':''}" data-grade="${g}" aria-pressed="${state.grade===g}">${gradeName(g)}</button>`).join('');
  }else{
   $('gradeShortcuts').classList.add('selected-class-only');
-  $('gradeShortcuts').innerHTML=`<div class="selected-class-display"><span class="selected-class-label">Learning in</span><strong>${gradeName(state.grade)}</strong><button type="button" class="change-class-btn" data-change-class>Change class</button></div>`;
+  $('gradeShortcuts').innerHTML=`<div class="selected-class-display"><strong>${gradeName(state.grade)}</strong><button type="button" class="change-class-btn" data-change-class>Change class</button></div>`;
  }
 }
 function renderSubjectFilters(){
