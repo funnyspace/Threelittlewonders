@@ -236,3 +236,90 @@
  .lesson-activity-example{padding-top:7px}
  .rhyme-grid{grid-template-columns:1fr}
 }
+
+
+/* Class → Subject → Lessons navigation */
+.class-subject-section{
+  margin:8px 0 28px;
+  padding:22px;
+  border:1px solid #e4ebe3;
+  border-radius:20px;
+  background:linear-gradient(145deg,#fffef9,#f3f8f3);
+  box-shadow:0 10px 24px rgba(42,78,52,.05);
+  scroll-margin-top:92px;
+}
+.class-subject-heading{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;margin-bottom:15px}
+.class-subject-heading h3{font-size:24px;font-weight:900;margin:4px 0 3px}
+.class-subject-heading p{font-size:13px;color:#6f8174;margin:0}
+.subject-choice-grid{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:11px;
+  align-items:stretch;
+}
+.subject-btn.subject-choice{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  min-height:64px;
+  width:100%;
+  border:1px solid #e0e7de;
+  border-radius:14px;
+  padding:12px 14px;
+  background:#fff;
+  color:#405b49;
+  text-align:left;
+  transition:transform .16s,border-color .16s,box-shadow .16s,background .16s;
+}
+.subject-btn.subject-choice:hover{
+  transform:translateY(-1px);
+  border-color:#9bc3a8;
+  box-shadow:0 8px 18px rgba(47,94,63,.08);
+  background:#f9fcf9;
+}
+.subject-btn.subject-choice.active{
+  background:#eaf4ed;
+  border-color:#86b497;
+  color:#215b3d;
+  box-shadow:0 7px 16px rgba(47,94,63,.09);
+}
+.subject-choice-icon{
+  display:grid;
+  place-items:center;
+  flex:none;
+  width:36px;
+  height:36px;
+  border-radius:10px;
+  background:#f4f7f2;
+  font-size:19px;
+}
+.subject-choice-name{font-size:13px;font-weight:900;line-height:1.25}
+.subject-choice-arrow{margin-left:auto;font-size:18px;color:#8ca697}
+.lesson-results-section{scroll-margin-top:92px}
+.selected-subject-pill{
+  display:inline-flex;
+  align-items:center;
+  gap:7px;
+  min-height:38px;
+  border-radius:999px;
+  padding:8px 13px;
+  background:#eef6f0;
+  color:#356146;
+  font-size:12px;
+  white-space:nowrap;
+}
+@media(max-width:900px){
+  .subject-choice-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+@media(max-width:680px){
+  .class-subject-section{padding:16px}
+  .subject-choice-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+  .subject-btn.subject-choice{min-height:57px;padding:10px}
+  .subject-choice-icon{width:32px;height:32px;font-size:17px}
+  .class-subject-heading h3{font-size:21px}
+  .course-toolbar{align-items:stretch}
+  .selected-subject-pill{white-space:normal}
+}
+@media(max-width:390px){
+  .subject-choice-grid{grid-template-columns:1fr}
+}
