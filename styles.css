@@ -143,14 +143,14 @@
 
 
 /* Contact and compact footer, October 2026 */
-.contact-page-header{max-width:790px;margin:0 auto 37px;text-align:center}
+.contact-page-header{max-width:1120px;margin:0 auto 37px;text-align:center}
 .contact-page-header h2{font-size:clamp(34px,5vw,54px);line-height:1.12;letter-spacing:-1.6px;margin:13px 0 10px}
 .contact-page-header h2 em{color:var(--orange)}
 .contact-page-header h3{font-family:Nunito,'Trebuchet MS',sans-serif;font-size:22px;font-weight:900;margin:13px 0 4px}
 .contact-page-header p{font-size:14px;line-height:1.8;color:#637769;margin:8px auto}
 .contact-page-header .contact-kicker{display:inline-block;font-size:clamp(14px,1.4vw,17px);font-weight:900;letter-spacing:2px;line-height:1.6;margin-bottom:12px;color:var(--orange)}
-.contact-page-header h2.contact-tagline{font-family:Nunito,'Trebuchet MS',sans-serif;font-size:clamp(29px,3.8vw,47px);font-weight:900;line-height:1.35;letter-spacing:-.8px;word-spacing:.045em;color:var(--green);margin:12px auto 18px;max-width:790px}
-.contact-page-header .contact-tagline span{display:block}
+.contact-page-header h2.contact-tagline{font-family:Nunito,'Trebuchet MS',sans-serif;font-size:clamp(11px,2.9vw,36px);font-weight:900;line-height:1.35;letter-spacing:-.7px;word-spacing:0;color:var(--green);margin:12px auto 18px;max-width:none;white-space:nowrap}
+.contact-page-header>p{max-width:790px}
 .contact-details-grid{display:grid;grid-template-columns:minmax(0,.87fr) minmax(0,1.13fr);gap:24px;align-items:start}
 .contact-details-card,.contact-form-card{background:white;border:1px solid #e4eae2;border-radius:24px;padding:clamp(20px,3.2vw,34px);box-shadow:0 17px 48px rgba(30,75,51,.07)}
 .contact-details-row{display:flex;align-items:flex-start;gap:14px;padding:15px 0;border-bottom:1px solid #edf1eb}
@@ -202,7 +202,7 @@
 @media(max-width:780px){
  .contact-details-grid{grid-template-columns:1fr;gap:16px}
  .contact-page-header{text-align:left;margin-bottom:23px}
- .contact-page-header h2.contact-tagline{font-size:clamp(27px,6vw,36px);line-height:1.38;letter-spacing:-.5px;word-spacing:.035em;margin:10px 0 17px}
+ .contact-page-header h2.contact-tagline{font-size:clamp(11px,2.9vw,23px);line-height:1.4;letter-spacing:-.45px;word-spacing:0;margin:10px 0 17px;white-space:nowrap}
  .contact-page-header h3{font-size:20px}
  .contact-details-card,.contact-form-card{padding:22px;border-radius:17px}
  .footer-compact{gap:13px}
