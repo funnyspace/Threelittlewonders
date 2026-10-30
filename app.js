@@ -8,30 +8,35 @@ const $=id=>document.getElementById(id);
 const safe=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const GRADE_LEVELS=[-2,-1,0,...Array.from({length:10},(_,i)=>i+1)];
 function load(){try{const v=JSON.parse(localStorage.getItem(STORE_KEY)||localStorage.getItem(LEGACY_STORE_KEY)||'{}');return {grade:Number.isInteger(v.grade)&&GRADE_LEVELS.includes(v.grade)?v.grade:3,completed:Array.isArray(v.completed)?[...new Set(v.completed.filter(x=>typeof x==='string'))]:[]}}catch{return {grade:3,completed:[]}}}
-let state=load(),subject='All',query='',currentLesson=null,currentQuestion=0,questionAnswered=false,returnFocus=null,toastTimer;
+let state=load(),subject='',query='',currentLesson=null,currentQuestion=0,questionAnswered=false,returnFocus=null,toastTimer;
 function persist(){try{localStorage.setItem(STORE_KEY,JSON.stringify(state))}catch{showToast('Progress cannot be saved in this browser.')}}
 const gradeName=g=>g===-2?'Nursery':g===-1?'LKG':g===0?'UKG':`Class ${g}`;
 const subjectIcon=s=>SUBJECTS[s]?.icon||'📚';
 function showToast(msg){const t=$('toast');t.textContent=msg;t.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),2400)}
-function setGrade(g){if(!Number.isInteger(g)||!GRADE_LEVELS.includes(g))return;state.grade=g;subject='All';query='';$('searchInput').value='';persist();renderAll()}
+function setGrade(g){if(!Number.isInteger(g)||!GRADE_LEVELS.includes(g))return;state.grade=g;subject='';query='';$('searchInput').value='';persist();renderAll();requestAnimationFrame(()=>$('classSubjectSection')?.scrollIntoView({behavior:'smooth',block:'start'}))}
 function renderGradeSelectors(){
  $('classSelect').innerHTML=GRADE_LEVELS.map(g=>`<option value="${g}" ${state.grade===g?'selected':''}>${gradeName(g)}</option>`).join('');
  $('gradeShortcuts').innerHTML=GRADE_LEVELS.map(g=>`<button class="grade-chip ${state.grade===g?'selected':''}" data-grade="${g}" aria-pressed="${state.grade===g}">${gradeName(g)}</button>`).join('');
 }
 function renderSubjectFilters(){
  const subjects=[...new Set(LESSONS.filter(x=>x.grade===state.grade).map(x=>x.subject))];
- if(state.grade>=-2&&state.grade<=0){
-  const preprimaryOrder={English:0,Hindi:1,Maths:2,EVS:3};
-  subjects.sort((a,b)=>(preprimaryOrder[a]??99)-(preprimaryOrder[b]??99));
- }
- $('subjectFilters').innerHTML=['All',...subjects].map(s=>`<button class="subject-btn ${subject===s?'active':''}" data-subject="${safe(s)}" aria-pressed="${subject===s}">${s==='All'?'✦ All subjects':subjectIcon(s)+' '+safe(s)}</button>`).join('');
+ const preferredOrder={English:0,Hindi:1,Sanskrit:2,Urdu:3,Maths:4,Science:5,EVS:6,'Social Science':7,Computer:8,'General Knowledge':9};
+ subjects.sort((a,b)=>(preferredOrder[a]??99)-(preferredOrder[b]??99)||a.localeCompare(b));
+ $('subjectGradeName').textContent=gradeName(state.grade);
+ $('subjectFilters').innerHTML=subjects.map(s=>`<button class="subject-btn subject-choice ${subject===s?'active':''}" data-subject="${safe(s)}" aria-pressed="${subject===s}"><span class="subject-choice-icon" aria-hidden="true">${subjectIcon(s)}</span><span class="subject-choice-name">${safe(s)}</span><span class="subject-choice-arrow" aria-hidden="true">→</span></button>`).join('');
 }
 function renderCourses(){
- let lessons=LESSONS.filter(l=>l.grade===state.grade&&(subject==='All'||l.subject===subject)&&(!query||[l.title,l.subject,l.description,l.concept].some(t=>t.toLowerCase().includes(query))));
- if(state.grade>=-2&&state.grade<=0&&subject==='All'){
-  const preprimaryOrder={English:0,Hindi:1,Maths:2,EVS:3};
-  lessons=lessons.map((lesson,index)=>({lesson,index})).sort((a,b)=>((preprimaryOrder[a.lesson.subject]??99)-(preprimaryOrder[b.lesson.subject]??99))||(a.index-b.index)).map(x=>x.lesson);
+ const lessonSection=$('lessonResultsSection');
+ if(!subject){
+  lessonSection.hidden=true;
+  $('courseGrid').innerHTML='';
+  $('emptyState').hidden=true;
+  return;
  }
+ lessonSection.hidden=false;
+ $('selectedSubjectTitle').textContent=subject;
+ $('selectedSubjectPill').innerHTML=`<span aria-hidden="true">${subjectIcon(subject)}</span><strong>${safe(subject)}</strong> · ${gradeName(state.grade)}`;
+ const lessons=LESSONS.filter(l=>l.grade===state.grade&&l.subject===subject&&(!query||[l.title,l.subject,l.description,l.concept].some(t=>t.toLowerCase().includes(query))));
  $('courseGrid').innerHTML=lessons.map(l=>{
  const done=state.completed.includes(l.id),visual=SUBJECTS[l.subject]?.color||'#f7f3eb';
  return `<article class="course-card"><div class="course-visual" style="background:${visual}"><span class="visual-emoji" aria-hidden="true">${safe(l.emoji)}</span><span class="visual-small" aria-hidden="true">✦</span><span class="card-top-tag">${l.minutes} min lesson</span>${done?'<span class="completed-label">✓ Completed</span>':''}</div><div class="course-content"><div class="course-subject">${safe(l.subject)} · ${gradeName(l.grade)}</div><h3>${safe(l.title)}</h3><p>${safe(l.description)}</p><div class="course-meta"><small><span>📘</span> Learn + quick quiz</small><button class="course-open" data-lesson-id="${safe(l.id)}" aria-label="${done?'Review':'Start'} ${safe(l.title)}">↗</button></div></div></article>`
@@ -101,10 +106,10 @@ function continueLearning(){const next=LESSONS.find(l=>l.grade===state.grade&&!s
 function installEvents(){
  $('classSelect').addEventListener('change',e=>setGrade(Number(e.target.value)));
  $('gradeShortcuts').addEventListener('click',e=>{const btn=e.target.closest('[data-grade]');if(btn)setGrade(Number(btn.dataset.grade))});
- $('subjectFilters').addEventListener('click',e=>{const btn=e.target.closest('[data-subject]');if(btn){subject=btn.dataset.subject;renderSubjectFilters();renderCourses()}});
+ $('subjectFilters').addEventListener('click',e=>{const btn=e.target.closest('[data-subject]');if(btn){subject=btn.dataset.subject;query='';$('searchInput').value='';renderSubjectFilters();renderCourses();requestAnimationFrame(()=>$('lessonResultsSection')?.scrollIntoView({behavior:'smooth',block:'start'}))}});
  $('searchInput').addEventListener('input',e=>{query=e.target.value.trim().toLowerCase();renderCourses()});
  $('courseGrid').addEventListener('click',e=>{const btn=e.target.closest('[data-lesson-id]');if(btn)openLesson(btn.dataset.lessonId)});
- $('clearFiltersBtn').addEventListener('click',()=>{subject='All';query='';$('searchInput').value='';renderSubjectFilters();renderCourses()});
+ $('clearFiltersBtn').addEventListener('click',()=>{query='';$('searchInput').value='';renderCourses()});
  $('continueBtn').addEventListener('click',continueLearning);
  $('closeLesson').addEventListener('click',closeLesson);
  $('lessonModal').addEventListener('click',e=>{if(e.target===$('lessonModal'))closeLesson()});
