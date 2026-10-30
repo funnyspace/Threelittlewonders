@@ -4,7 +4,7 @@
 
 ## What's included
 
-- 76 short, grade-appropriate starter lessons across Maths, English, Science, EVS, Social Science, General Knowledge and Computer basics.
+- 80 short, grade-appropriate starter lessons across Maths, English, Science, EVS, Social Science, General Knowledge and Computer basics.
 - A Nursery, LKG, UKG and Class 1 to Class 10 selector.
 - Search and subject filters.
 - Readable lesson cards with clear explanations, examples and mini-challenges.
@@ -66,7 +66,7 @@ The learning roadmap now includes the complete set of 80 requested pre-primary t
 
 Select any topic to see a short guided practice activity. Families can mark a topic as practised (and reverse the selection), with local-browser storage under `Threelittlewonders-curriculum-progress-v1`. Topic practice does not affect quiz stars or lesson completion.
 
-The topic list is a learning roadmap with short practice prompts, not a complete syllabus-aligned course or a full set of interactive lessons. Existing 76 two-question starter lessons remain available below the roadmap.
+The topic list is a learning roadmap with short practice prompts, not a complete syllabus-aligned course or a full set of interactive lessons. Existing 80 two-question starter lessons remain available below the roadmap.
 
 ## Class 1 through Class 7 learning roadmaps
 
@@ -78,7 +78,7 @@ The website provides 276 new curriculum topics organized by class and learning a
 - **Class 6:** English/Hindi/Sanskrit, mathematics, science, social science, art and physical education (28 topics).
 - **Class 7:** Three language subjects, advanced mathematics, science, social science, art, physical education, skill education, and computational thinking/AI (28 topics).
 
-**Total learning roadmap:** 409 topics for Nursery through Class 10, including 53 new Class 8–10 roadmap topics, in addition to the existing 76 interactive starter lessons. The Class 8–10 outlines use the subjects and themes requested for the website; they are not a verified exhaustive CBSE or NCERT syllabus.
+**Total learning roadmap:** 409 topics for Nursery through Class 10, including 53 new Class 8–10 roadmap topics, in addition to the existing 80 interactive starter lessons. The Class 8–10 outlines use the subjects and themes requested for the website; they are not a verified exhaustive CBSE or NCERT syllabus.
 
 These new entries are structured topic cards with simple practice activities and local progress tracking. They are not full textbook chapters, official board-approved syllabus mappings, or complete lessons with quizzes.
 
@@ -114,4 +114,9 @@ The parent/guardian form requests a name and email address, optional contact pho
 
 ## Nursery Maths: five new interactive lessons
 
-The Nursery **Quick interactive lessons → Maths** filter includes five additional topic cards: **Number Awareness**, **Counting Objects**, **Colours**, **Shapes**, and **Big/Small, More/Less**. Each has a short picture/emoji-supported explanation, example, activity and two-question quiz. The previous Nursery lessons remain intact. Total site starter lessons: **76**.
+The Nursery **Quick interactive lessons → Maths** filter includes five additional topic cards: **Number Awareness**, **Counting Objects**, **Colours**, **Shapes**, and **Big/Small, More/Less**. Each has a short picture/emoji-supported explanation, example, activity and two-question quiz. The previous Nursery lessons remain intact. Total site starter lessons: **80**.
+
+
+## Nursery English interactive lessons
+
+Nursery → Quick interactive lessons → English now includes **Listening and Speaking**, **Rhymes and Stories**, **Picture Recognition**, and **Vocabulary Development**, in addition to the existing **Hello and Thank You** lesson. Each new lesson includes a simple explanation, activity and two-question quiz.
