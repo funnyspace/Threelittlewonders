@@ -30,6 +30,7 @@ function renderSubjectFilters(){
  const preferredOrder={English:0,Hindi:1,Sanskrit:2,Urdu:3,Maths:4,Science:5,EVS:6,'Social Science':7,Computer:8,'General Knowledge':9};
  subjects.sort((a,b)=>(preferredOrder[a]??99)-(preferredOrder[b]??99)||a.localeCompare(b));
  $('subjectGradeName').textContent=gradeName(state.grade);
+ $('classSubjectTitle').textContent=gradeName(state.grade)+' Subjects';
  $('subjectFilters').innerHTML=subjects.map(s=>`<button class="subject-btn subject-choice ${subject===s?'active':''}" data-subject="${safe(s)}" aria-pressed="${subject===s}"><span class="subject-choice-icon" aria-hidden="true">${subjectIcon(s)}</span><span class="subject-choice-name">${safe(s)}</span><span class="subject-choice-arrow" aria-hidden="true">→</span></button>`).join('');
 }
 function renderCourses(){
@@ -62,7 +63,7 @@ function renderProgress(){
  $('progressFill').style.width=pct+'%';
  $('progressSubtitle').textContent=pct===100?'You finished every starter lesson in '+gradeName(state.grade)+'! 🎉':`${doneGrade} of ${gradeLessons.length} ${gradeName(state.grade)} lessons completed`;
 }
-function renderAll(){renderGradeSelectors();renderSubjectFilters();$('classSubjectSection').hidden=classChoicesOpen;renderCourses();renderProgress();const roadmap=$('curriculumSection');if(classChoicesOpen&&roadmap)roadmap.hidden=true;if(state.grade>=-2&&state.grade<=0&&roadmap)roadmap.hidden=true;}
+function renderAll(){renderGradeSelectors();renderSubjectFilters();const explore=$('explore');if(explore)explore.classList.toggle('class-selected-mode',!classChoicesOpen);$('classSubjectSection').hidden=classChoicesOpen;renderCourses();renderProgress();const roadmap=$('curriculumSection');if((!classChoicesOpen||state.grade>=-2&&state.grade<=0)&&roadmap)roadmap.hidden=true;}
 function openLesson(id){const lesson=LESSONS.find(l=>l.id===id);if(!lesson)return;currentLesson=lesson;currentQuestion=0;questionAnswered=false;returnFocus=document.activeElement;$('lessonModal').hidden=false;document.body.classList.add('modal-open');$('lessonTitle').textContent=lesson.title;$('modalSubjectIcon').textContent=subjectIcon(lesson.subject);$('modalMeta').textContent=`${gradeName(lesson.grade).toUpperCase()} · ${lesson.subject.toUpperCase()} · ${lesson.minutes} MIN`;
  showLearn();$('closeLesson').focus();}
 function stage(which){['Learn','Quiz','Complete'].forEach(s=>{const x=$('stage'+s);x.classList.toggle('active',s===which);x.classList.toggle('done',({Learn:0,Quiz:1,Complete:2}[s]||0)<({Learn:0,Quiz:1,Complete:2}[which]||0))})}
