@@ -122,8 +122,8 @@ function footer(left,button,action){const e=$('lessonFooter');e.innerHTML=`<span
 function renderRichLesson(l){
  const blocks=[];
  if(Array.isArray(l.activities)&&l.activities.length){
-  blocks.push('<section class="rich-lesson-section"><h4>🗣️ Listening & Speaking Activities</h4><div class="lesson-activity-table">'+
-   l.activities.map((row,i)=>'<div class="lesson-activity-row"><div class="lesson-activity-name"><span class="lesson-activity-number">'+(i+1)+'</span><strong>'+safe(row[0])+'</strong></div><div class="lesson-activity-example">'+safe(row[1])+'</div></div>').join('')+
+  blocks.push('<section class="rich-lesson-section"><h4>🗣️ Listening & Speaking Practice</h4><p class="rich-lesson-intro">Read one activity at a time. First listen to the teacher question, then practise the child response aloud.</p><div class="lesson-activity-table">'+
+   l.activities.map((row,i)=>'<div class="lesson-activity-row"><div class="lesson-activity-name"><span class="lesson-activity-number">'+(i+1)+'</span><strong>'+safe(row[0])+'</strong></div><div class="lesson-activity-example"><div class="activity-dialogue">'+safe(row[1]).replace(/\\n/g,'<br>')+'</div>'+(row[2]?'<div class="activity-learning"><strong>Learning:</strong> '+safe(row[2])+'</div>':'')+'</div></div>').join('')+
    '</div></section>');
  }
  if(Array.isArray(l.rhymes)&&l.rhymes.length){
