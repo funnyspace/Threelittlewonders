@@ -13,7 +13,7 @@
   <script src="curriculum.js" defer></script>
   <script src="school-curriculum.js" defer></script>
   <script src="secondary-curriculum.js" defer></script>
-  <script src="app.js?v=20261030-start-learning-flow" defer></script>
+  <script src="app.js?v=20261030-subject-only-screen" defer></script>
   <script src="curriculum-ui.js?v=20261030-preprimary-hide" defer></script>
   <script src="contact-form.js" defer></script>
   <script src="site-navigation.js" defer></script>
@@ -68,17 +68,17 @@
     </section>
     <section class="explore-section section-padding" id="explore" hidden>
       <div class="container">
-        <div class="section-heading explore-heading"><div><span class="kicker">✿ FIND YOUR NEXT ADVENTURE</span><h2>What will you <em>explore</em> today?</h2><p>Pick your class, choose a subject, and let the discoveries begin.</p></div><div class="class-picker"><label for="classSelect">I'm learning in</label><select id="classSelect" aria-label="Select your class"></select><span class="select-arrow">⌄</span></div></div>
-        <div class="learning-step-heading"><span>STEP 1</span><strong>Choose your class</strong><small>Tap your class to start learning.</small></div>
+        <div class="section-heading explore-heading" id="exploreHeading"><div><span class="kicker">✿ FIND YOUR NEXT ADVENTURE</span><h2>What will you <em>explore</em> today?</h2><p>Pick your class, choose a subject, and let the discoveries begin.</p></div><div class="class-picker"><label for="classSelect">I'm learning in</label><select id="classSelect" aria-label="Select your class"></select><span class="select-arrow">⌄</span></div></div>
+        <div class="learning-step-heading" id="classChoiceHeading"><span>STEP 1</span><strong>Choose your class</strong><small>Tap your class to start learning.</small></div>
         <div class="grade-shortcuts" id="gradeShortcuts" role="group" aria-label="Select a class"></div>
 
         <section class="class-subject-section" id="classSubjectSection" aria-labelledby="classSubjectTitle">
           <div class="class-subject-heading">
             <div>
               <span id="subjectGradeName" class="visually-hidden"></span>
-              <span class="kicker">STEP 2 · SUBJECTS</span>
+              <span class="kicker">✦ SUBJECTS</span>
               <h3 id="classSubjectTitle">Choose a subject</h3>
-              <p>Select a subject below to see its interactive lessons.</p>
+              <p id="classSubjectHelp">Select a subject below.</p>
             </div>
           </div>
           <div class="subject-filters subject-choice-grid" id="subjectFilters" role="group" aria-label="Choose a subject"></div>
@@ -105,7 +105,7 @@
           <div class="course-grid" id="courseGrid" aria-live="polite"></div>
           <div class="empty-state" id="emptyState" hidden><div>🔎</div><h3>No lessons found yet</h3><p>Try a different search.</p><button class="btn btn-secondary" id="clearFiltersBtn">Clear search</button></div>
         </section>
-        <div class="curriculum-note"><span>💛</span><p><strong>Growing with you!</strong> These are sample starter lessons, not yet a complete school syllabus. New lessons and subjects can be added as the website grows.</p></div>
+        <div class="curriculum-note" id="curriculumNote"><span>💛</span><p><strong>Growing with you!</strong> These are sample starter lessons, not yet a complete school syllabus. New lessons and subjects can be added as the website grows.</p></div>
       </div>
     </section>
     <section class="daily-section section-padding" id="my-learning" hidden><div class="container daily-grid"><div class="daily-copy"><span class="kicker">✦ YOUR LITTLE LEARNING CORNER</span><h2>A little progress<br><em>every day.</em></h2><p>Every lesson you finish is a win! Collect stars, build your confidence, and keep your curiosity going.</p><div class="progress-pills"><span>🌟 <strong id="totalStars">0</strong> stars earned</span><span>✅ <strong id="completedCount">0</strong> lessons finished</span></div><button class="btn btn-primary" id="continueBtn">Continue learning <span aria-hidden="true">↗</span></button><p class="save-note">Progress is saved on this device, in this browser.</p></div><div class="progress-card"><div class="progress-top"><div class="progress-icon">🏆</div><span class="progress-label">MY LEARNING JOURNEY</span></div><div class="progress-card-title">You're doing <span>great!</span></div><div class="progress-stat"><strong id="progressPercent">0%</strong><span>of starter lessons completed for your class</span></div><div class="progress-track"><div class="progress-fill" id="progressFill" style="width:0%"></div></div><div class="progress-card-footer"><span id="progressSubtitle">Your next adventure is waiting.</span><span>✨</span></div></div></div></section>
