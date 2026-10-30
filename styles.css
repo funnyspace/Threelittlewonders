@@ -353,3 +353,24 @@
 }
 
 .visually-hidden{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
+
+
+/* Start Learning class-first flow */
+.learning-step-heading{
+ display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+ margin:13px 0 0;padding:11px 14px;border-radius:12px;
+ background:#f7faf5;border:1px solid #e2e9df;color:#53675a
+}
+.learning-step-heading span{
+ display:inline-grid;place-items:center;min-width:52px;height:25px;padding:0 9px;
+ border-radius:999px;background:#e6f2e9;color:#2d6c49;
+ font-size:9px;font-weight:1000;letter-spacing:1px
+}
+.learning-step-heading strong{
+ font-family:Nunito,'Trebuchet MS',sans-serif;font-size:15px;color:#294b38
+}
+.learning-step-heading small{font-size:11px;color:#7b897f}
+@media(max-width:600px){
+ .learning-step-heading{align-items:flex-start}
+ .learning-step-heading small{width:100%;padding-left:62px}
+}
