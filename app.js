@@ -21,7 +21,7 @@ function renderGradeSelectors(){
   $('gradeShortcuts').innerHTML=GRADE_LEVELS.map(g=>`<button class="grade-chip ${state.grade===g?'selected':''}" data-grade="${g}" aria-pressed="${state.grade===g}">${gradeName(g)}</button>`).join('');
  }else{
   $('gradeShortcuts').classList.add('selected-class-only');
-  $('gradeShortcuts').innerHTML=`<div class="selected-class-display"><span class="selected-class-label">Selected class</span><strong>${gradeName(state.grade)}</strong><button type="button" class="change-class-btn" data-change-class>Change class</button></div>`;
+  $('gradeShortcuts').innerHTML=`<div class="selected-class-display"><span class="selected-class-label">Learning in</span><strong>${gradeName(state.grade)}</strong><button type="button" class="change-class-btn" data-change-class>Change class</button></div>`;
  }
 }
 function renderSubjectFilters(){
