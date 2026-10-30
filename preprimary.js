@@ -1,13 +1,47 @@
 /* Pre-primary lessons. Loaded after content.js and before app.js.
    Level codes: Nursery=-2, LKG=-1, UKG=0. */
 
-add(-2,'English','Hello and Thank You','Practise happy greetings.','👋','Say hello when meeting people and thank you when someone helps. These are friendly, kind words.','Smile and say hello to a friend.','Say hello and thank you to someone at home.',['What do you say when meeting a friend?',['Goodbye','Hello','Stop','Sleep'],1],['When someone helps, we say?',['Thank you','Go away','Never','Nothing'],0]);
 
 // NURSERY ENGLISH · four additional interactive lessons
 add(-2,'English','Listening and Speaking','Listen carefully and practise speaking simple words and sentences.','🗣️','Listening means paying attention when someone speaks. Speaking means using words clearly to share ideas. Young learners can begin with names, greetings and familiar objects.','Listen to: “This is a red ball.” Then say: “Red ball.”','Listen to a parent or teacher say three simple words and repeat them clearly.',['What should you do when someone is speaking?',['Look away','Listen carefully','Run away','Shout'],1],['Which is a speaking activity?',['Saying your name','Sleeping','Closing a book','Looking at a wall'],0]);
 add(-2,'English','Rhymes and Stories','Enjoy simple rhymes and listen to short stories.','🎵','Rhymes use words that sound alike, and stories tell us about people, animals, places or events. Listening to rhymes and stories helps children remember words and ideas.','Cat and hat rhyme. A short story may begin: “A little bird found a red seed.”','Say a short rhyme aloud or listen to a tiny story and tell what happened.',['Which word rhymes with cat?',['Hat','Dog','Sun','Pen'],0],['What do we do with a story?',['Listen to it','Throw it away','Ignore it','Hide it'],0]);
 add(-2,'English','Picture Recognition','Look at pictures and identify familiar objects, animals and people.','🖼️','Picture recognition means looking carefully at an image and knowing what it shows. This helps children connect pictures with spoken words.','🍎 is an apple. 🐶 is a dog. 🚌 is a bus.','Look at three picture cards and name each picture aloud.',['What is this? 🍎',['Apple','Ball','Bus','Cat'],0],['What is this? 🐶',['Dog','Bird','Fish','Tree'],0]);
 add(-2,'English','Vocabulary Development','Learn and use new words for familiar things.','📚','Vocabulary means the words we know and understand. Learning simple words for colours, animals, food and daily objects helps children communicate better.','Words to learn: ball, apple, cat, red, big.','Choose three objects around you, say their names and use one word in a short sentence.',['Which word names an animal?',['Cat','Red','Big','Cup'],0],['Which word names a colour?',['Apple','Run','Blue','Dog'],2]);
+
+const nurseryListening=window.TLW_LESSONS.find(l=>l.grade===-2&&l.subject==='English'&&l.title==='Listening and Speaking');
+if(nurseryListening)nurseryListening.activities=[
+  ['Introduce Yourself','Teacher: “What is your name?” Child: “My name is Riya.”'],
+  ['Greetings','“Good morning.” “Hello.” “Thank you.” “Bye-bye.”'],
+  ['Identify an Object','Teacher shows a ball: “What is this?” Child: “It is a ball.”'],
+  ['Simple Yes/No Questions','“Is this an apple?” “Yes.” / “No.”'],
+  ['Follow Instructions','“Stand up.” “Sit down.” “Clap your hands.” “Touch your nose.”'],
+  ['Talk About Colours','“What colour is the apple?” Child: “Red.”'],
+  ['Talk About Family','“Who is she?” Child: “She is my mother.”'],
+  ['Animal Sounds','“What does a cow say?” Child: “Moo.”'],
+  ['Complete the Sentence','“I like ___.” Child: “I like mango.”'],
+  ['Picture Talk','Show a park picture and ask: “What can you see?” Child: “Tree, ball, boy.”'],
+  ['Daily Needs','“I want water.” “Please help me.” “May I go?”'],
+  ['Action Words','“Run.” “Jump.” “Eat.” “Sleep.” Ask the child to say and act.'],
+  ['Listening Game','“Touch your head, then clap twice.”'],
+  ['Feelings','“How are you?” Child: “I am happy.”'],
+  ['Short Conversation','Teacher: “Do you like bananas?” Child: “Yes, I do.”']
+];
+
+const nurseryRhymesStories=window.TLW_LESSONS.find(l=>l.grade===-2&&l.subject==='English'&&l.title==='Rhymes and Stories');
+if(nurseryRhymesStories){
+  nurseryRhymesStories.rhymes=[
+    {title:'Twinkle, Twinkle, Little Star',text:'Twinkle, twinkle, little star,\nHow I wonder what you are!\nUp above the world so high,\nLike a diamond in the sky.\n\nTwinkle, twinkle, little star,\nHow I wonder what you are!'},
+    {title:'Baa, Baa, Black Sheep',text:'Baa, baa, black sheep,\nHave you any wool?\nYes sir, yes sir,\nThree bags full.\n\nOne for the master,\nOne for the dame,\nAnd one for the little boy\nWho lives down the lane.'},
+    {title:'Johny Johny Yes Papa',text:'Johny, Johny,\nYes, Papa?\n\nEating sugar?\nNo, Papa.\n\nTelling lies?\nNo, Papa.\n\nOpen your mouth.\nHa! Ha! Ha!'},
+    {title:'Rain, Rain, Go Away',text:'Rain, rain, go away,\nCome again another day.\n\nLittle children want to play,\nRain, rain, go away.'}
+  ];
+  nurseryRhymesStories.stories=[
+    {title:'The Thirsty Crow',text:'One hot day, a crow was very thirsty.\n\nHe flew here and there looking for water.\n\nAfter some time, he saw a pot near a tree.\n\nThe crow flew down and looked inside the pot.\n\nThere was a little water at the bottom.\n\nThe crow tried to drink the water, but his beak could not reach it.\n\nHe thought for a while.\n\nThen he saw some small stones nearby.\n\nThe crow picked up the stones one by one and dropped them into the pot.\n\nSlowly, the water came up.\n\nSoon, the water reached the top.\n\nThe crow drank the water happily.\n\nThen he flew away.',moral:'Think wisely and never give up.'},
+    {title:'The Lion and the Mouse',text:'One day, a big lion was sleeping under a tree.\n\nA little mouse was playing nearby.\n\nThe mouse accidentally ran over the lion.\n\nThe lion woke up and caught the mouse.\n\nThe mouse was frightened.\n\n“Please let me go,” said the mouse.\n“One day, I may help you.”\n\nThe lion laughed.\n\n“You are so small. How can you help me?”\n\nBut the lion was kind and let the mouse go.\n\nA few days later, the lion was caught in a hunter’s net.\n\nHe tried hard to escape, but he could not.\n\nThe lion roared loudly.\n\nThe little mouse heard him.\n\nThe mouse quickly came to help.\n\nHe used his sharp teeth to bite the ropes of the net.\n\nSoon, the lion was free.\n\nThe lion thanked the little mouse.\n\nThey became good friends.',moral:'Even a small friend can be a great help.'},
+    {title:'The Hare and the Tortoise',text:'Once there was a fast hare.\n\nHe was very proud of how quickly he could run.\n\nA tortoise lived nearby.\n\nThe hare often laughed at the tortoise.\n\n“You are so slow,” said the hare.\n\nThe tortoise replied,\n“Let us have a race.”\n\nThe hare laughed and agreed.\n\nThe race began.\n\nThe hare ran very fast and went far ahead.\n\nThe tortoise walked slowly and steadily.\n\nAfter some time, the hare looked back.\n\nHe could not see the tortoise.\n\n“I have plenty of time,” thought the hare.\n\nSo he lay down under a tree and went to sleep.\n\nThe tortoise kept walking.\n\nStep by step, he moved forward.\n\nAfter a long time, the tortoise reached the finish line.\n\nThe hare suddenly woke up.\n\nHe ran as fast as he could.\n\nBut it was too late.\n\nThe tortoise had already won the race.\n\nThe hare learned an important lesson.',moral:'Slow and steady wins the race.'}
+  ];
+}
+
 
 // NURSERY HINDI · four interactive lessons with explicit Unicode-safe IDs
 function addNurseryHindi(id,title,description,emoji,concept,example,tip,q1,q2){
