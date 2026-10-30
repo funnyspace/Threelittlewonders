@@ -114,7 +114,7 @@ function renderProgress(){
  $('progressFill').style.width=pct+'%';
  $('progressSubtitle').textContent=pct===100?'You finished every starter lesson in '+gradeName(state.grade)+'! 🎉':`${doneGrade} of ${gradeLessons.length} ${gradeName(state.grade)} lessons completed`;
 }
-function renderAll(){renderGradeSelectors();renderSubjectFilters();renderCourses();renderProgress();if(state.grade>=-2&&state.grade<=0){const roadmap=$('curriculumSection');if(roadmap)roadmap.hidden=true;}}
+function renderAll(){renderGradeSelectors();renderSubjectFilters();renderCourses();renderProgress();const roadmap=$('curriculumSection');if(roadmap)roadmap.hidden=true;}
 function openLesson(id){const lesson=LESSONS.find(l=>l.id===id);if(!lesson)return;currentLesson=lesson;currentQuestion=0;questionAnswered=false;returnFocus=document.activeElement;$('lessonModal').hidden=false;document.body.classList.add('modal-open');$('lessonTitle').textContent=lesson.title;$('modalSubjectIcon').textContent=subjectIcon(lesson.subject);$('modalMeta').textContent=`${gradeName(lesson.grade).toUpperCase()} · ${lesson.subject.toUpperCase()} · ${lesson.minutes} MIN`;
  showLearn();$('closeLesson').focus();}
 function stage(which){['Learn','Quiz','Complete'].forEach(s=>{const x=$('stage'+s);x.classList.toggle('active',s===which);x.classList.toggle('done',({Learn:0,Quiz:1,Complete:2}[s]||0)<({Learn:0,Quiz:1,Complete:2}[which]||0))})}
