@@ -28,7 +28,7 @@ Visit http://localhost:8000.
 ## Publish on GitHub Pages
 
 1. Use the existing repository `funnyspace/Threelittlewonders`.
-2. Upload `index.html`, `styles.css`, `content.js`, `preprimary.js`, `curriculum.js`, `school-curriculum.js`, `secondary-curriculum.js`, `app.js`, `curriculum-ui.js`, `contact-form.js`, `site-navigation.js`, `favicon.svg` and `README.md` to its root.
+2. Upload `index.html`, `styles.css`, `content.js`, `preprimary.js`, `curriculum.js`, `school-curriculum.js`, `secondary-curriculum.js`, `app.js`, `curriculum-ui.js`, `nursery-examples.js`, `nursery-gallery.js`, `nursery-maths-poster.svg`, `contact-form.js`, `site-navigation.js`, `favicon.svg` and `README.md` to its root.
 3. In the repository, go to **Settings → Pages**.
 4. Choose **Deploy from a branch**, select `main` and `/ (root)`, then save.
 5. Your GitHub Pages URL will normally be `https://funnyspace.github.io/Threelittlewonders/` once deployment completes.
@@ -110,3 +110,17 @@ The brief information sections are written to match the current static implement
 ### Contact form behaviour
 
 The parent/guardian form requests a name and email address, optional contact phone, optional class (Nursery to Class 10), required purpose, and required message. Submission prepares an email addressed to `hello@threelittlewonders.com` using `contact-form.js`. A working email application is required to send it. The site cannot confirm delivery. For server-side form delivery or inbox tracking, a backend or a suitable hosted form service is required.
+
+## Nursery illustrated picture-learning redesign
+
+Nursery now displays a picture-first gallery in place of the older generic Nursery topic roadmap and quiz cards. The presentation has **five areas, each with ten illustrated examples**, for a total of **50 picture examples**.
+
+- Communication & Early Literacy: 10 picture prompts.
+- Early Mathematics: 10 picture prompts and a colourful five-panel illustrative learning poster.
+- Nature & Everyday Life: 10 picture prompts.
+- Creativity, Play & Movement: 10 picture prompts.
+- Feelings & Friendship: 10 picture prompts.
+
+Visuals are built from self-hosted SVG artwork and Unicode pictograms so the page works on GitHub Pages without image-provider APIs. `nursery-maths-poster.svg` is a **vector recreation based on the supplied poster reference**, not the original uploaded PNG.
+
+Only Nursery's displayed content is replaced. The old Nursery entries remain stored in the original dataset for backward compatibility with local progress; they are **hidden from the Nursery view**. LKG, UKG, and Classes 1–10 retain their existing content and progress behavior.
