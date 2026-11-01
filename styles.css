@@ -722,3 +722,56 @@
 @media(max-width:700px){
   .topic-content-panel .lesson-activity-row{grid-template-columns:1fr}
 }
+
+
+/* Direct study layout for every subject topic */
+.topic-study-standard,.topic-inline-rich{margin-top:18px}
+.topic-study-list{
+  display:flex;
+  flex-direction:column;
+  border:1px solid #e3e9e2;
+  border-radius:14px;
+  overflow:hidden;
+  background:#fff;
+}
+.topic-study-row{
+  display:grid;
+  grid-template-columns:minmax(150px,.55fr) minmax(0,1.45fr);
+  border-bottom:1px solid #e8ede7;
+}
+.topic-study-row:last-child{border-bottom:0}
+.topic-study-row-title{
+  display:flex;
+  align-items:center;
+  gap:9px;
+  padding:13px 14px;
+  background:#f7faf6;
+  color:#315944;
+}
+.topic-study-row-number{
+  display:grid;
+  place-items:center;
+  flex:none;
+  width:25px;
+  height:25px;
+  border-radius:50%;
+  background:#e4f1e7;
+  color:#286346;
+  font-size:11px;
+  font-weight:900;
+}
+.topic-study-row-icon{font-size:16px}
+.topic-study-row-title strong{font-size:12px}
+.topic-study-row-content{
+  padding:13px 15px;
+  color:#56695c;
+  font-size:12px;
+  line-height:1.75;
+  background:#fff;
+}
+.topic-inline-rich .topic-study-heading{margin-bottom:12px}
+@media(max-width:700px){
+  .topic-study-row{grid-template-columns:1fr}
+  .topic-study-row-title{padding-bottom:8px}
+  .topic-study-row-content{padding-top:8px}
+}
