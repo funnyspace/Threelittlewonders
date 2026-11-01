@@ -7,6 +7,12 @@ const LEGACY_STORE_KEY='threeelittlewonders-progress-v1';
 const $=id=>document.getElementById(id);
 const safe=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const GRADE_LEVELS=[-2,-1,0,...Array.from({length:10},(_,i)=>i+1)];
+const GRADE_GROUPS=[
+ {key:'foundation',label:'Foundation',range:'Nursery · LKG · UKG',icon:'🌱',grades:[-2,-1,0]},
+ {key:'primary',label:'Primary',range:'Classes 1–5',icon:'📘',grades:[1,2,3,4,5]},
+ {key:'middle',label:'Middle School',range:'Classes 6–8',icon:'🧭',grades:[6,7,8]},
+ {key:'secondary',label:'Secondary',range:'Classes 9–10',icon:'🎓',grades:[9,10]}
+];
 function load(){try{const v=JSON.parse(localStorage.getItem(STORE_KEY)||localStorage.getItem(LEGACY_STORE_KEY)||'{}');return {grade:Number.isInteger(v.grade)&&GRADE_LEVELS.includes(v.grade)?v.grade:3,completed:Array.isArray(v.completed)?[...new Set(v.completed.filter(x=>typeof x==='string'))]:[]}}catch{return {grade:3,completed:[]}}}
 let state=load(),subject='',query='',classChoicesOpen=true,currentTopicId='',currentLesson=null,currentQuestion=0,questionAnswered=false,returnFocus=null,toastTimer;
 function persist(){try{localStorage.setItem(STORE_KEY,JSON.stringify(state))}catch{showToast('Progress cannot be saved in this browser.')}}
@@ -15,13 +21,25 @@ const subjectIcon=s=>SUBJECTS[s]?.icon||'📚';
 function showToast(msg){const t=$('toast');t.textContent=msg;t.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),2400)}
 function setGrade(g){if(!Number.isInteger(g)||!GRADE_LEVELS.includes(g))return;state.grade=g;subject='';query='';currentTopicId='';classChoicesOpen=false;$('searchInput').value='';persist();renderAll();requestAnimationFrame(()=>$('classSubjectSection')?.scrollIntoView({behavior:'smooth',block:'start'}))}
 function renderGradeSelectors(){
- $('classSelect').innerHTML=GRADE_LEVELS.map(g=>`<option value="${g}" ${state.grade===g?'selected':''}>${gradeName(g)}</option>`).join('');
+ $('classSelect').innerHTML=GRADE_GROUPS.map(group=>`<optgroup label="${safe(group.label)}">${group.grades.map(g=>`<option value="${g}" ${state.grade===g?'selected':''}>${gradeName(g)}</option>`).join('')}</optgroup>`).join('');
  const classPicker=document.querySelector('.class-picker');
  if(classPicker)classPicker.hidden=!classChoicesOpen;
  if(classChoicesOpen){
   $('gradeShortcuts').classList.remove('selected-class-only');
-  $('gradeShortcuts').innerHTML=GRADE_LEVELS.map(g=>`<button class="grade-chip ${state.grade===g?'selected':''}" data-grade="${g}" aria-pressed="${state.grade===g}">${gradeName(g)}</button>`).join('');
+  $('gradeShortcuts').classList.add('class-hierarchy');
+  $('gradeShortcuts').innerHTML=`<div class="learning-stage-list">${GRADE_GROUPS.map((group,index)=>`
+   <section class="learning-stage-card learning-stage-${safe(group.key)}" aria-labelledby="stage-${safe(group.key)}">
+    <div class="learning-stage-heading">
+     <span class="learning-stage-step" aria-hidden="true">${index+1}</span>
+     <span class="learning-stage-icon" aria-hidden="true">${group.icon}</span>
+     <div><span class="learning-stage-kicker">Learning stage</span><h3 id="stage-${safe(group.key)}">${safe(group.label)}</h3><p>${safe(group.range)}</p></div>
+    </div>
+    <div class="learning-stage-classes" role="group" aria-label="${safe(group.label)} classes">
+     ${group.grades.map(g=>`<button class="grade-chip ${state.grade===g?'selected':''}" data-grade="${g}" aria-pressed="${state.grade===g}">${gradeName(g)}</button>`).join('')}
+    </div>
+   </section>`).join('')}</div>`;
  }else{
+  $('gradeShortcuts').classList.remove('class-hierarchy');
   $('gradeShortcuts').classList.add('selected-class-only');
   $('gradeShortcuts').innerHTML=`<div class="selected-class-display"><strong>${gradeName(state.grade)}</strong><button type="button" class="change-class-btn" data-change-class>Change class</button></div>`;
  }
