@@ -704,3 +704,21 @@
   }
   .change-class-btn{margin-left:0}
 }
+
+
+/* Listening activity table shown directly in topic content */
+.topic-study-activities{margin-top:18px}
+.topic-study-heading{
+  display:flex;align-items:flex-start;gap:10px;
+  margin-bottom:12px;padding:13px 14px;
+  border:1px solid #e3ebe2;border-radius:13px;background:#f8fbf7
+}
+.topic-study-heading>span{font-size:20px;line-height:1}
+.topic-study-heading div{display:flex;flex-direction:column;gap:3px}
+.topic-study-heading strong{color:#2d5941;font-size:13px}
+.topic-study-heading small{color:#76877c;font-size:11px;line-height:1.5}
+.topic-content-panel .lesson-activity-table{margin-top:0}
+.topic-content-panel .lesson-activity-row{grid-template-columns:minmax(190px,.75fr) minmax(0,1.6fr)}
+@media(max-width:700px){
+  .topic-content-panel .lesson-activity-row{grid-template-columns:1fr}
+}
