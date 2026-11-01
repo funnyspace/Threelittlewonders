@@ -18,8 +18,46 @@ let state=load(),subject='',query='',classChoicesOpen=true,currentTopicId='',cur
 function persist(){try{localStorage.setItem(STORE_KEY,JSON.stringify(state))}catch{showToast('Progress cannot be saved in this browser.')}}
 const gradeName=g=>g===-2?'Nursery':g===-1?'LKG':g===0?'UKG':`Class ${g}`;
 const subjectIcon=s=>SUBJECTS[s]?.icon||'📚';
+let activeSpeech=null;
+function stopReadAloud(){
+ if('speechSynthesis' in window)window.speechSynthesis.cancel();
+ activeSpeech=null;
+ const btn=document.querySelector('[data-read-aloud].speaking');
+ if(btn){btn.classList.remove('speaking');btn.innerHTML='🔊 Read Aloud';}
+}
+function lessonSpeechLanguage(lesson){
+ if(lesson.subject==='Hindi'||lesson.subject==='Sanskrit')return 'hi-IN';
+ if(lesson.subject==='Urdu')return 'ur-IN';
+ return 'en-IN';
+}
+function lessonSpeechText(lesson){
+ const parts=[lesson.title,lesson.concept,lesson.example,lesson.tip];
+ if(Array.isArray(lesson.activities))lesson.activities.forEach(row=>parts.push(row.filter(Boolean).join('. ')));
+ if(Array.isArray(lesson.rhymes))lesson.rhymes.forEach(item=>parts.push(item.title,item.text));
+ if(Array.isArray(lesson.stories))lesson.stories.forEach(item=>parts.push(item.title,item.text,item.moral?'Moral: '+item.moral:''));
+ return parts.filter(Boolean).join('. ');
+}
+function readAloudLesson(id,button){
+ const lesson=LESSONS.find(l=>l.id===id);if(!lesson)return;
+ if(!('speechSynthesis' in window)||typeof SpeechSynthesisUtterance==='undefined'){showToast('Read Aloud is not supported in this browser.');return;}
+ if(activeSpeech===id&&window.speechSynthesis.speaking){stopReadAloud();return;}
+ stopReadAloud();
+ const utterance=new SpeechSynthesisUtterance(lessonSpeechText(lesson));
+ utterance.lang=lessonSpeechLanguage(lesson);
+ utterance.rate=lesson.grade<=0?.88:.96;
+ const voices=window.speechSynthesis.getVoices();
+ const prefix=utterance.lang.split('-')[0].toLowerCase();
+ const voice=voices.find(v=>v.lang&&v.lang.toLowerCase()===utterance.lang.toLowerCase())||voices.find(v=>v.lang&&v.lang.toLowerCase().startsWith(prefix));
+ if(voice)utterance.voice=voice;
+ activeSpeech=id;
+ button.classList.add('speaking');
+ button.innerHTML='⏹ Stop Reading';
+ utterance.onend=()=>{if(activeSpeech===id){activeSpeech=null;button.classList.remove('speaking');button.innerHTML='🔊 Read Aloud';}};
+ utterance.onerror=()=>{if(activeSpeech===id){activeSpeech=null;button.classList.remove('speaking');button.innerHTML='🔊 Read Aloud';}};
+ window.speechSynthesis.speak(utterance);
+}
 function showToast(msg){const t=$('toast');t.textContent=msg;t.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),2400)}
-function setGrade(g){if(!Number.isInteger(g)||!GRADE_LEVELS.includes(g))return;state.grade=g;subject='';query='';currentTopicId='';classChoicesOpen=false;$('searchInput').value='';persist();renderAll();requestAnimationFrame(()=>$('classSubjectSection')?.scrollIntoView({behavior:'smooth',block:'start'}))}
+function setGrade(g){if(!Number.isInteger(g)||!GRADE_LEVELS.includes(g))return;stopReadAloud();state.grade=g;subject='';query='';currentTopicId='';classChoicesOpen=false;$('searchInput').value='';persist();renderAll();requestAnimationFrame(()=>$('classSubjectSection')?.scrollIntoView({behavior:'smooth',block:'start'}))}
 function renderGradeSelectors(){
  $('classSelect').innerHTML=GRADE_GROUPS.map(group=>`<optgroup label="${safe(group.label)}">${group.grades.map(g=>`<option value="${g}" ${state.grade===g?'selected':''}>${gradeName(g)}</option>`).join('')}</optgroup>`).join('');
  const classPicker=document.querySelector('.class-picker');
@@ -89,31 +127,25 @@ function renderCourses(){
  const hasActivities=Array.isArray(selected.activities)&&selected.activities.length;
  const hasRhymes=Array.isArray(selected.rhymes)&&selected.rhymes.length;
  const hasStories=Array.isArray(selected.stories)&&selected.stories.length;
- let topicStudyContent='';
+ let topicStudyContent='<section class="topic-main-content"><p class="topic-main-lead">'+safe(selected.concept)+'</p>';
+ if(selected.example)topicStudyContent+='<p>'+safe(selected.example)+'</p>';
+ if(selected.tip)topicStudyContent+='<p>'+safe(selected.tip)+'</p>';
  if(hasActivities){
-  topicStudyContent='<section class="topic-study-activities"><div class="topic-study-heading"><span>🗣️</span><div><strong>Listening & Speaking Practice</strong><small>Read the teacher question, then practise the child answer aloud.</small></div></div><div class="lesson-activity-table">'+
+  topicStudyContent+='<div class="lesson-activity-table topic-main-rich">'+
    selected.activities.map((row,i)=>'<div class="lesson-activity-row"><div class="lesson-activity-name"><span class="lesson-activity-number">'+(i+1)+'</span><strong>'+safe(row[0])+'</strong></div><div class="lesson-activity-example"><div class="activity-dialogue">'+safe(row[1]).replace(/\n/g,'<br>')+'</div>'+(row[2]?'<div class="activity-learning"><strong>Learning:</strong> '+safe(row[2])+'</div>':'')+'</div></div>').join('')+
-   '</div></section>';
- }else{
-  const studyRows=[
-   ['Learn',selected.concept,'🌱'],
-   ['Example',selected.example,'💡'],
-   ['Practice',selected.tip,'🌟']
-  ];
-  topicStudyContent='<section class="topic-study-standard"><div class="topic-study-heading"><span>'+subjectIcon(selected.subject)+'</span><div><strong>Study this topic</strong><small>Learn the idea, look at an example, then try it yourself.</small></div></div><div class="topic-study-list">'+
-   studyRows.map((row,i)=>'<div class="topic-study-row"><div class="topic-study-row-title"><span class="topic-study-row-number">'+(i+1)+'</span><span class="topic-study-row-icon">'+row[2]+'</span><strong>'+safe(row[0])+'</strong></div><div class="topic-study-row-content">'+safe(row[1])+'</div></div>').join('')+
-   '</div></section>';
+   '</div>';
  }
  if(hasRhymes){
-  topicStudyContent+='<section class="topic-inline-rich"><div class="topic-study-heading"><span>🎵</span><div><strong>Nursery Rhymes</strong><small>Read or sing each rhyme aloud.</small></div></div><div class="rhyme-grid">'+
+  topicStudyContent+='<div class="rhyme-grid topic-main-rich">'+
    selected.rhymes.map((r,i)=>'<article class="rhyme-card"><span class="rich-index">'+(i+1)+'</span><h5>'+safe(r.title)+'</h5><p class="rhyme-text">'+safe(r.text).replace(/\n/g,'<br>')+'</p></article>').join('')+
-   '</div></section>';
+   '</div>';
  }
  if(hasStories){
-  topicStudyContent+='<section class="topic-inline-rich"><div class="topic-study-heading"><span>📖</span><div><strong>Nursery Stories</strong><small>Read the story slowly and discuss the moral.</small></div></div><div class="story-list">'+
+  topicStudyContent+='<div class="story-list topic-main-rich">'+
    selected.stories.map((story,i)=>'<article class="story-card"><div class="story-heading"><span class="rich-index">'+(i+1)+'</span><h5>'+safe(story.title)+'</h5></div><p class="story-text">'+safe(story.text).replace(/\n\n/g,'</p><p class="story-text">').replace(/\n/g,'<br>')+'</p><div class="story-moral"><strong>Moral:</strong> '+safe(story.moral)+'</div></article>').join('')+
-   '</div></section>';
+   '</div>';
  }
+ topicStudyContent+='</section>';
  const richNote=''; $('courseGrid').innerHTML=`
   <div class="topic-browser">
    <aside class="topic-list-panel" aria-label="Topics in ${safe(subject)}">
@@ -127,19 +159,17 @@ function renderCourses(){
     </div>
    </aside>
    <article class="topic-content-panel" aria-live="polite">
-    <div class="topic-content-top">
-     <div>
-      <span class="topic-content-subject">${subjectIcon(selected.subject)} ${safe(selected.subject)} · ${gradeName(selected.grade)}</span>
-      <h3>${safe(selected.title)}</h3>
-      <p class="topic-content-description">${safe(selected.description)}</p>
-     </div>
-     <span class="topic-time">${selected.minutes} min</span>
+    <div class="topic-content-top topic-content-top-simple">
+     <h3>${safe(selected.title)}</h3>
     </div>
     ${topicStudyContent}
     ${richNote}
     <div class="topic-content-actions">
-     <span class="topic-read-status">${done?'✓ Completed · Read again':'📖 Full lesson + quick quiz'}</span>
-     <button type="button" class="btn btn-primary topic-read-btn" data-read-lesson="${safe(selected.id)}">Read</button>
+     <span class="topic-read-status">${done?'✓ Quiz completed':'Quiz questions are based on the topic content above.'}</span>
+     <div class="topic-action-buttons">
+      <button type="button" class="btn btn-secondary read-aloud-btn" data-read-aloud="${safe(selected.id)}">🔊 Read Aloud</button>
+      <button type="button" class="btn btn-primary topic-quiz-btn" data-start-quiz="${safe(selected.id)}">Start Quiz</button>
+     </div>
     </div>
    </article>
   </div>`;
@@ -166,8 +196,8 @@ function renderAll(){
  const learningNote=document.querySelector('.curriculum-note');if(learningNote)learningNote.hidden=classChoicesOpen;
  if(classChoicesOpen){$('lessonResultsSection').hidden=true;}
 }
-function openLesson(id){const lesson=LESSONS.find(l=>l.id===id);if(!lesson)return;currentLesson=lesson;currentQuestion=0;questionAnswered=false;returnFocus=document.activeElement;$('lessonModal').hidden=false;document.body.classList.add('modal-open');$('lessonTitle').textContent=lesson.title;$('modalSubjectIcon').textContent=subjectIcon(lesson.subject);$('modalMeta').textContent=`${gradeName(lesson.grade).toUpperCase()} · ${lesson.subject.toUpperCase()} · ${lesson.minutes} MIN`;
- showLearn();$('closeLesson').focus();}
+function openLesson(id){const lesson=LESSONS.find(l=>l.id===id);if(!lesson)return;stopReadAloud();currentLesson=lesson;currentQuestion=0;questionAnswered=false;returnFocus=document.activeElement;$('lessonModal').hidden=false;document.body.classList.add('modal-open');$('lessonTitle').textContent=lesson.title;$('modalSubjectIcon').textContent=subjectIcon(lesson.subject);$('modalMeta').textContent=`${gradeName(lesson.grade).toUpperCase()} · ${lesson.subject.toUpperCase()} · QUIZ FROM THIS TOPIC`;
+ showQuiz();$('closeLesson').focus();}
 function stage(which){['Learn','Quiz','Complete'].forEach(s=>{const x=$('stage'+s);x.classList.toggle('active',s===which);x.classList.toggle('done',({Learn:0,Quiz:1,Complete:2}[s]||0)<({Learn:0,Quiz:1,Complete:2}[which]||0))})}
 function footer(left,button,action){const e=$('lessonFooter');e.innerHTML=`<span class="modal-helper">${safe(left)}</span><button class="btn btn-primary" id="modalAction">${safe(button)} <span aria-hidden="true">↗</span></button>`; $('modalAction').addEventListener('click',action)}
 function renderRichLesson(l){
@@ -194,7 +224,7 @@ function showLearn(){if(!currentLesson)return;stage('Learn');const l=currentLess
  $('lessonBody').innerHTML=`<div class="concept-label">🌱 LET'S UNDERSTAND</div><h3>${safe(l.title)}</h3><p class="explain-text">${safe(l.concept)}</p><div class="example-card"><strong>💡 Here's an easy example</strong><p>${safe(l.example)}</p></div><div class="tip-card"><span>🌟</span><span><strong>Little challenge:</strong> ${safe(l.tip)}</span></div>${rich}`;
  footer('Step 1 of 3 · Read and discover','Try a quiz',()=>{currentQuestion=0;showQuiz()});}
 function showQuiz(){if(!currentLesson)return;stage('Quiz');questionAnswered=false;const q=currentLesson.questions[currentQuestion];
- $('lessonBody').innerHTML=`<div class="quiz-number">🧩 QUICK QUIZ · QUESTION ${currentQuestion+1} OF ${currentLesson.questions.length}</div><h3>${safe(q.text)}</h3><p class="explain-text">Choose the answer that feels right. You can try again if you need to!</p><div class="answer-grid">${q.options.map((op,i)=>`<button class="answer-option" data-answer="${i}">${String.fromCharCode(65+i)}. ${safe(op)}</button>`).join('')}</div><div id="quizFeedback" aria-live="polite"></div>`;
+ $('lessonBody').innerHTML=`<div class="quiz-number">🧩 QUICK QUIZ · QUESTION ${currentQuestion+1} OF ${currentLesson.questions.length}</div><h3>${safe(q.text)}</h3><p class="explain-text">Answer using what you just studied in this topic.</p><div class="answer-grid">${q.options.map((op,i)=>`<button class="answer-option" data-answer="${i}">${String.fromCharCode(65+i)}. ${safe(op)}</button>`).join('')}</div><div id="quizFeedback" aria-live="polite"></div>`;
  $('lessonBody').querySelectorAll('[data-answer]').forEach(btn=>btn.addEventListener('click',()=>answer(Number(btn.dataset.answer))));
  footer('Take your time. You’ve got this!','Next question',()=>{});
  $('modalAction').disabled=true;
@@ -211,7 +241,7 @@ function completeLesson(){if(!currentLesson)return;stage('Complete');const alrea
  $('lessonBody').innerHTML=`<div class="celebrate"><div class="celebrate-emoji" aria-hidden="true">🎉🌟</div><h3>Wonderfully done!</h3><p>You completed <strong>${safe(currentLesson.title)}</strong>! Every little lesson takes you closer to big discoveries.</p><div class="reward">⭐ ${already?'Lesson reviewed!':'+20 stars earned!'}</div></div>`;
  footer('Keep that curious mind shining!','Explore more',()=>{closeLesson();window.location.hash='#explore';});
 }
-function closeLesson(){if($('lessonModal').hidden)return;$('lessonModal').hidden=true;document.body.classList.remove('modal-open');currentLesson=null;if(returnFocus&&typeof returnFocus.focus==='function')returnFocus.focus()}
+function closeLesson(){stopReadAloud();if($('lessonModal').hidden)return;$('lessonModal').hidden=true;document.body.classList.remove('modal-open');currentLesson=null;if(returnFocus&&typeof returnFocus.focus==='function')returnFocus.focus()}
 function continueLearning(){const next=LESSONS.find(l=>l.grade===state.grade&&!state.completed.includes(l.id))||LESSONS.find(l=>l.grade===state.grade);if(next)openLesson(next.id);else showToast('Choose a class to start learning!')}
 function installEvents(){
  document.querySelectorAll('a[href="#explore"]').forEach(link=>link.addEventListener('click',()=>{
@@ -226,9 +256,9 @@ function installEvents(){
  }));
  $('classSelect').addEventListener('change',e=>setGrade(Number(e.target.value)));
  $('gradeShortcuts').addEventListener('click',e=>{const gradeBtn=e.target.closest('[data-grade]');if(gradeBtn){setGrade(Number(gradeBtn.dataset.grade));return;}const changeBtn=e.target.closest('[data-change-class]');if(changeBtn){classChoicesOpen=true;subject='';query='';currentTopicId='';$('searchInput').value='';renderAll();requestAnimationFrame(()=>$('gradeShortcuts')?.scrollIntoView({behavior:'smooth',block:'start'}));}});
- $('subjectFilters').addEventListener('click',e=>{const btn=e.target.closest('[data-subject]');if(btn){subject=btn.dataset.subject;query='';currentTopicId='';$('searchInput').value='';renderSubjectFilters();renderCourses();requestAnimationFrame(()=>$('lessonResultsSection')?.scrollIntoView({behavior:'smooth',block:'start'}))}});
+ $('subjectFilters').addEventListener('click',e=>{const btn=e.target.closest('[data-subject]');if(btn){stopReadAloud();subject=btn.dataset.subject;query='';currentTopicId='';$('searchInput').value='';renderSubjectFilters();renderCourses();requestAnimationFrame(()=>$('lessonResultsSection')?.scrollIntoView({behavior:'smooth',block:'start'}))}});
  $('searchInput').addEventListener('input',e=>{query=e.target.value.trim().toLowerCase();renderCourses()});
- $('courseGrid').addEventListener('click',e=>{const topic=e.target.closest('[data-topic-id]');if(topic){currentTopicId=topic.dataset.topicId;renderCourses();return;}const read=e.target.closest('[data-read-lesson]');if(read)openLesson(read.dataset.readLesson);});
+ $('courseGrid').addEventListener('click',e=>{const topic=e.target.closest('[data-topic-id]');if(topic){stopReadAloud();currentTopicId=topic.dataset.topicId;renderCourses();return;}const aloud=e.target.closest('[data-read-aloud]');if(aloud){readAloudLesson(aloud.dataset.readAloud,aloud);return;}const quiz=e.target.closest('[data-start-quiz]');if(quiz)openLesson(quiz.dataset.startQuiz);});
  $('clearFiltersBtn').addEventListener('click',()=>{query='';$('searchInput').value='';renderCourses()});
  $('continueBtn').addEventListener('click',continueLearning);
  $('closeLesson').addEventListener('click',closeLesson);
