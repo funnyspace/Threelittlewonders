@@ -200,6 +200,16 @@ function completeLesson(){if(!currentLesson)return;stage('Complete');const alrea
 function closeLesson(){if($('lessonModal').hidden)return;$('lessonModal').hidden=true;document.body.classList.remove('modal-open');currentLesson=null;if(returnFocus&&typeof returnFocus.focus==='function')returnFocus.focus()}
 function continueLearning(){const next=LESSONS.find(l=>l.grade===state.grade&&!state.completed.includes(l.id))||LESSONS.find(l=>l.grade===state.grade);if(next)openLesson(next.id);else showToast('Choose a class to start learning!')}
 function installEvents(){
+ document.querySelectorAll('a[href="#explore"]').forEach(link=>link.addEventListener('click',()=>{
+  classChoicesOpen=true;
+  subject='';
+  query='';
+  currentTopicId='';
+  $('searchInput').value='';
+  if(!$('lessonModal').hidden)closeLesson();
+  renderAll();
+  requestAnimationFrame(()=>window.scrollTo({top:0,behavior:'smooth'}));
+ }));
  $('classSelect').addEventListener('change',e=>setGrade(Number(e.target.value)));
  $('gradeShortcuts').addEventListener('click',e=>{const gradeBtn=e.target.closest('[data-grade]');if(gradeBtn){setGrade(Number(gradeBtn.dataset.grade));return;}const changeBtn=e.target.closest('[data-change-class]');if(changeBtn){classChoicesOpen=true;subject='';query='';currentTopicId='';$('searchInput').value='';renderAll();requestAnimationFrame(()=>$('gradeShortcuts')?.scrollIntoView({behavior:'smooth',block:'start'}));}});
  $('subjectFilters').addEventListener('click',e=>{const btn=e.target.closest('[data-subject]');if(btn){subject=btn.dataset.subject;query='';currentTopicId='';$('searchInput').value='';renderSubjectFilters();renderCourses();requestAnimationFrame(()=>$('lessonResultsSection')?.scrollIntoView({behavior:'smooth',block:'start'}))}});
