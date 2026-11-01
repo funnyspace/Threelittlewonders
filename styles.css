@@ -474,3 +474,138 @@
   font-size:11px;
   line-height:1.6;
 }
+
+
+/* Explore Courses class hierarchy */
+.grade-shortcuts.class-hierarchy{
+  display:block;
+  overflow:visible;
+  margin-top:18px;
+  padding:0 0 24px;
+}
+.learning-stage-list{
+  position:relative;
+  display:flex;
+  flex-direction:column;
+  gap:13px;
+}
+.learning-stage-list::before{
+  content:'';
+  position:absolute;
+  left:22px;
+  top:34px;
+  bottom:34px;
+  width:2px;
+  background:linear-gradient(#b9d8c1,#d5e4d8);
+}
+.learning-stage-card{
+  position:relative;
+  display:grid;
+  grid-template-columns:minmax(250px,.9fr) minmax(0,1.6fr);
+  gap:24px;
+  align-items:center;
+  border:1px solid #e1e8df;
+  border-radius:18px;
+  padding:18px 20px 18px 58px;
+  background:#fff;
+  box-shadow:0 8px 24px rgba(37,76,48,.045);
+}
+.learning-stage-card::before{
+  content:'';
+  position:absolute;
+  left:20px;
+  top:50%;
+  width:6px;
+  height:6px;
+  margin-top:-3px;
+  border-radius:50%;
+  background:#7eaa8c;
+  box-shadow:0 0 0 6px #eef6f0;
+}
+.learning-stage-heading{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  min-width:0;
+}
+.learning-stage-step{
+  position:absolute;
+  left:11px;
+  top:17px;
+  display:grid;
+  place-items:center;
+  width:22px;
+  height:22px;
+  border-radius:50%;
+  background:#2f6b48;
+  color:#fff;
+  font-size:10px;
+  font-weight:900;
+}
+.learning-stage-icon{
+  display:grid;
+  place-items:center;
+  flex:none;
+  width:44px;
+  height:44px;
+  border-radius:13px;
+  background:#f1f7f2;
+  font-size:23px;
+}
+.learning-stage-kicker{
+  display:block;
+  margin-bottom:2px;
+  color:#8b998f;
+  font-size:9px;
+  font-weight:900;
+  letter-spacing:1.1px;
+  text-transform:uppercase;
+}
+.learning-stage-heading h3{
+  margin:0;
+  font-family:Nunito,'Trebuchet MS',sans-serif;
+  color:#234936;
+  font-size:19px;
+  line-height:1.25;
+}
+.learning-stage-heading p{
+  margin:3px 0 0;
+  color:#75837a;
+  font-size:11px;
+  line-height:1.5;
+}
+.learning-stage-classes{
+  display:flex;
+  flex-wrap:wrap;
+  gap:9px;
+}
+.learning-stage-classes .grade-chip{
+  min-width:92px;
+  justify-content:center;
+  border-radius:12px;
+  padding:11px 15px;
+  background:#fbfcfa;
+}
+.learning-stage-classes .grade-chip:hover{
+  transform:translateY(-1px);
+}
+.learning-stage-foundation{background:linear-gradient(135deg,#fffdf8,#f7fbf6)}
+.learning-stage-primary{background:linear-gradient(135deg,#ffffff,#f8fbff)}
+.learning-stage-middle{background:linear-gradient(135deg,#ffffff,#fbf9ff)}
+.learning-stage-secondary{background:linear-gradient(135deg,#ffffff,#fff9f6)}
+@media(max-width:820px){
+  .learning-stage-card{
+    grid-template-columns:1fr;
+    gap:14px;
+  }
+}
+@media(max-width:560px){
+  .learning-stage-list::before{left:17px}
+  .learning-stage-card{padding:16px 14px 16px 46px}
+  .learning-stage-card::before{left:15px}
+  .learning-stage-step{left:6px;top:15px}
+  .learning-stage-icon{width:38px;height:38px;font-size:20px}
+  .learning-stage-heading h3{font-size:17px}
+  .learning-stage-classes{gap:7px}
+  .learning-stage-classes .grade-chip{min-width:78px;padding:9px 11px}
+}
