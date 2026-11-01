@@ -609,3 +609,98 @@
   .learning-stage-classes{gap:7px}
   .learning-stage-classes .grade-chip{min-width:78px;padding:9px 11px}
 }
+
+
+/* Explore Courses two-step vertical hierarchy */
+.learning-stage-card{
+  grid-template-columns:1fr;
+  gap:15px;
+  align-items:stretch;
+  padding:20px 22px 20px 58px;
+}
+.learning-stage-classes{
+  padding-left:56px;
+  align-items:center;
+}
+.learning-stage-classes .grade-chip{
+  min-width:108px;
+  background:#fff;
+  border-color:#dfe6dc;
+  color:#40584a;
+}
+.learning-stage-classes .grade-chip.selected{
+  background:#2f6b48;
+  border-color:#2f6b48;
+  color:#fff;
+  box-shadow:0 7px 18px rgba(47,107,72,.24);
+}
+.learning-stage-classes .grade-chip.selected:hover{
+  background:#285d3f;
+  border-color:#285d3f;
+}
+.grade-shortcuts.selected-class-only{
+  display:block;
+  margin:0 0 18px;
+  padding:0;
+}
+.selected-class-display{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:18px;
+  width:100%;
+  padding:22px 24px;
+  border:1px solid #2f6b48;
+  border-radius:18px;
+  background:linear-gradient(135deg,#245a3c,#3f7d56);
+  box-shadow:0 14px 30px rgba(34,85,57,.16);
+}
+.selected-class-copy{
+  display:flex;
+  flex-direction:column;
+  gap:3px;
+}
+.selected-class-stage{
+  color:#dcefe2;
+  font-size:10px;
+  font-weight:900;
+  letter-spacing:1.1px;
+  text-transform:uppercase;
+}
+.selected-class-display strong{
+  color:#fff;
+  font-size:clamp(26px,3vw,36px);
+  line-height:1.1;
+}
+.selected-class-hint{
+  margin-top:3px;
+  color:#e7f3ea;
+  font-size:12px;
+}
+.change-class-btn{
+  flex:none;
+  margin-left:auto;
+  border:1px solid rgba(255,255,255,.45);
+  background:#fff;
+  color:#245a3c;
+  padding:10px 15px;
+}
+.change-class-btn:hover{
+  background:#f4fbf6;
+  border-color:#fff;
+}
+.explore-heading[hidden]{display:none!important}
+.class-subject-section{
+  scroll-margin-top:90px;
+}
+@media(max-width:640px){
+  .learning-stage-card{padding:17px 14px 17px 46px}
+  .learning-stage-classes{padding-left:0}
+  .learning-stage-classes .grade-chip{min-width:88px}
+  .selected-class-display{
+    align-items:flex-start;
+    flex-direction:column;
+    padding:18px;
+  }
+  .change-class-btn{margin-left:0}
+}
