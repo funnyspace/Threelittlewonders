@@ -775,3 +775,63 @@
   .topic-study-row-title{padding-bottom:8px}
   .topic-study-row-content{padding-top:8px}
 }
+
+
+/* Simplified topic content + Read Aloud */
+.topic-content-top-simple{
+  display:block;
+  padding-bottom:15px;
+}
+.topic-content-top-simple h3{
+  margin:0;
+}
+.topic-main-content{
+  margin-top:18px;
+  color:#53665a;
+  font-size:13px;
+  line-height:1.85;
+}
+.topic-main-content>p{
+  margin:0 0 14px;
+}
+.topic-main-content>p:last-of-type{
+  margin-bottom:0;
+}
+.topic-main-lead{
+  color:#365744;
+  font-size:14px;
+  font-weight:700;
+}
+.topic-main-rich{
+  margin-top:18px;
+}
+.topic-action-buttons{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  flex-wrap:wrap;
+}
+.read-aloud-btn{
+  min-width:126px;
+  justify-content:center;
+}
+.read-aloud-btn.speaking{
+  background:#fff2e8;
+  border-color:#f0b891;
+  color:#9a4d1f;
+}
+.topic-quiz-btn{
+  min-width:118px;
+  justify-content:center;
+}
+@media(max-width:560px){
+  .topic-content-actions{
+    align-items:stretch;
+  }
+  .topic-action-buttons{
+    width:100%;
+  }
+  .read-aloud-btn,.topic-quiz-btn{
+    flex:1 1 145px;
+  }
+}
