@@ -86,7 +86,15 @@ function renderCourses(){
  if(!lessons.some(l=>l.id===currentTopicId))currentTopicId=lessons[0].id;
  const selected=lessons.find(l=>l.id===currentTopicId)||lessons[0];
  const done=state.completed.includes(selected.id);
- const richNote=(selected.activities?.length||selected.rhymes?.length||selected.stories?.length)
+ const hasActivities=Array.isArray(selected.activities)&&selected.activities.length;
+ const topicStudyContent=hasActivities
+   ? '<section class="topic-study-activities"><div class="topic-study-heading"><span>🗣️</span><div><strong>Listening & Speaking Practice</strong><small>Read the teacher question, then practise the child answer aloud.</small></div></div><div class="lesson-activity-table">'+
+     selected.activities.map((row,i)=>'<div class="lesson-activity-row"><div class="lesson-activity-name"><span class="lesson-activity-number">'+(i+1)+'</span><strong>'+safe(row[0])+'</strong></div><div class="lesson-activity-example"><div class="activity-dialogue">'+safe(row[1]).replace(/\n/g,'<br>')+'</div>'+(row[2]?'<div class="activity-learning"><strong>Learning:</strong> '+safe(row[2])+'</div>':'')+'</div></div>').join('')+
+     '</div></section>'
+   : '<div class="topic-content-block"><span class="topic-content-label">🌱 What you will learn</span><p>'+safe(selected.concept)+'</p></div>'+
+     '<div class="topic-content-block topic-example-block"><span class="topic-content-label">💡 Easy example</span><p>'+safe(selected.example)+'</p></div>'+
+     '<div class="topic-content-block topic-activity-block"><span class="topic-content-label">🌟 Try this</span><p>'+safe(selected.tip)+'</p></div>';
+ const richNote=(!hasActivities&&(selected.rhymes?.length||selected.stories?.length))
    ? '<div class="topic-rich-note">✨ This topic includes additional guided learning content. Select <strong>Read</strong> to view everything.</div>'
    : '';
  $('courseGrid').innerHTML=`
@@ -110,18 +118,7 @@ function renderCourses(){
      </div>
      <span class="topic-time">${selected.minutes} min</span>
     </div>
-    <div class="topic-content-block">
-     <span class="topic-content-label">🌱 What you will learn</span>
-     <p>${safe(selected.concept)}</p>
-    </div>
-    <div class="topic-content-block topic-example-block">
-     <span class="topic-content-label">💡 Easy example</span>
-     <p>${safe(selected.example)}</p>
-    </div>
-    <div class="topic-content-block topic-activity-block">
-     <span class="topic-content-label">🌟 Try this</span>
-     <p>${safe(selected.tip)}</p>
-    </div>
+    ${topicStudyContent}
     ${richNote}
     <div class="topic-content-actions">
      <span class="topic-read-status">${done?'✓ Completed · Read again':'📖 Full lesson + quick quiz'}</span>
