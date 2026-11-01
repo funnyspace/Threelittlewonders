@@ -87,17 +87,34 @@ function renderCourses(){
  const selected=lessons.find(l=>l.id===currentTopicId)||lessons[0];
  const done=state.completed.includes(selected.id);
  const hasActivities=Array.isArray(selected.activities)&&selected.activities.length;
- const topicStudyContent=hasActivities
-   ? '<section class="topic-study-activities"><div class="topic-study-heading"><span>🗣️</span><div><strong>Listening & Speaking Practice</strong><small>Read the teacher question, then practise the child answer aloud.</small></div></div><div class="lesson-activity-table">'+
-     selected.activities.map((row,i)=>'<div class="lesson-activity-row"><div class="lesson-activity-name"><span class="lesson-activity-number">'+(i+1)+'</span><strong>'+safe(row[0])+'</strong></div><div class="lesson-activity-example"><div class="activity-dialogue">'+safe(row[1]).replace(/\n/g,'<br>')+'</div>'+(row[2]?'<div class="activity-learning"><strong>Learning:</strong> '+safe(row[2])+'</div>':'')+'</div></div>').join('')+
-     '</div></section>'
-   : '<div class="topic-content-block"><span class="topic-content-label">🌱 What you will learn</span><p>'+safe(selected.concept)+'</p></div>'+
-     '<div class="topic-content-block topic-example-block"><span class="topic-content-label">💡 Easy example</span><p>'+safe(selected.example)+'</p></div>'+
-     '<div class="topic-content-block topic-activity-block"><span class="topic-content-label">🌟 Try this</span><p>'+safe(selected.tip)+'</p></div>';
- const richNote=(!hasActivities&&(selected.rhymes?.length||selected.stories?.length))
-   ? '<div class="topic-rich-note">✨ This topic includes additional guided learning content. Select <strong>Read</strong> to view everything.</div>'
-   : '';
- $('courseGrid').innerHTML=`
+ const hasRhymes=Array.isArray(selected.rhymes)&&selected.rhymes.length;
+ const hasStories=Array.isArray(selected.stories)&&selected.stories.length;
+ let topicStudyContent='';
+ if(hasActivities){
+  topicStudyContent='<section class="topic-study-activities"><div class="topic-study-heading"><span>🗣️</span><div><strong>Listening & Speaking Practice</strong><small>Read the teacher question, then practise the child answer aloud.</small></div></div><div class="lesson-activity-table">'+
+   selected.activities.map((row,i)=>'<div class="lesson-activity-row"><div class="lesson-activity-name"><span class="lesson-activity-number">'+(i+1)+'</span><strong>'+safe(row[0])+'</strong></div><div class="lesson-activity-example"><div class="activity-dialogue">'+safe(row[1]).replace(/\n/g,'<br>')+'</div>'+(row[2]?'<div class="activity-learning"><strong>Learning:</strong> '+safe(row[2])+'</div>':'')+'</div></div>').join('')+
+   '</div></section>';
+ }else{
+  const studyRows=[
+   ['Learn',selected.concept,'🌱'],
+   ['Example',selected.example,'💡'],
+   ['Practice',selected.tip,'🌟']
+  ];
+  topicStudyContent='<section class="topic-study-standard"><div class="topic-study-heading"><span>'+subjectIcon(selected.subject)+'</span><div><strong>Study this topic</strong><small>Learn the idea, look at an example, then try it yourself.</small></div></div><div class="topic-study-list">'+
+   studyRows.map((row,i)=>'<div class="topic-study-row"><div class="topic-study-row-title"><span class="topic-study-row-number">'+(i+1)+'</span><span class="topic-study-row-icon">'+row[2]+'</span><strong>'+safe(row[0])+'</strong></div><div class="topic-study-row-content">'+safe(row[1])+'</div></div>').join('')+
+   '</div></section>';
+ }
+ if(hasRhymes){
+  topicStudyContent+='<section class="topic-inline-rich"><div class="topic-study-heading"><span>🎵</span><div><strong>Nursery Rhymes</strong><small>Read or sing each rhyme aloud.</small></div></div><div class="rhyme-grid">'+
+   selected.rhymes.map((r,i)=>'<article class="rhyme-card"><span class="rich-index">'+(i+1)+'</span><h5>'+safe(r.title)+'</h5><p class="rhyme-text">'+safe(r.text).replace(/\n/g,'<br>')+'</p></article>').join('')+
+   '</div></section>';
+ }
+ if(hasStories){
+  topicStudyContent+='<section class="topic-inline-rich"><div class="topic-study-heading"><span>📖</span><div><strong>Nursery Stories</strong><small>Read the story slowly and discuss the moral.</small></div></div><div class="story-list">'+
+   selected.stories.map((story,i)=>'<article class="story-card"><div class="story-heading"><span class="rich-index">'+(i+1)+'</span><h5>'+safe(story.title)+'</h5></div><p class="story-text">'+safe(story.text).replace(/\n\n/g,'</p><p class="story-text">').replace(/\n/g,'<br>')+'</p><div class="story-moral"><strong>Moral:</strong> '+safe(story.moral)+'</div></article>').join('')+
+   '</div></section>';
+ }
+ const richNote=''; $('courseGrid').innerHTML=`
   <div class="topic-browser">
    <aside class="topic-list-panel" aria-label="Topics in ${safe(subject)}">
     <div class="topic-list-header"><span>TOPICS</span><strong>${lessons.length}</strong></div>
