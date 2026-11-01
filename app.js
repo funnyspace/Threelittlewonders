@@ -23,7 +23,9 @@ function setGrade(g){if(!Number.isInteger(g)||!GRADE_LEVELS.includes(g))return;s
 function renderGradeSelectors(){
  $('classSelect').innerHTML=GRADE_GROUPS.map(group=>`<optgroup label="${safe(group.label)}">${group.grades.map(g=>`<option value="${g}" ${state.grade===g?'selected':''}>${gradeName(g)}</option>`).join('')}</optgroup>`).join('');
  const classPicker=document.querySelector('.class-picker');
- if(classPicker)classPicker.hidden=!classChoicesOpen;
+ if(classPicker)classPicker.hidden=true;
+ const exploreHeading=document.querySelector('.explore-heading');
+ if(exploreHeading)exploreHeading.hidden=!classChoicesOpen;
  if(classChoicesOpen){
   $('gradeShortcuts').classList.remove('selected-class-only');
   $('gradeShortcuts').classList.add('class-hierarchy');
@@ -39,9 +41,17 @@ function renderGradeSelectors(){
     </div>
    </section>`).join('')}</div>`;
  }else{
+  const group=GRADE_GROUPS.find(group=>group.grades.includes(state.grade));
   $('gradeShortcuts').classList.remove('class-hierarchy');
   $('gradeShortcuts').classList.add('selected-class-only');
-  $('gradeShortcuts').innerHTML=`<div class="selected-class-display"><strong>${gradeName(state.grade)}</strong><button type="button" class="change-class-btn" data-change-class>Change class</button></div>`;
+  $('gradeShortcuts').innerHTML=`<div class="selected-class-display">
+    <div class="selected-class-copy">
+      <span class="selected-class-stage">${group?group.icon+' '+safe(group.label):'Selected class'}</span>
+      <strong>${gradeName(state.grade)}</strong>
+      <span class="selected-class-hint">Choose a subject below to continue learning.</span>
+    </div>
+    <button type="button" class="change-class-btn" data-change-class>← Change class</button>
+   </div>`;
  }
 }
 function renderSubjectFilters(){
@@ -132,7 +142,16 @@ function renderProgress(){
  $('progressFill').style.width=pct+'%';
  $('progressSubtitle').textContent=pct===100?'You finished every starter lesson in '+gradeName(state.grade)+'! 🎉':`${doneGrade} of ${gradeLessons.length} ${gradeName(state.grade)} lessons completed`;
 }
-function renderAll(){renderGradeSelectors();renderSubjectFilters();renderCourses();renderProgress();const roadmap=$('curriculumSection');if(roadmap)roadmap.hidden=true;}
+function renderAll(){
+ renderGradeSelectors();
+ renderSubjectFilters();
+ renderCourses();
+ renderProgress();
+ const roadmap=$('curriculumSection');if(roadmap)roadmap.hidden=true;
+ const subjectSection=$('classSubjectSection');if(subjectSection)subjectSection.hidden=classChoicesOpen;
+ const learningNote=document.querySelector('.curriculum-note');if(learningNote)learningNote.hidden=classChoicesOpen;
+ if(classChoicesOpen){$('lessonResultsSection').hidden=true;}
+}
 function openLesson(id){const lesson=LESSONS.find(l=>l.id===id);if(!lesson)return;currentLesson=lesson;currentQuestion=0;questionAnswered=false;returnFocus=document.activeElement;$('lessonModal').hidden=false;document.body.classList.add('modal-open');$('lessonTitle').textContent=lesson.title;$('modalSubjectIcon').textContent=subjectIcon(lesson.subject);$('modalMeta').textContent=`${gradeName(lesson.grade).toUpperCase()} · ${lesson.subject.toUpperCase()} · ${lesson.minutes} MIN`;
  showLearn();$('closeLesson').focus();}
 function stage(which){['Learn','Quiz','Complete'].forEach(s=>{const x=$('stage'+s);x.classList.toggle('active',s===which);x.classList.toggle('done',({Learn:0,Quiz:1,Complete:2}[s]||0)<({Learn:0,Quiz:1,Complete:2}[which]||0))})}
@@ -182,7 +201,7 @@ function closeLesson(){if($('lessonModal').hidden)return;$('lessonModal').hidden
 function continueLearning(){const next=LESSONS.find(l=>l.grade===state.grade&&!state.completed.includes(l.id))||LESSONS.find(l=>l.grade===state.grade);if(next)openLesson(next.id);else showToast('Choose a class to start learning!')}
 function installEvents(){
  $('classSelect').addEventListener('change',e=>setGrade(Number(e.target.value)));
- $('gradeShortcuts').addEventListener('click',e=>{const gradeBtn=e.target.closest('[data-grade]');if(gradeBtn){setGrade(Number(gradeBtn.dataset.grade));return;}const changeBtn=e.target.closest('[data-change-class]');if(changeBtn){classChoicesOpen=true;renderGradeSelectors();requestAnimationFrame(()=>$('gradeShortcuts')?.scrollIntoView({behavior:'smooth',block:'center'}));}});
+ $('gradeShortcuts').addEventListener('click',e=>{const gradeBtn=e.target.closest('[data-grade]');if(gradeBtn){setGrade(Number(gradeBtn.dataset.grade));return;}const changeBtn=e.target.closest('[data-change-class]');if(changeBtn){classChoicesOpen=true;subject='';query='';currentTopicId='';$('searchInput').value='';renderAll();requestAnimationFrame(()=>$('gradeShortcuts')?.scrollIntoView({behavior:'smooth',block:'start'}));}});
  $('subjectFilters').addEventListener('click',e=>{const btn=e.target.closest('[data-subject]');if(btn){subject=btn.dataset.subject;query='';currentTopicId='';$('searchInput').value='';renderSubjectFilters();renderCourses();requestAnimationFrame(()=>$('lessonResultsSection')?.scrollIntoView({behavior:'smooth',block:'start'}))}});
  $('searchInput').addEventListener('input',e=>{query=e.target.value.trim().toLowerCase();renderCourses()});
  $('courseGrid').addEventListener('click',e=>{const topic=e.target.closest('[data-topic-id]');if(topic){currentTopicId=topic.dataset.topicId;renderCourses();return;}const read=e.target.closest('[data-read-lesson]');if(read)openLesson(read.dataset.readLesson);});
