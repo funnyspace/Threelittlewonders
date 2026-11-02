@@ -31,7 +31,7 @@ function lessonSpeechLanguage(lesson){
  return 'en-IN';
 }
 function lessonSpeechText(lesson){
- const parts=[lesson.title,lesson.concept,lesson.example,lesson.tip];
+ const parts=[lesson.title,lesson.concept];
  if(Array.isArray(lesson.activities))lesson.activities.forEach(row=>parts.push(row.filter(Boolean).join('. ')));
  if(Array.isArray(lesson.rhymes))lesson.rhymes.forEach(item=>parts.push(item.title,item.text));
  if(Array.isArray(lesson.stories))lesson.stories.forEach(item=>parts.push(item.title,item.text,item.moral?'Moral: '+item.moral:''));
@@ -128,8 +128,6 @@ function renderCourses(){
  const hasRhymes=Array.isArray(selected.rhymes)&&selected.rhymes.length;
  const hasStories=Array.isArray(selected.stories)&&selected.stories.length;
  let topicStudyContent='<section class="topic-main-content"><p class="topic-main-lead">'+safe(selected.concept)+'</p>';
- if(selected.example)topicStudyContent+='<p>'+safe(selected.example)+'</p>';
- if(selected.tip)topicStudyContent+='<p>'+safe(selected.tip)+'</p>';
  if(hasActivities){
   topicStudyContent+='<div class="lesson-activity-table topic-main-rich">'+
    selected.activities.map((row,i)=>'<div class="lesson-activity-row"><div class="lesson-activity-name"><span class="lesson-activity-number">'+(i+1)+'</span><strong>'+safe(row[0])+'</strong></div><div class="lesson-activity-example"><div class="activity-dialogue">'+safe(row[1]).replace(/\n/g,'<br>')+'</div>'+(row[2]?'<div class="activity-learning"><strong>Learning:</strong> '+safe(row[2])+'</div>':'')+'</div></div>').join('')+
