@@ -1027,3 +1027,23 @@
     font-size:17px;
   }
 }
+
+
+/* Global one-column lesson content */
+.topic-main-columns,
+.study-section-grid,
+.topic-content-panel .lesson-activity-row,
+.topic-study-row,
+.rhyme-grid{
+  grid-template-columns:1fr !important;
+}
+.study-section-wide,
+.topic-main-rich{
+  grid-column:auto;
+}
+.topic-main-column{
+  min-height:auto;
+}
+.topic-main-column:nth-child(2){
+  background:#fff;
+}
