@@ -37,6 +37,19 @@ function lessonSpeechText(lesson){
  if(Array.isArray(lesson.stories))lesson.stories.forEach(item=>parts.push(item.title,item.text,item.moral?'Moral: '+item.moral:''));
  return parts.filter(Boolean).join('. ');
 }
+function splitMainContent(text){
+ const source=String(text||'').trim();
+ if(!source)return ['',''];
+ const sentences=source.match(/[^.!?।]+[.!?।]?/g)?.map(x=>x.trim()).filter(Boolean)||[];
+ if(sentences.length>=2){
+  const cut=Math.ceil(sentences.length/2);
+  return [sentences.slice(0,cut).join(' '),sentences.slice(cut).join(' ')];
+ }
+ const words=source.split(/\s+/);
+ if(words.length<10)return [source,''];
+ const cut=Math.ceil(words.length/2);
+ return [words.slice(0,cut).join(' '),words.slice(cut).join(' ')];
+}
 function readAloudLesson(id,button){
  const lesson=LESSONS.find(l=>l.id===id);if(!lesson)return;
  if(!('speechSynthesis' in window)||typeof SpeechSynthesisUtterance==='undefined'){showToast('Read Aloud is not supported in this browser.');return;}
@@ -127,7 +140,8 @@ function renderCourses(){
  const hasActivities=Array.isArray(selected.activities)&&selected.activities.length;
  const hasRhymes=Array.isArray(selected.rhymes)&&selected.rhymes.length;
  const hasStories=Array.isArray(selected.stories)&&selected.stories.length;
- let topicStudyContent='<section class="topic-main-content"><p class="topic-main-lead">'+safe(selected.concept)+'</p>';
+ const mainColumns=splitMainContent(selected.concept);
+ let topicStudyContent='<section class="topic-main-content"><div class="topic-main-columns"><div class="topic-main-column">'+safe(mainColumns[0])+'</div><div class="topic-main-column '+(!mainColumns[1]?'topic-main-column-empty':'')+'">'+(mainColumns[1]?safe(mainColumns[1]):'<span aria-hidden="true"></span>')+'</div></div>';
  if(hasActivities){
   topicStudyContent+='<div class="lesson-activity-table topic-main-rich">'+
    selected.activities.map((row,i)=>'<div class="lesson-activity-row"><div class="lesson-activity-name"><span class="lesson-activity-number">'+(i+1)+'</span><strong>'+safe(row[0])+'</strong></div><div class="lesson-activity-example"><div class="activity-dialogue">'+safe(row[1]).replace(/\n/g,'<br>')+'</div>'+(row[2]?'<div class="activity-learning"><strong>Learning:</strong> '+safe(row[2])+'</div>':'')+'</div></div>').join('')+
