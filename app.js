@@ -18,6 +18,24 @@ let state=load(),subject='',query='',classChoicesOpen=true,currentTopicId='',cur
 function persist(){try{localStorage.setItem(STORE_KEY,JSON.stringify(state))}catch{showToast('Progress cannot be saved in this browser.')}}
 const gradeName=g=>g===-2?'Nursery':g===-1?'LKG':g===0?'UKG':`Class ${g}`;
 const subjectIcon=s=>SUBJECTS[s]?.icon||'📚';
+const CLASS10_SCIENCE_CHAPTERS=[
+ 'Chemical Reactions and Equations',
+ 'Acids, Bases and Salts',
+ 'Metals and Non-metals',
+ 'Carbon and its Compounds',
+ 'Periodic Classification of Elements',
+ 'Life Processes',
+ 'Control and Coordination',
+ 'How do Organisms Reproduce',
+ 'Heredity and Evolution',
+ 'Light: Reflection and Refraction',
+ 'Human Eye',
+ 'Electricity',
+ 'Magnetic Effects of Electric Current',
+ 'Sources of Energy',
+ 'Our Environment',
+ 'Sustainable Management of Natural Resources'
+];
 function isNurseryListeningLesson(lesson){
  return !!lesson&&lesson.grade===-2&&lesson.subject==='English'&&lesson.title==='Listening and Speaking';
 }
@@ -182,7 +200,12 @@ function renderCourses(){
    '</div>';
  }
  if(!posterLesson)topicStudyContent+='</section>';
- const richNote=''; $('courseGrid').innerHTML=`
+ const richNote='';
+ const class10ScienceDirectory=state.grade===10&&subject==='Science'
+  ? '<section class="class10-science-directory" aria-label="Class 10 Science chapters"><div class="class10-chapter-heading"><span>SCIENCE CHAPTERS</span><strong>16</strong></div><div class="class10-chapter-grid">'+CLASS10_SCIENCE_CHAPTERS.map((chapter,i)=>'<div class="class10-chapter-item"><span class="class10-chapter-no">'+(i+1)+'</span><strong>'+safe(chapter)+'</strong></div>').join('')+'</div></section>'
+  : '';
+ $('courseGrid').innerHTML=`
+  ${class10ScienceDirectory}
   <div class="topic-browser">
    <aside class="topic-list-panel" aria-label="Topics in ${safe(subject)}">
     <div class="topic-list-header"><span>TOPICS</span><strong>${lessons.length}</strong></div>
