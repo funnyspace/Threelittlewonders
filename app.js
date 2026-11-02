@@ -165,7 +165,27 @@ function renderCourses(){
  const allSubjects=subject==='All Subjects';
  $('selectedSubjectTitle').textContent=subject;
  $('selectedSubjectPill').innerHTML=`<span aria-hidden="true">${allSubjects?'✦':subjectIcon(subject)}</span><strong>${safe(subject)}</strong> · ${gradeName(state.grade)}`;
- const lessons=LESSONS.filter(l=>l.grade===state.grade&&(allSubjects||l.subject===subject)&&(!query||[l.title,l.subject,l.description,l.concept].some(t=>t.toLowerCase().includes(query))));
+ let lessons=LESSONS.filter(l=>l.grade===state.grade&&(allSubjects||l.subject===subject)&&(!query||[l.title,l.subject,l.description,l.concept].some(t=>t.toLowerCase().includes(query))));
+ if(state.grade===10&&subject==='Science'){
+  const existingScience=new Map(LESSONS.filter(l=>l.grade===10&&l.subject==='Science').map(l=>[l.title,l]));
+  lessons=CLASS10_SCIENCE_CHAPTERS.map((chapter,i)=>{
+   const existing=[...existingScience.values()].find(l=>{
+    const a=String(l.title||'').toLowerCase();
+    const b=chapter.toLowerCase();
+    return a===b||(i===0&&a.includes('chemical reactions'));
+   });
+   return existing||{
+    id:'10-science-chapter-'+String(i+1).padStart(2,'0'),
+    grade:10,
+    subject:'Science',
+    title:chapter,
+    description:'Class 10 Science chapter',
+    concept:'Chapter data is available in Google Drive. Main lesson content for this chapter has not yet been imported into the website.',
+    minutes:10,
+    questions:[]
+   };
+  }).filter(l=>!query||[l.title,l.subject,l.description,l.concept].some(t=>String(t||'').toLowerCase().includes(query)));
+ }
  if(!lessons.length){
   currentTopicId='';
   $('courseGrid').innerHTML='';
@@ -201,11 +221,7 @@ function renderCourses(){
  }
  if(!posterLesson)topicStudyContent+='</section>';
  const richNote='';
- const class10ScienceDirectory=state.grade===10&&subject==='Science'
-  ? '<section class="class10-science-directory" aria-label="Class 10 Science chapters"><div class="class10-chapter-heading"><span>SCIENCE CHAPTERS</span><strong>16</strong></div><div class="class10-chapter-grid">'+CLASS10_SCIENCE_CHAPTERS.map((chapter,i)=>'<div class="class10-chapter-item"><span class="class10-chapter-no">'+(i+1)+'</span><strong>'+safe(chapter)+'</strong></div>').join('')+'</div></section>'
-  : '';
  $('courseGrid').innerHTML=`
-  ${class10ScienceDirectory}
   <div class="topic-browser">
    <aside class="topic-list-panel" aria-label="Topics in ${safe(subject)}">
     <div class="topic-list-header"><span>TOPICS</span><strong>${lessons.length}</strong></div>
@@ -224,10 +240,10 @@ function renderCourses(){
     ${topicStudyContent}
     ${richNote}
     <div class="topic-content-actions">
-     <span class="topic-read-status">${done?'✓ Quiz completed':'Quiz questions are based on the topic content above.'}</span>
+     <span class="topic-read-status">${done?'✓ Quiz completed':(Array.isArray(selected.questions)&&selected.questions.length?'Quiz questions are based on the topic content above.':'Chapter topic added. Detailed content will be imported from Google Drive.')}</span>
      <div class="topic-action-buttons">
       <button type="button" class="btn btn-secondary read-aloud-btn" data-read-aloud="${safe(selected.id)}">🔊 Read Aloud</button>
-      <button type="button" class="btn btn-primary topic-quiz-btn" data-start-quiz="${safe(selected.id)}">Start Quiz</button>
+      ${Array.isArray(selected.questions)&&selected.questions.length?'<button type="button" class="btn btn-primary topic-quiz-btn" data-start-quiz="'+safe(selected.id)+'">Start Quiz</button>':''}
      </div>
     </div>
    </article>
