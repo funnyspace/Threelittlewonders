@@ -110,8 +110,21 @@ function renderStructuredStudyContent(text){
    closeList();
    if(line.startsWith('EQ:')){
     body+='<div class="study-equation">'+safe(line.slice(3).trim())+'</div>';
-   }else if(line.startsWith('Activity example:')){
-    body+='<div class="study-activity-note"><strong>Activity:</strong> '+safe(line.replace(/^Activity example:\s*/,''))+'</div>';
+   }else if(line.startsWith('ACTIVITY:')){
+    body+='<div class="study-activity-note"><strong>Activity</strong><span>'+safe(line.slice(9).trim())+'</span></div>';
+   }else if(line.startsWith('CAUTION:')){
+    body+='<div class="study-caution-note"><strong>Caution</strong><span>'+safe(line.slice(8).trim())+'</span></div>';
+   }else if(line.startsWith('KNOW:')){
+    body+='<div class="study-know-note"><strong>Do You Know?</strong><span>'+safe(line.slice(5).trim())+'</span></div>';
+   }else if(line.startsWith('FIGURE:')){
+    body+='<div class="study-figure-note">🖼 '+safe(line.slice(7).trim())+'</div>';
+   }else if(line.startsWith('QUESTION:')){
+    body+='<div class="study-question-note"><strong>Question</strong><span>'+safe(line.slice(9).trim())+'</span></div>';
+   }else if(line.startsWith('### ')){
+    body+='<h5 class="study-subheading">'+safe(line.slice(4).trim())+'</h5>';
+   }else if(/^Step\s+[IVX]+:/i.test(line)){
+    const parts=line.split(':');
+    body+='<p class="study-step"><strong>'+safe(parts.shift()+':')+'</strong> '+safe(parts.join(':').trim())+'</p>';
    }else{
     body+='<p>'+safe(line)+'</p>';
    }
