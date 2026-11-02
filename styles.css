@@ -868,3 +868,65 @@
   .topic-main-column{min-height:auto}
   .topic-main-column-empty{display:none}
 }
+
+
+/* Nursery Listening and Speaking uploaded poster lesson */
+.nursery-listening-poster{
+  margin-top:2px;
+}
+.poster-topic-heading{
+  min-height:0;
+  padding:0;
+  border-bottom:0;
+}
+.nursery-poster-frame{
+  position:relative;
+  display:grid;
+  place-items:center;
+  min-height:360px;
+  overflow:hidden;
+  border:1px solid #eadfe5;
+  border-radius:20px;
+  background:linear-gradient(145deg,#fffafd,#fffefb);
+  box-shadow:0 14px 32px rgba(76,45,63,.09);
+}
+.nursery-poster-frame img{
+  display:block;
+  width:100%;
+  max-width:900px;
+  height:auto;
+  margin:0 auto;
+}
+.nursery-poster-loading{
+  display:grid;
+  place-items:center;
+  min-height:360px;
+  padding:40px 20px;
+  color:#748078;
+  font-size:13px;
+  font-weight:850;
+  text-align:center;
+}
+.nursery-poster-help{
+  margin:12px 5px 0;
+  color:#65776b;
+  font-size:12px;
+  line-height:1.7;
+  text-align:center;
+}
+@media(max-width:760px){
+  .nursery-poster-frame{
+    min-height:230px;
+    border-radius:14px;
+  }
+  .nursery-poster-loading{
+    min-height:230px;
+  }
+  .nursery-poster-frame img{
+    width:100%;
+    max-width:none;
+  }
+  .nursery-poster-help{
+    text-align:left;
+  }
+}
