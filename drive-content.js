@@ -4,7 +4,9 @@
 const CONFIG={
   spreadsheetId:'1emxwYUpM0g1nasUpBXfO2Zl16nJL6L6VUnyfixoV70g',
   sheetName:'Lessons',
-  timeoutMs:3500
+  timeoutMs:5000,
+  cacheKey:'tlw-google-drive-lessons-v1',
+  cacheMaxAgeMs:24*60*60*1000
 };
 
 const csvUrl=`https://docs.google.com/spreadsheets/d/${CONFIG.spreadsheetId}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(CONFIG.sheetName)}`;
@@ -38,6 +40,21 @@ function jsonArray(value){
 
 function boolValue(value){
   return String(value).trim().toLowerCase()!=='false';
+}
+
+function readCachedCsv(){
+  try{
+    const cached=JSON.parse(localStorage.getItem(CONFIG.cacheKey)||'null');
+    if(!cached||typeof cached.csv!=='string'||!cached.savedAt)return '';
+    if(Date.now()-cached.savedAt>CONFIG.cacheMaxAgeMs)return '';
+    return cached.csv;
+  }catch{return '';}
+}
+
+function writeCachedCsv(csv){
+  try{
+    localStorage.setItem(CONFIG.cacheKey,JSON.stringify({savedAt:Date.now(),csv}));
+  }catch{}
 }
 
 function applyRows(rows){
@@ -90,11 +107,22 @@ async function loadDriveContent(){
     const text=await response.text();
     if(!text||/^\s*</.test(text))throw new Error('Google Sheet is not publicly readable');
     const ok=applyRows(parseCsv(text));
-    window.TLW_CONTENT_SOURCE=ok?'google-drive':'local';
-    return ok;
+    if(!ok)throw new Error('No matching active lessons found in Google Drive');
+    writeCachedCsv(text);
+    window.TLW_CONTENT_SOURCE='google-drive';
+    window.TLW_DRIVE_STATUS={connected:true,source:'live',spreadsheetId:CONFIG.spreadsheetId,sheetName:CONFIG.sheetName};
+    return true;
   }catch(error){
+    const cached=readCachedCsv();
+    if(cached&&applyRows(parseCsv(cached))){
+      console.info('ThreeLittleWonders: using cached Google Drive lesson data.',error?.message||error);
+      window.TLW_CONTENT_SOURCE='google-drive-cache';
+      window.TLW_DRIVE_STATUS={connected:true,source:'cache',spreadsheetId:CONFIG.spreadsheetId,sheetName:CONFIG.sheetName,error:error?.message||String(error)};
+      return true;
+    }
     console.info('ThreeLittleWonders: using local lesson data.',error?.message||error);
     window.TLW_CONTENT_SOURCE='local';
+    window.TLW_DRIVE_STATUS={connected:false,source:'local',spreadsheetId:CONFIG.spreadsheetId,sheetName:CONFIG.sheetName,error:error?.message||String(error)};
     return false;
   }finally{
     clearTimeout(timer);
