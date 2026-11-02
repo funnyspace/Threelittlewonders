@@ -135,3 +135,14 @@ LKG and UKG Quick interactive lessons now follow the same four-subject order as 
 ## Nursery English rich lesson content
 
 Nursery → English no longer includes **Hello and Thank You** as a separate lesson. **Listening and Speaking** now contains 15 guided speaking/listening activities with teacher-child examples. **Rhymes and Stories** now contains four rhymes and three complete nursery stories supplied for this site, with morals shown for the stories. The usual two-question quiz remains available after the learning content. Total site starter lessons: **94**.
+
+
+## Google Drive content source
+
+Lesson text and quiz data can now be loaded from the Google Sheet **ThreeLittleWonders Content CMS**. The website reads the **Lessons** tab and merges Drive data into the existing local lesson objects.
+
+Editable columns include: `class_name`, `subject`, `title`, `description`, `main_content`, `minutes`, both quiz questions/options/answer indexes, and `active`.
+
+The loader is implemented in `drive-content.js`. If Google Sheets cannot be reached, the website automatically falls back to the existing local data in `content.js` and `preprimary.js`.
+
+Because the website is public GitHub Pages, the Google Sheet must be readable publicly for browser-side loading. Set the Sheet's General access to **Anyone with the link → Viewer** (or publish it to the web). Editing access should remain restricted to the owner/editors.
