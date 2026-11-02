@@ -70,7 +70,8 @@ function lessonSpeechLanguage(lesson){
  return 'en-IN';
 }
 function lessonSpeechText(lesson){
- const parts=[lesson.title,lesson.concept];
+ const cleanConcept=String(lesson.concept||'').replace(/^##\s+/gm,'').replace(/^EQ:\s*/gm,'').replace(/^-\s+/gm,'');
+ const parts=[lesson.title,cleanConcept];
  if(Array.isArray(lesson.activities))lesson.activities.forEach(row=>parts.push(row.filter(Boolean).join('. ')));
  if(Array.isArray(lesson.rhymes))lesson.rhymes.forEach(item=>parts.push(item.title,item.text));
  if(Array.isArray(lesson.stories))lesson.stories.forEach(item=>parts.push(item.title,item.text,item.moral?'Moral: '+item.moral:''));
@@ -88,6 +89,37 @@ function splitMainContent(text){
  if(words.length<10)return [source,''];
  const cut=Math.ceil(words.length/2);
  return [words.slice(0,cut).join(' '),words.slice(cut).join(' ')];
+}
+
+function hasStructuredStudyContent(text){
+ return /^##\s+/m.test(String(text||''));
+}
+function renderStructuredStudyContent(text){
+ const blocks=String(text||'').trim().split(/\n(?=##\s+)/).filter(Boolean);
+ const cards=blocks.map((block,index)=>{
+  const lines=block.split('\n').map(x=>x.trim()).filter(Boolean);
+  const heading=(lines.shift()||'').replace(/^##\s+/,'');
+  let body='',listOpen=false;
+  const closeList=()=>{if(listOpen){body+='</ul>';listOpen=false;}};
+  lines.forEach(line=>{
+   if(line.startsWith('- ')){
+    if(!listOpen){body+='<ul class="study-point-list">';listOpen=true;}
+    body+='<li>'+safe(line.slice(2))+'</li>';
+    return;
+   }
+   closeList();
+   if(line.startsWith('EQ:')){
+    body+='<div class="study-equation">'+safe(line.slice(3).trim())+'</div>';
+   }else if(line.startsWith('Activity example:')){
+    body+='<div class="study-activity-note"><strong>Activity:</strong> '+safe(line.replace(/^Activity example:\s*/,''))+'</div>';
+   }else{
+    body+='<p>'+safe(line)+'</p>';
+   }
+  });
+  closeList();
+  return '<article class="study-section-card '+((index===0||index===blocks.length-1)?'study-section-wide':'')+'"><div class="study-section-number">'+(index+1)+'</div><h4>'+safe(heading)+'</h4>'+body+'</article>';
+ }).join('');
+ return '<section class="structured-study-content"><div class="study-section-grid">'+cards+'</div></section>';
 }
 function readAloudLesson(id,button){
  const lesson=LESSONS.find(l=>l.id===id);if(!lesson)return;
@@ -200,26 +232,29 @@ function renderCourses(){
  const hasRhymes=Array.isArray(selected.rhymes)&&selected.rhymes.length;
  const hasStories=Array.isArray(selected.stories)&&selected.stories.length;
  const posterLesson=isNurseryListeningLesson(selected);
+ const structuredLesson=hasStructuredStudyContent(selected.concept);
  const mainColumns=splitMainContent(selected.concept);
  let topicStudyContent=posterLesson
   ? '<section class="nursery-listening-poster"><div class="nursery-poster-frame"><div class="nursery-poster-loading" data-poster-loading>Loading visual lesson…</div><img data-nursery-listening-poster alt="Listening and Speaking examples for Nursery with eight illustrated activities" hidden></div><p class="nursery-poster-help">Look at each picture, listen to the question, and practise the answer aloud.</p></section>'
-  : '<section class="topic-main-content"><div class="topic-main-columns"><div class="topic-main-column">'+safe(mainColumns[0])+'</div><div class="topic-main-column '+(!mainColumns[1]?'topic-main-column-empty':'')+'">'+(mainColumns[1]?safe(mainColumns[1]):'<span aria-hidden="true"></span>')+'</div></div>';
- if(!posterLesson&&hasActivities){
+  : structuredLesson
+    ? renderStructuredStudyContent(selected.concept)
+    : '<section class="topic-main-content"><div class="topic-main-columns"><div class="topic-main-column">'+safe(mainColumns[0])+'</div><div class="topic-main-column '+(!mainColumns[1]?'topic-main-column-empty':'')+'">'+(mainColumns[1]?safe(mainColumns[1]):'<span aria-hidden="true"></span>')+'</div></div>';
+ if(!posterLesson&&!structuredLesson&&hasActivities){
   topicStudyContent+='<div class="lesson-activity-table topic-main-rich">'+
    selected.activities.map((row,i)=>'<div class="lesson-activity-row"><div class="lesson-activity-name"><span class="lesson-activity-number">'+(i+1)+'</span><strong>'+safe(row[0])+'</strong></div><div class="lesson-activity-example"><div class="activity-dialogue">'+safe(row[1]).replace(/\n/g,'<br>')+'</div>'+(row[2]?'<div class="activity-learning"><strong>Learning:</strong> '+safe(row[2])+'</div>':'')+'</div></div>').join('')+
    '</div>';
  }
- if(!posterLesson&&hasRhymes){
+ if(!posterLesson&&!structuredLesson&&hasRhymes){
   topicStudyContent+='<div class="rhyme-grid topic-main-rich">'+
    selected.rhymes.map((r,i)=>'<article class="rhyme-card"><span class="rich-index">'+(i+1)+'</span><h5>'+safe(r.title)+'</h5><p class="rhyme-text">'+safe(r.text).replace(/\n/g,'<br>')+'</p></article>').join('')+
    '</div>';
  }
- if(!posterLesson&&hasStories){
+ if(!posterLesson&&!structuredLesson&&hasStories){
   topicStudyContent+='<div class="story-list topic-main-rich">'+
    selected.stories.map((story,i)=>'<article class="story-card"><div class="story-heading"><span class="rich-index">'+(i+1)+'</span><h5>'+safe(story.title)+'</h5></div><p class="story-text">'+safe(story.text).replace(/\n\n/g,'</p><p class="story-text">').replace(/\n/g,'<br>')+'</p><div class="story-moral"><strong>Moral:</strong> '+safe(story.moral)+'</div></article>').join('')+
    '</div>';
  }
- if(!posterLesson)topicStudyContent+='</section>';
+ if(!posterLesson&&!structuredLesson)topicStudyContent+='</section>';
  const richNote='';
  $('courseGrid').innerHTML=`
   <div class="topic-browser">
