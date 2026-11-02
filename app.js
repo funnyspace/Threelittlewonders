@@ -316,5 +316,8 @@ function installEvents(){
  $('mobileMenu').addEventListener('click',e=>{if(e.target.closest('a')){$('mobileMenu').hidden=true;$('mobileMenuBtn').setAttribute('aria-expanded','false');$('mobileMenuBtn').textContent='☰'}});
 }
 $('currentYear').textContent=new Date().getFullYear();
-renderAll();installEvents();
+Promise.resolve(window.TLW_DRIVE_READY).catch(()=>false).finally(()=>{
+ renderAll();
+ installEvents();
+});
 })();
