@@ -18,6 +18,27 @@ let state=load(),subject='',query='',classChoicesOpen=true,currentTopicId='',cur
 function persist(){try{localStorage.setItem(STORE_KEY,JSON.stringify(state))}catch{showToast('Progress cannot be saved in this browser.')}}
 const gradeName=g=>g===-2?'Nursery':g===-1?'LKG':g===0?'UKG':`Class ${g}`;
 const subjectIcon=s=>SUBJECTS[s]?.icon||'📚';
+function isNurseryListeningLesson(lesson){
+ return !!lesson&&lesson.grade===-2&&lesson.subject==='English'&&lesson.title==='Listening and Speaking';
+}
+let nurseryListeningPosterUrl='';
+let nurseryListeningPosterPromise=null;
+function loadNurseryListeningPoster(){
+ if(nurseryListeningPosterUrl)return Promise.resolve(nurseryListeningPosterUrl);
+ if(nurseryListeningPosterPromise)return nurseryListeningPosterPromise;
+ const urls=Array.from({length:11},(_,i)=>'assets/listening-speaking-nursery/part-'+String(i).padStart(2,'0')+'.txt');
+ nurseryListeningPosterPromise=Promise.all(urls.map(url=>fetch(url).then(response=>{
+  if(!response.ok)throw new Error('Visual lesson image data unavailable');
+  return response.text();
+ }))).then(parts=>{
+  nurseryListeningPosterUrl='data:image/webp;base64,'+parts.join('');
+  return nurseryListeningPosterUrl;
+ }).catch(error=>{
+  nurseryListeningPosterPromise=null;
+  throw error;
+ });
+ return nurseryListeningPosterPromise;
+}
 let activeSpeech=null;
 function stopReadAloud(){
  if('speechSynthesis' in window)window.speechSynthesis.cancel();
@@ -140,24 +161,27 @@ function renderCourses(){
  const hasActivities=Array.isArray(selected.activities)&&selected.activities.length;
  const hasRhymes=Array.isArray(selected.rhymes)&&selected.rhymes.length;
  const hasStories=Array.isArray(selected.stories)&&selected.stories.length;
+ const posterLesson=isNurseryListeningLesson(selected);
  const mainColumns=splitMainContent(selected.concept);
- let topicStudyContent='<section class="topic-main-content"><div class="topic-main-columns"><div class="topic-main-column">'+safe(mainColumns[0])+'</div><div class="topic-main-column '+(!mainColumns[1]?'topic-main-column-empty':'')+'">'+(mainColumns[1]?safe(mainColumns[1]):'<span aria-hidden="true"></span>')+'</div></div>';
- if(hasActivities){
+ let topicStudyContent=posterLesson
+  ? '<section class="nursery-listening-poster"><div class="nursery-poster-frame"><div class="nursery-poster-loading" data-poster-loading>Loading visual lesson…</div><img data-nursery-listening-poster alt="Listening and Speaking examples for Nursery with eight illustrated activities" hidden></div><p class="nursery-poster-help">Look at each picture, listen to the question, and practise the answer aloud.</p></section>'
+  : '<section class="topic-main-content"><div class="topic-main-columns"><div class="topic-main-column">'+safe(mainColumns[0])+'</div><div class="topic-main-column '+(!mainColumns[1]?'topic-main-column-empty':'')+'">'+(mainColumns[1]?safe(mainColumns[1]):'<span aria-hidden="true"></span>')+'</div></div>';
+ if(!posterLesson&&hasActivities){
   topicStudyContent+='<div class="lesson-activity-table topic-main-rich">'+
    selected.activities.map((row,i)=>'<div class="lesson-activity-row"><div class="lesson-activity-name"><span class="lesson-activity-number">'+(i+1)+'</span><strong>'+safe(row[0])+'</strong></div><div class="lesson-activity-example"><div class="activity-dialogue">'+safe(row[1]).replace(/\n/g,'<br>')+'</div>'+(row[2]?'<div class="activity-learning"><strong>Learning:</strong> '+safe(row[2])+'</div>':'')+'</div></div>').join('')+
    '</div>';
  }
- if(hasRhymes){
+ if(!posterLesson&&hasRhymes){
   topicStudyContent+='<div class="rhyme-grid topic-main-rich">'+
    selected.rhymes.map((r,i)=>'<article class="rhyme-card"><span class="rich-index">'+(i+1)+'</span><h5>'+safe(r.title)+'</h5><p class="rhyme-text">'+safe(r.text).replace(/\n/g,'<br>')+'</p></article>').join('')+
    '</div>';
  }
- if(hasStories){
+ if(!posterLesson&&hasStories){
   topicStudyContent+='<div class="story-list topic-main-rich">'+
    selected.stories.map((story,i)=>'<article class="story-card"><div class="story-heading"><span class="rich-index">'+(i+1)+'</span><h5>'+safe(story.title)+'</h5></div><p class="story-text">'+safe(story.text).replace(/\n\n/g,'</p><p class="story-text">').replace(/\n/g,'<br>')+'</p><div class="story-moral"><strong>Moral:</strong> '+safe(story.moral)+'</div></article>').join('')+
    '</div>';
  }
- topicStudyContent+='</section>';
+ if(!posterLesson)topicStudyContent+='</section>';
  const richNote=''; $('courseGrid').innerHTML=`
   <div class="topic-browser">
    <aside class="topic-list-panel" aria-label="Topics in ${safe(subject)}">
@@ -171,8 +195,8 @@ function renderCourses(){
     </div>
    </aside>
    <article class="topic-content-panel" aria-live="polite">
-    <div class="topic-content-top topic-content-top-simple">
-     <h3>${safe(selected.title)}</h3>
+    <div class="topic-content-top topic-content-top-simple ${posterLesson?'poster-topic-heading':''}">
+     <h3 class="${posterLesson?'visually-hidden':''}">${safe(selected.title)}</h3>
     </div>
     ${topicStudyContent}
     ${richNote}
@@ -185,6 +209,18 @@ function renderCourses(){
     </div>
    </article>
   </div>`;
+ if(posterLesson){
+  const posterImage=$('courseGrid').querySelector('[data-nursery-listening-poster]');
+  const posterLoading=$('courseGrid').querySelector('[data-poster-loading]');
+  loadNurseryListeningPoster().then(src=>{
+   if(!posterImage?.isConnected)return;
+   posterImage.src=src;
+   posterImage.hidden=false;
+   if(posterLoading)posterLoading.hidden=true;
+  }).catch(()=>{
+   if(posterLoading?.isConnected)posterLoading.textContent='The visual lesson could not load. Please refresh the page.';
+  });
+ }
 }
 function renderProgress(){
  const gradeLessons=LESSONS.filter(l=>l.grade===state.grade),doneGrade=gradeLessons.filter(l=>state.completed.includes(l.id)).length;
