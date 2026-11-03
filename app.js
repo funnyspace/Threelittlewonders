@@ -137,25 +137,64 @@ function loadMathFigureAtlas(lesson){
  mathFigureAtlasCache.set(atlas.spriteText,promise);
  return promise;
 }
-function renderMathFigureGallery(lesson,spriteUrl){
- const atlas=lesson&&lesson.mathFigureAtlas;
- if(!atlas||!spriteUrl)return '';
- const figures=Object.entries(atlas.figures||{});
- if(!figures.length)return '';
- return '<div class="math-figure-gallery-grid">'+figures.map(([caption,meta])=>{
-  const spriteMeta={...meta,sprite:spriteUrl,spriteWidth:atlas.width,spriteHeight:atlas.height};
-  const detail=(meta.page?'PDF page '+meta.page+' · ':'')+'Tap image to enlarge';
-  return '<figure class="pdf-study-figure pdf-study-figure-sprite math-figure-card"><button type="button" class="pdf-study-figure-open" data-pdf-sprite="'+safe(spriteUrl)+'" data-pdf-viewbox="'+[meta.x,meta.y,meta.w,meta.h].join(',')+'" data-pdf-sprite-width="'+atlas.width+'" data-pdf-sprite-height="'+atlas.height+'" data-pdf-caption="'+safe(caption)+'" aria-label="Enlarge '+safe(caption)+'">'+renderPdfSprite(spriteMeta,caption)+'</button><figcaption>'+safe(caption)+'<span>'+safe(detail)+'</span></figcaption></figure>';
- }).join('')+'</div>';
+function normaliseMathFigureRef(value){
+ return String(value||'').toLowerCase()
+  .replace(/figure/g,'fig')
+  .replace(/fig\./g,'fig')
+  .replace(/\s+/g,' ')
+  .replace(/\s*\(\s*/g,'(')
+  .replace(/\s*\)\s*/g,')')
+  .trim();
 }
-function hydrateMathFigureGallery(lesson){
- const host=$('courseGrid')?.querySelector('[data-math-figure-gallery]');
- if(!host||!lesson?.mathFigureAtlas)return;
+function mathFigurePlacements(lines,lesson){
+ const atlas=lesson&&lesson.mathFigureAtlas;
+ const placements=new Map();
+ if(!atlas||!Array.isArray(lines))return placements;
+ Object.keys(atlas.figures||{}).forEach(caption=>{
+  let chosen=-1;
+  if(caption==='Factor tree of 32760'){
+   chosen=lines.findIndex(line=>/factor tree/i.test(line));
+   if(chosen<0)chosen=lines.findIndex(line=>/32760/.test(line));
+  }else{
+   const target=normaliseMathFigureRef(caption);
+   const candidates=[];
+   lines.forEach((line,index)=>{
+    const norm=normaliseMathFigureRef(line);
+    if(norm.includes(target))candidates.push({index,norm,length:String(line).length});
+   });
+   if(candidates.length){
+    const exact=candidates.find(item=>item.norm===target);
+    chosen=(exact||candidates.sort((a,b)=>a.length-b.length)[0]).index;
+   }
+  }
+  if(chosen>=0){
+   const list=placements.get(chosen)||[];
+   list.push(caption);
+   placements.set(chosen,list);
+  }
+ });
+ return placements;
+}
+function renderMathInlineFigure(lesson,caption,spriteUrl){
+ const atlas=lesson&&lesson.mathFigureAtlas;
+ const meta=atlas&&atlas.figures&&atlas.figures[caption];
+ if(!atlas||!meta||!spriteUrl)return '';
+ const spriteMeta={...meta,sprite:spriteUrl,spriteWidth:atlas.width,spriteHeight:atlas.height};
+ const detail=(meta.page?'PDF page '+meta.page+' · ':'')+'Tap image to enlarge';
+ return '<figure class="pdf-study-figure pdf-study-figure-sprite math-inline-figure"><button type="button" class="pdf-study-figure-open" data-pdf-sprite="'+safe(spriteUrl)+'" data-pdf-viewbox="'+[meta.x,meta.y,meta.w,meta.h].join(',')+'" data-pdf-sprite-width="'+atlas.width+'" data-pdf-sprite-height="'+atlas.height+'" data-pdf-caption="'+safe(caption)+'" aria-label="Enlarge '+safe(caption)+'">'+renderPdfSprite(spriteMeta,caption)+'</button><figcaption>'+safe(caption)+'<span>'+safe(detail)+'</span></figcaption></figure>';
+}
+function hydrateMathInlineFigures(lesson){
+ const hosts=[...($('courseGrid')?.querySelectorAll('[data-math-inline-figure]')||[])];
+ if(!hosts.length||!lesson?.mathFigureAtlas)return;
  loadMathFigureAtlas(lesson).then(url=>{
-  if(!host.isConnected||currentTopicId!==lesson.id)return;
-  host.innerHTML=renderMathFigureGallery(lesson,url);
+  if(currentTopicId!==lesson.id)return;
+  hosts.forEach(host=>{
+   if(!host.isConnected)return;
+   const caption=host.dataset.mathInlineFigure||'';
+   host.innerHTML=renderMathInlineFigure(lesson,caption,url);
+  });
  }).catch(()=>{
-  if(host.isConnected)host.innerHTML='<p class="math-figure-error">Chapter diagrams could not load. Refresh the page to try again.</p>';
+  hosts.forEach(host=>{if(host.isConnected)host.innerHTML='<p class="math-figure-error">Diagram could not load. Refresh the page to try again.</p>';});
  });
 }
 function renderPdfFigure(line,lesson){
@@ -181,9 +220,10 @@ function renderStructuredStudyContent(text,lesson){
  const cards=blocks.map((block,index)=>{
   const lines=block.split('\n').map(x=>x.trim()).filter(Boolean);
   const heading=(lines.shift()||'').replace(/^##\s+/,'');
+  const figurePlacements=lesson&&lesson.grade===10&&lesson.subject==='Maths'?mathFigurePlacements(lines,lesson):new Map();
   let body='',listOpen=false;
   const closeList=()=>{if(listOpen){body+='</ul>';listOpen=false;}};
-  lines.forEach(line=>{
+  lines.forEach((line,lineIndex)=>{
    if(line.startsWith('- ')){
     if(!listOpen){body+='<ul class="study-point-list">';listOpen=true;}
     body+='<li>'+safe(line.slice(2))+'</li>';
@@ -215,6 +255,10 @@ function renderStructuredStudyContent(text,lesson){
    }else{
     body+='<p>'+safe(line)+'</p>';
    }
+   const inlineFigures=figurePlacements.get(lineIndex)||[];
+   inlineFigures.forEach(caption=>{
+    body+='<div class="math-inline-figure-slot" data-math-inline-figure="'+safe(caption)+'"><span>Loading '+safe(caption)+'…</span></div>';
+   });
   });
   closeList();
   return '<article class="study-section-card '+((index===0||index===blocks.length-1)?'study-section-wide':'')+'"><div class="study-section-number">'+(index+1)+'</div><h4>'+safe(heading)+'</h4>'+body+'</article>';
@@ -355,10 +399,6 @@ function renderCourses(){
    '</div>';
  }
  if(!posterLesson&&!structuredLesson)topicStudyContent+='</section>';
- if(selected.mathFigureAtlas){
-  const figureCount=Object.keys(selected.mathFigureAtlas.figures||{}).length;
-  topicStudyContent+='<section class="math-figure-gallery"><div class="math-figure-gallery-heading"><div><span>PDF DIAGRAMS</span><h4>Figures from this chapter</h4></div><strong>'+figureCount+'</strong></div><div class="math-figure-gallery-loading" data-math-figure-gallery>Loading chapter diagrams…</div></section>';
- }
  const richNote='';
  $('courseGrid').innerHTML=`
   <div class="topic-browser">
@@ -399,7 +439,7 @@ function renderCourses(){
    if(posterLoading?.isConnected)posterLoading.textContent='The visual lesson could not load. Please refresh the page.';
   });
  }
- if(selected.mathFigureAtlas)hydrateMathFigureGallery(selected);
+ if(selected.mathFigureAtlas)hydrateMathInlineFigures(selected);
 }
 function renderProgress(){
  const gradeLessons=LESSONS.filter(l=>l.grade===state.grade),doneGrade=gradeLessons.filter(l=>state.completed.includes(l.id)).length;
