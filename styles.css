@@ -1245,3 +1245,69 @@
  margin:0 auto;
  background:#fff;
 }
+
+
+/* Class 10 Maths PDF figure gallery */
+.math-figure-gallery{
+ margin:28px 0 8px;
+ padding-top:22px;
+ border-top:1px solid #dce8df;
+}
+.math-figure-gallery-heading{
+ display:flex;
+ align-items:center;
+ justify-content:space-between;
+ gap:16px;
+ margin-bottom:14px;
+}
+.math-figure-gallery-heading span{
+ display:block;
+ margin-bottom:3px;
+ color:#6f8677;
+ font-size:10px;
+ font-weight:900;
+ letter-spacing:.08em;
+}
+.math-figure-gallery-heading h4{
+ margin:0;
+ color:#233b2d;
+ font-size:18px;
+}
+.math-figure-gallery-heading>strong{
+ display:grid;
+ place-items:center;
+ min-width:36px;
+ height:36px;
+ padding:0 10px;
+ border-radius:999px;
+ background:#eef6f1;
+ color:#315b43;
+ font-size:13px;
+}
+.math-figure-gallery-grid{
+ display:grid;
+ grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+ gap:14px;
+}
+.math-figure-gallery-grid .pdf-study-figure{
+ margin:0;
+ height:100%;
+}
+.math-figure-gallery-grid .pdf-study-sprite{
+ width:100%;
+ max-height:320px;
+}
+.math-figure-gallery-loading,
+.math-figure-error{
+ padding:18px;
+ border:1px dashed #cddbd2;
+ border-radius:14px;
+ background:#fafcfb;
+ color:#65776a;
+ text-align:center;
+ font-size:13px;
+}
+@media(max-width:720px){
+ .math-figure-gallery-grid{grid-template-columns:1fr}
+ .math-figure-gallery-heading{align-items:flex-start}
+}
