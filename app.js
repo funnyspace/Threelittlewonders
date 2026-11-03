@@ -94,7 +94,27 @@ function splitMainContent(text){
 function hasStructuredStudyContent(text){
  return /^##\s+/m.test(String(text||''));
 }
-function renderStructuredStudyContent(text){
+const CLASS10_SCIENCE_FIGURES={
+ '1.1':'assets/science/class10/ch1/figure1-1.webp',
+ '1.2':'assets/science/class10/ch1/figure1-2.webp',
+ '1.3':'assets/science/class10/ch1/figure1-3.webp',
+ '1.4':'assets/science/class10/ch1/figure1-4.webp',
+ '1.5':'assets/science/class10/ch1/figure1-5.webp',
+ '1.6':'assets/science/class10/ch1/figure1-6.webp',
+ '1.7':'assets/science/class10/ch1/figure1-7.webp',
+ '1.8':'assets/science/class10/ch1/figure1-8.webp',
+ '1.9':'assets/science/class10/ch1/figure1-9.webp',
+ '1.10':'assets/science/class10/ch1/figure1-10.webp'
+};
+function renderPdfFigure(line,lesson){
+ const caption=String(line||'').replace(/^FIGURE:\s*/,'').trim();
+ const match=caption.match(/Figure\s+(1\.\d+)/i);
+ const isChapter=lesson&&lesson.grade===10&&lesson.subject==='Science'&&lesson.title==='Chemical Reactions and Equations';
+ const src=isChapter&&match?CLASS10_SCIENCE_FIGURES[match[1]]:'';
+ if(!src)return '<div class="study-figure-note">🖼 '+safe(caption)+'</div>';
+ return '<figure class="pdf-study-figure"><button type="button" class="pdf-study-figure-open" data-pdf-image="'+safe(src)+'" data-pdf-caption="'+safe(caption)+'" aria-label="Enlarge '+safe(caption)+'"><img src="'+safe(src)+'" alt="'+safe(caption)+'" loading="lazy"></button><figcaption>'+safe(caption)+'<span>Tap image to enlarge</span></figcaption></figure>';
+}
+function renderStructuredStudyContent(text,lesson){
  const blocks=String(text||'').trim().split(/\n(?=##\s+)/).filter(Boolean);
  const cards=blocks.map((block,index)=>{
   const lines=block.split('\n').map(x=>x.trim()).filter(Boolean);
@@ -117,7 +137,7 @@ function renderStructuredStudyContent(text){
    }else if(line.startsWith('KNOW:')){
     body+='<div class="study-know-note"><strong>Do You Know?</strong><span>'+safe(line.slice(5).trim())+'</span></div>';
    }else if(line.startsWith('FIGURE:')){
-    body+='<div class="study-figure-note">🖼 '+safe(line.slice(7).trim())+'</div>';
+    body+=renderPdfFigure(line,lesson);
    }else if(line.startsWith('QUESTION:')){
     body+='<div class="study-question-note"><strong>Question</strong><span>'+safe(line.slice(9).trim())+'</span></div>';
    }else if(line.startsWith('### ')){
@@ -250,7 +270,7 @@ function renderCourses(){
  let topicStudyContent=posterLesson
   ? '<section class="nursery-listening-poster"><div class="nursery-poster-frame"><div class="nursery-poster-loading" data-poster-loading>Loading visual lesson…</div><img data-nursery-listening-poster alt="Listening and Speaking examples for Nursery with eight illustrated activities" hidden></div><p class="nursery-poster-help">Look at each picture, listen to the question, and practise the answer aloud.</p></section>'
   : structuredLesson
-    ? renderStructuredStudyContent(selected.concept)
+    ? renderStructuredStudyContent(selected.concept,selected)
     : '<section class="topic-main-content"><div class="topic-main-columns"><div class="topic-main-column">'+safe(mainColumns[0])+'</div><div class="topic-main-column '+(!mainColumns[1]?'topic-main-column-empty':'')+'">'+(mainColumns[1]?safe(mainColumns[1]):'<span aria-hidden="true"></span>')+'</div></div>';
  if(!posterLesson&&!structuredLesson&&hasActivities){
   topicStudyContent+='<div class="lesson-activity-table topic-main-rich">'+
@@ -378,6 +398,31 @@ function completeLesson(){if(!currentLesson)return;stage('Complete');const alrea
 }
 function closeLesson(){stopReadAloud();if($('lessonModal').hidden)return;$('lessonModal').hidden=true;document.body.classList.remove('modal-open');currentLesson=null;if(returnFocus&&typeof returnFocus.focus==='function')returnFocus.focus()}
 function continueLearning(){const next=LESSONS.find(l=>l.grade===state.grade&&!state.completed.includes(l.id))||LESSONS.find(l=>l.grade===state.grade);if(next)openLesson(next.id);else showToast('Choose a class to start learning!')}
+function openPdfFigure(src,caption){
+ let viewer=$('pdfFigureViewer');
+ if(!viewer){
+  viewer=document.createElement('div');
+  viewer.id='pdfFigureViewer';
+  viewer.className='pdf-figure-viewer';
+  viewer.hidden=true;
+  viewer.innerHTML='<button type="button" class="pdf-figure-viewer-close" data-close-pdf-figure aria-label="Close image">×</button><div class="pdf-figure-viewer-inner"><img alt=""><p></p></div>';
+  document.body.appendChild(viewer);
+  viewer.addEventListener('click',e=>{
+   if(e.target===viewer||e.target.closest('[data-close-pdf-figure]'))closePdfFigure();
+  });
+ }
+ viewer.querySelector('img').src=src;
+ viewer.querySelector('img').alt=caption||'Science figure';
+ viewer.querySelector('p').textContent=caption||'';
+ viewer.hidden=false;
+ document.body.classList.add('figure-viewer-open');
+ viewer.querySelector('[data-close-pdf-figure]').focus();
+}
+function closePdfFigure(){
+ const viewer=$('pdfFigureViewer');
+ if(viewer)viewer.hidden=true;
+ document.body.classList.remove('figure-viewer-open');
+}
 function installEvents(){
  document.querySelectorAll('a[href="#explore"]').forEach(link=>link.addEventListener('click',()=>{
   classChoicesOpen=true;
@@ -393,12 +438,12 @@ function installEvents(){
  $('gradeShortcuts').addEventListener('click',e=>{const gradeBtn=e.target.closest('[data-grade]');if(gradeBtn){setGrade(Number(gradeBtn.dataset.grade));return;}const changeBtn=e.target.closest('[data-change-class]');if(changeBtn){classChoicesOpen=true;subject='';query='';currentTopicId='';$('searchInput').value='';renderAll();requestAnimationFrame(()=>$('gradeShortcuts')?.scrollIntoView({behavior:'smooth',block:'start'}));}});
  $('subjectFilters').addEventListener('click',e=>{const btn=e.target.closest('[data-subject]');if(btn){stopReadAloud();subject=btn.dataset.subject;query='';currentTopicId='';$('searchInput').value='';renderSubjectFilters();renderCourses();requestAnimationFrame(()=>$('lessonResultsSection')?.scrollIntoView({behavior:'smooth',block:'start'}))}});
  $('searchInput').addEventListener('input',e=>{query=e.target.value.trim().toLowerCase();renderCourses()});
- $('courseGrid').addEventListener('click',e=>{const topic=e.target.closest('[data-topic-id]');if(topic){stopReadAloud();currentTopicId=topic.dataset.topicId;renderCourses();return;}const aloud=e.target.closest('[data-read-aloud]');if(aloud){readAloudLesson(aloud.dataset.readAloud,aloud);return;}const quiz=e.target.closest('[data-start-quiz]');if(quiz)openLesson(quiz.dataset.startQuiz);});
+ $('courseGrid').addEventListener('click',e=>{const figure=e.target.closest('[data-pdf-image]');if(figure){openPdfFigure(figure.dataset.pdfImage,figure.dataset.pdfCaption);return;}const topic=e.target.closest('[data-topic-id]');if(topic){stopReadAloud();currentTopicId=topic.dataset.topicId;renderCourses();return;}const aloud=e.target.closest('[data-read-aloud]');if(aloud){readAloudLesson(aloud.dataset.readAloud,aloud);return;}const quiz=e.target.closest('[data-start-quiz]');if(quiz)openLesson(quiz.dataset.startQuiz);});
  $('clearFiltersBtn').addEventListener('click',()=>{query='';$('searchInput').value='';renderCourses()});
  $('continueBtn').addEventListener('click',continueLearning);
  $('closeLesson').addEventListener('click',closeLesson);
  $('lessonModal').addEventListener('click',e=>{if(e.target===$('lessonModal'))closeLesson()});
- window.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('lessonModal').hidden)closeLesson()});
+ window.addEventListener('keydown',e=>{if(e.key==='Escape'){const viewer=$('pdfFigureViewer');if(viewer&&!viewer.hidden){closePdfFigure();return;}if(!$('lessonModal').hidden)closeLesson();}});
  $('mobileMenuBtn').addEventListener('click',()=>{const menu=$('mobileMenu');menu.hidden=!menu.hidden;$('mobileMenuBtn').setAttribute('aria-expanded',String(!menu.hidden));$('mobileMenuBtn').textContent=menu.hidden?'☰':'✕'});
  $('mobileMenu').addEventListener('click',e=>{if(e.target.closest('a')){$('mobileMenu').hidden=true;$('mobileMenuBtn').setAttribute('aria-expanded','false');$('mobileMenuBtn').textContent='☰'}});
 }
