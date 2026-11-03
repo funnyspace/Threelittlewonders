@@ -1,6 +1,6 @@
 (function(){
 'use strict';
-const lessons=(window.TLW_LESSONS||[]).filter(l=>l&&l.grade===10&&l.subject==='Science'&&Number(l.sourceChapter)>=2);
+const lessons=(window.TLW_LESSONS||[]).filter(l=>l&&l.grade===10&&l.subject==='Science');
 const exact=[
  ["Y ou","You"],["I n","In"],["H ow","How"],["W e","We"],["B efore","Before"],["E lectricity","Electricity"],
  ["## 2.1 UNDERSTANDING THE CHEMIC","## 2.1 UNDERSTANDING THE CHEMICAL PROPERTIES OF ACIDS AND BASES"],
@@ -46,7 +46,18 @@ lessons.forEach(lesson=>{
  s=s.replace(/\n\d{2,3}\s+Science\b/g,"");
  s=s.replace(/\n(?:Acids, Bases and Salts|Metals and Non-metals|Carbon and its Compounds|Life Processes|Control and Coordination|How do Organisms Reproduce\?|Heredity|Light\s*[-–]\s*Reflection and Refraction|The Human Eye and the Colourful World|Electricity|Our Environment)\s+\d{2,3}\b/g,"");
  s=s.replace(/[ \t]{2,}/g," ");
+ s=s.replace(/^FIGURE:.*$/gmi,"");
+ s=s.replace(/!\[[^\]]*\]\([^\)]+\)/g,"");
+ s=s.replace(/<figure\b[\s\S]*?<\/figure>/gi,"");
+ s=s.replace(/<img\b[^>]*>/gi,"");
  s=s.replace(/\n{3,}/g,"\n\n");
  lesson.concept=s.trim();
+ delete lesson.image;
+ delete lesson.images;
+ delete lesson.figure;
+ delete lesson.figures;
+ delete lesson.thumbnail;
+ delete lesson.poster;
+ delete lesson.cover;
 });
 })();
