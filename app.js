@@ -114,6 +114,7 @@ function renderPdfSprite(meta,caption,attrs=''){
  return '<svg class="pdf-study-sprite" viewBox="'+view+'" role="img" aria-label="'+safe(caption)+'" '+attrs+'><image href="'+safe(meta.sprite)+'" width="'+meta.spriteWidth+'" height="'+meta.spriteHeight+'" loading="lazy"></image></svg>';
 }
 function renderPdfFigure(line,lesson){
+ if(lesson&&lesson.grade===10&&lesson.subject==='Science')return '';
  const rawCaption=String(line||'').replace(/^FIGURE:\s*/,'').trim();
  const match=rawCaption.match(/Figure\s+(\d+\.\d+)/i);
  if(!match)return '<div class="study-figure-note">🖼 '+safe(rawCaption)+'</div>';
