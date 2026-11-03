@@ -1102,3 +1102,106 @@
 .study-step{
   margin:10px 0;
 }
+
+
+/* Inline Class 10 Science PDF figures */
+.pdf-study-figure{
+ margin:16px 0 14px;
+ padding:14px;
+ border:1px solid #dce8df;
+ border-radius:15px;
+ background:#fbfdfb;
+}
+.pdf-study-figure-open{
+ display:block;
+ width:100%;
+ padding:0;
+ border:0;
+ background:transparent;
+ cursor:zoom-in;
+}
+.pdf-study-figure img{
+ display:block;
+ width:auto;
+ max-width:min(100%,520px);
+ max-height:520px;
+ height:auto;
+ margin:0 auto;
+ border-radius:10px;
+ background:#fff;
+}
+.pdf-study-figure figcaption{
+ display:flex;
+ flex-direction:column;
+ gap:3px;
+ margin-top:10px;
+ color:#4f6657;
+ font-size:12px;
+ line-height:1.55;
+ text-align:center;
+}
+.pdf-study-figure figcaption span{
+ color:#8a968e;
+ font-size:10px;
+ font-weight:800;
+ text-transform:uppercase;
+ letter-spacing:.04em;
+}
+.pdf-figure-viewer{
+ position:fixed;
+ inset:0;
+ z-index:180;
+ display:grid;
+ place-items:center;
+ padding:22px;
+ background:rgba(14,31,22,.92);
+}
+.pdf-figure-viewer[hidden]{display:none}
+.figure-viewer-open{overflow:hidden}
+.pdf-figure-viewer-inner{
+ width:min(900px,94vw);
+ max-height:90vh;
+ overflow:auto;
+ padding:16px;
+ border-radius:18px;
+ background:#fff;
+ box-shadow:0 25px 80px rgba(0,0,0,.35);
+}
+.pdf-figure-viewer-inner img{
+ display:block;
+ max-width:100%;
+ width:auto;
+ height:auto;
+ max-height:78vh;
+ margin:0 auto;
+}
+.pdf-figure-viewer-inner p{
+ margin:12px 4px 0;
+ color:#385040;
+ font-size:13px;
+ line-height:1.6;
+ text-align:center;
+}
+.pdf-figure-viewer-close{
+ position:fixed;
+ top:18px;
+ right:18px;
+ z-index:181;
+ width:44px;
+ height:44px;
+ border:0;
+ border-radius:50%;
+ background:#fff;
+ color:#234734;
+ font-size:28px;
+ line-height:1;
+ cursor:pointer;
+ box-shadow:0 8px 24px rgba(0,0,0,.25);
+}
+@media(max-width:720px){
+ .pdf-study-figure{padding:10px}
+ .pdf-study-figure img{max-height:none}
+ .pdf-figure-viewer{padding:10px}
+ .pdf-figure-viewer-inner{padding:10px}
+ .pdf-figure-viewer-close{top:10px;right:10px}
+}
