@@ -64,18 +64,21 @@ function applyRows(rows){
     Object.fromEntries(headers.map((h,i)=>[h,r[i]??'']))
   );
   const localById=new Map(window.TLW_LESSONS.map(lesson=>[lesson.id,lesson]));
-  const merged=[];
+  const merged=[...window.TLW_LESSONS];
+  let matched=0;
 
   objects.forEach(row=>{
     if(!row.id||!boolValue(row.active))return;
     const base=localById.get(row.id);
     if(!base)return;
+    matched++;
 
     if(row.grade!=='')base.grade=Number(row.grade);
     if(row.subject)base.subject=row.subject;
     if(row.title)base.title=row.title;
     if(row.description!=='')base.description=row.description;
-    if(row.main_content!=='')base.concept=row.main_content;
+    const preserveImportedPdf=base.grade===10&&base.subject==='Maths'&&Number(base.sourceChapter)>=1;
+    if(row.main_content!==''&&!preserveImportedPdf)base.concept=row.main_content;
     if(row.minutes!=='')base.minutes=Number(row.minutes)||base.minutes;
 
     const questions=[];
@@ -90,10 +93,9 @@ function applyRows(rows){
     }
     if(questions.length)base.questions=questions;
     base.contentSource='google-drive';
-    merged.push(base);
   });
 
-  if(!merged.length)return false;
+  if(!matched)return false;
   window.TLW_LESSONS.splice(0,window.TLW_LESSONS.length,...merged);
   return true;
 }
