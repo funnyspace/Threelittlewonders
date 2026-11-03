@@ -1311,3 +1311,33 @@
  .math-figure-gallery-grid{grid-template-columns:1fr}
  .math-figure-gallery-heading{align-items:flex-start}
 }
+
+
+/* Inline Class 10 Maths PDF figures */
+.math-inline-figure-slot{
+ margin:18px 0 22px;
+ min-height:80px;
+ display:flex;
+ align-items:center;
+ justify-content:center;
+ border-radius:14px;
+ background:#fafcfb;
+ color:#77877c;
+ font-size:12px;
+}
+.math-inline-figure-slot .math-inline-figure{
+ width:min(100%,620px);
+ margin:0 auto;
+}
+.math-inline-figure .pdf-study-sprite{
+ width:100%;
+ max-width:620px;
+ max-height:560px;
+}
+.math-inline-figure figcaption{
+ margin-top:8px;
+}
+@media(max-width:720px){
+ .math-inline-figure-slot{margin:14px 0 18px}
+ .math-inline-figure .pdf-study-sprite{max-height:none}
+}
