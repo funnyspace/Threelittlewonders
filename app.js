@@ -113,6 +113,51 @@ function renderPdfSprite(meta,caption,attrs=''){
  const view=[meta.x,meta.y,meta.w,meta.h].join(' ');
  return '<svg class="pdf-study-sprite" viewBox="'+view+'" role="img" aria-label="'+safe(caption)+'" '+attrs+'><image href="'+safe(meta.sprite)+'" width="'+meta.spriteWidth+'" height="'+meta.spriteHeight+'" loading="lazy"></image></svg>';
 }
+const mathFigureAtlasCache=new Map();
+function loadMathFigureAtlas(lesson){
+ const atlas=lesson&&lesson.mathFigureAtlas;
+ if(!atlas||!atlas.spriteText)return Promise.resolve('');
+ if(lesson._mathFigureBlobUrl)return Promise.resolve(lesson._mathFigureBlobUrl);
+ if(mathFigureAtlasCache.has(atlas.spriteText))return mathFigureAtlasCache.get(atlas.spriteText);
+ const promise=fetch(atlas.spriteText,{cache:'force-cache'}).then(response=>{
+  if(!response.ok)throw new Error('Maths figure data unavailable');
+  return response.text();
+ }).then(encoded=>{
+  const clean=String(encoded||'').replace(/\s+/g,'');
+  const binary=atob(clean);
+  const bytes=new Uint8Array(binary.length);
+  for(let i=0;i<binary.length;i++)bytes[i]=binary.charCodeAt(i);
+  const url=URL.createObjectURL(new Blob([bytes],{type:'image/webp'}));
+  lesson._mathFigureBlobUrl=url;
+  return url;
+ }).catch(error=>{
+  mathFigureAtlasCache.delete(atlas.spriteText);
+  throw error;
+ });
+ mathFigureAtlasCache.set(atlas.spriteText,promise);
+ return promise;
+}
+function renderMathFigureGallery(lesson,spriteUrl){
+ const atlas=lesson&&lesson.mathFigureAtlas;
+ if(!atlas||!spriteUrl)return '';
+ const figures=Object.entries(atlas.figures||{});
+ if(!figures.length)return '';
+ return '<div class="math-figure-gallery-grid">'+figures.map(([caption,meta])=>{
+  const spriteMeta={...meta,sprite:spriteUrl,spriteWidth:atlas.width,spriteHeight:atlas.height};
+  const detail=(meta.page?'PDF page '+meta.page+' · ':'')+'Tap image to enlarge';
+  return '<figure class="pdf-study-figure pdf-study-figure-sprite math-figure-card"><button type="button" class="pdf-study-figure-open" data-pdf-sprite="'+safe(spriteUrl)+'" data-pdf-viewbox="'+[meta.x,meta.y,meta.w,meta.h].join(',')+'" data-pdf-sprite-width="'+atlas.width+'" data-pdf-sprite-height="'+atlas.height+'" data-pdf-caption="'+safe(caption)+'" aria-label="Enlarge '+safe(caption)+'">'+renderPdfSprite(spriteMeta,caption)+'</button><figcaption>'+safe(caption)+'<span>'+safe(detail)+'</span></figcaption></figure>';
+ }).join('')+'</div>';
+}
+function hydrateMathFigureGallery(lesson){
+ const host=$('courseGrid')?.querySelector('[data-math-figure-gallery]');
+ if(!host||!lesson?.mathFigureAtlas)return;
+ loadMathFigureAtlas(lesson).then(url=>{
+  if(!host.isConnected||currentTopicId!==lesson.id)return;
+  host.innerHTML=renderMathFigureGallery(lesson,url);
+ }).catch(()=>{
+  if(host.isConnected)host.innerHTML='<p class="math-figure-error">Chapter diagrams could not load. Refresh the page to try again.</p>';
+ });
+}
 function renderPdfFigure(line,lesson){
  if(lesson&&lesson.grade===10&&lesson.subject==='Science')return '';
  const rawCaption=String(line||'').replace(/^FIGURE:\s*/,'').trim();
@@ -310,6 +355,10 @@ function renderCourses(){
    '</div>';
  }
  if(!posterLesson&&!structuredLesson)topicStudyContent+='</section>';
+ if(selected.mathFigureAtlas){
+  const figureCount=Object.keys(selected.mathFigureAtlas.figures||{}).length;
+  topicStudyContent+='<section class="math-figure-gallery"><div class="math-figure-gallery-heading"><div><span>PDF DIAGRAMS</span><h4>Figures from this chapter</h4></div><strong>'+figureCount+'</strong></div><div class="math-figure-gallery-loading" data-math-figure-gallery>Loading chapter diagrams…</div></section>';
+ }
  const richNote='';
  $('courseGrid').innerHTML=`
   <div class="topic-browser">
@@ -350,6 +399,7 @@ function renderCourses(){
    if(posterLoading?.isConnected)posterLoading.textContent='The visual lesson could not load. Please refresh the page.';
   });
  }
+ if(selected.mathFigureAtlas)hydrateMathFigureGallery(selected);
 }
 function renderProgress(){
  const gradeLessons=LESSONS.filter(l=>l.grade===state.grade),doneGrade=gradeLessons.filter(l=>state.completed.includes(l.id)).length;
