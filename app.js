@@ -146,11 +146,12 @@ function normaliseMathFigureRef(value){
   .replace(/\s*\)\s*/g,')')
   .trim();
 }
-function mathFigurePlacements(lines,lesson){
+function mathFigurePlacements(lines,lesson,usedFigures){
  const atlas=lesson&&lesson.mathFigureAtlas;
  const placements=new Map();
  if(!atlas||!Array.isArray(lines))return placements;
  Object.keys(atlas.figures||{}).forEach(caption=>{
+  if(usedFigures&&usedFigures.has(caption))return;
   let chosen=-1;
   if(caption==='Factor tree of 32760'){
    chosen=lines.findIndex(line=>/factor tree/i.test(line));
@@ -168,6 +169,7 @@ function mathFigurePlacements(lines,lesson){
    }
   }
   if(chosen>=0){
+   if(usedFigures)usedFigures.add(caption);
    const list=placements.get(chosen)||[];
    list.push(caption);
    placements.set(chosen,list);
@@ -217,10 +219,11 @@ function renderPdfFigure(line,lesson){
 function renderStructuredStudyContent(text,lesson){
  const blocks=String(text||'').trim().split(/\n(?=##\s+)/).filter(Boolean);
  const seenFigures=new Set();
+ const mathPlacedFigures=new Set();
  const cards=blocks.map((block,index)=>{
   const lines=block.split('\n').map(x=>x.trim()).filter(Boolean);
   const heading=(lines.shift()||'').replace(/^##\s+/,'');
-  const figurePlacements=lesson&&lesson.grade===10&&lesson.subject==='Maths'?mathFigurePlacements(lines,lesson):new Map();
+  const figurePlacements=lesson&&lesson.grade===10&&lesson.subject==='Maths'?mathFigurePlacements(lines,lesson,mathPlacedFigures):new Map();
   let body='',listOpen=false;
   const closeList=()=>{if(listOpen){body+='</ul>';listOpen=false;}};
   lines.forEach((line,lineIndex)=>{
