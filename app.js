@@ -94,7 +94,7 @@ function splitMainContent(text){
 function hasStructuredStudyContent(text){
  return /^##\s+/m.test(String(text||''));
 }
-const CLASS10_SCIENCE_FIGURES={
+const CLASS10_SCIENCE_CH1_FIGURES={
  '1.1':'assets/science/class10/ch1/figure1-1.webp',
  '1.2':'assets/science/class10/ch1/figure1-2.webp',
  '1.3':'assets/science/class10/ch1/figure1-3.webp',
@@ -106,16 +106,35 @@ const CLASS10_SCIENCE_FIGURES={
  '1.9':'assets/science/class10/ch1/figure1-9.webp',
  '1.10':'assets/science/class10/ch1/figure1-10.webp'
 };
+function class10ScienceFigureMeta(id){
+ const chapter=String(id||'').split('.')[0];
+ const chapterMeta=window.TLW_CLASS10_SCIENCE_FIGURES&&window.TLW_CLASS10_SCIENCE_FIGURES[chapter];
+ if(!chapterMeta||!chapterMeta.figures||!chapterMeta.figures[id])return null;
+ return {...chapterMeta.figures[id],sprite:chapterMeta.sprite,spriteWidth:chapterMeta.width,spriteHeight:chapterMeta.height};
+}
+function renderPdfSprite(meta,caption,attrs=''){
+ const view=[meta.x,meta.y,meta.w,meta.h].join(' ');
+ return '<svg class="pdf-study-sprite" viewBox="'+view+'" role="img" aria-label="'+safe(caption)+'" '+attrs+'><image href="'+safe(meta.sprite)+'" width="'+meta.spriteWidth+'" height="'+meta.spriteHeight+'" loading="lazy"></image></svg>';
+}
 function renderPdfFigure(line,lesson){
- const caption=String(line||'').replace(/^FIGURE:\s*/,'').trim();
- const match=caption.match(/Figure\s+(1\.\d+)/i);
- const isChapter=lesson&&lesson.grade===10&&lesson.subject==='Science'&&lesson.title==='Chemical Reactions and Equations';
- const src=isChapter&&match?CLASS10_SCIENCE_FIGURES[match[1]]:'';
- if(!src)return '<div class="study-figure-note">🖼 '+safe(caption)+'</div>';
- return '<figure class="pdf-study-figure"><button type="button" class="pdf-study-figure-open" data-pdf-image="'+safe(src)+'" data-pdf-caption="'+safe(caption)+'" aria-label="Enlarge '+safe(caption)+'"><img src="'+safe(src)+'" alt="'+safe(caption)+'" loading="lazy"></button><figcaption>'+safe(caption)+'<span>Tap image to enlarge</span></figcaption></figure>';
+ const rawCaption=String(line||'').replace(/^FIGURE:\s*/,'').trim();
+ const match=rawCaption.match(/Figure\s+(\d+\.\d+)/i);
+ if(!match)return '<div class="study-figure-note">🖼 '+safe(rawCaption)+'</div>';
+ const id=match[1];
+ if(id.startsWith('1.')&&lesson&&lesson.grade===10&&lesson.subject==='Science'&&lesson.title==='Chemical Reactions and Equations'){
+  const src=CLASS10_SCIENCE_CH1_FIGURES[id];
+  if(!src)return '<div class="study-figure-note">🖼 '+safe(rawCaption)+'</div>';
+  return '<figure class="pdf-study-figure"><button type="button" class="pdf-study-figure-open" data-pdf-image="'+safe(src)+'" data-pdf-caption="'+safe(rawCaption)+'" aria-label="Enlarge '+safe(rawCaption)+'"><img src="'+safe(src)+'" alt="'+safe(rawCaption)+'" loading="lazy"></button><figcaption>'+safe(rawCaption)+'<span>Tap image to enlarge</span></figcaption></figure>';
+ }
+ const meta=class10ScienceFigureMeta(id);
+ if(!meta)return '<div class="study-figure-note">🖼 '+safe(rawCaption)+'</div>';
+ const mappedCaption=(meta.caption&&meta.caption.length<=170)?meta.caption:('Figure '+id);
+ const caption=mappedCaption+(meta.page?' · PDF page '+meta.page:'');
+ return '<figure class="pdf-study-figure pdf-study-figure-sprite"><button type="button" class="pdf-study-figure-open" data-pdf-sprite="'+safe(meta.sprite)+'" data-pdf-viewbox="'+[meta.x,meta.y,meta.w,meta.h].join(',')+'" data-pdf-sprite-width="'+meta.spriteWidth+'" data-pdf-sprite-height="'+meta.spriteHeight+'" data-pdf-caption="'+safe(caption)+'" aria-label="Enlarge '+safe(caption)+'">'+renderPdfSprite(meta,caption)+'</button><figcaption>'+safe(caption)+'<span>Tap image to enlarge</span></figcaption></figure>';
 }
 function renderStructuredStudyContent(text,lesson){
  const blocks=String(text||'').trim().split(/\n(?=##\s+)/).filter(Boolean);
+ const seenFigures=new Set();
  const cards=blocks.map((block,index)=>{
   const lines=block.split('\n').map(x=>x.trim()).filter(Boolean);
   const heading=(lines.shift()||'').replace(/^##\s+/,'');
@@ -137,7 +156,12 @@ function renderStructuredStudyContent(text,lesson){
    }else if(line.startsWith('KNOW:')){
     body+='<div class="study-know-note"><strong>Do You Know?</strong><span>'+safe(line.slice(5).trim())+'</span></div>';
    }else if(line.startsWith('FIGURE:')){
-    body+=renderPdfFigure(line,lesson);
+    const figureMatch=line.match(/Figure\s+(\d+\.\d+)/i);
+    const figureId=figureMatch?figureMatch[1]:'';
+    if(!figureId||!seenFigures.has(figureId)){
+     if(figureId)seenFigures.add(figureId);
+     body+=renderPdfFigure(line,lesson);
+    }
    }else if(line.startsWith('QUESTION:')){
     body+='<div class="study-question-note"><strong>Question</strong><span>'+safe(line.slice(9).trim())+'</span></div>';
    }else if(line.startsWith('### ')){
@@ -398,22 +422,37 @@ function completeLesson(){if(!currentLesson)return;stage('Complete');const alrea
 }
 function closeLesson(){stopReadAloud();if($('lessonModal').hidden)return;$('lessonModal').hidden=true;document.body.classList.remove('modal-open');currentLesson=null;if(returnFocus&&typeof returnFocus.focus==='function')returnFocus.focus()}
 function continueLearning(){const next=LESSONS.find(l=>l.grade===state.grade&&!state.completed.includes(l.id))||LESSONS.find(l=>l.grade===state.grade);if(next)openLesson(next.id);else showToast('Choose a class to start learning!')}
-function openPdfFigure(src,caption){
+function ensurePdfFigureViewer(){
  let viewer=$('pdfFigureViewer');
- if(!viewer){
-  viewer=document.createElement('div');
-  viewer.id='pdfFigureViewer';
-  viewer.className='pdf-figure-viewer';
-  viewer.hidden=true;
-  viewer.innerHTML='<button type="button" class="pdf-figure-viewer-close" data-close-pdf-figure aria-label="Close image">×</button><div class="pdf-figure-viewer-inner"><img alt=""><p></p></div>';
-  document.body.appendChild(viewer);
-  viewer.addEventListener('click',e=>{
-   if(e.target===viewer||e.target.closest('[data-close-pdf-figure]'))closePdfFigure();
-  });
- }
- viewer.querySelector('img').src=src;
- viewer.querySelector('img').alt=caption||'Science figure';
+ if(viewer)return viewer;
+ viewer=document.createElement('div');
+ viewer.id='pdfFigureViewer';
+ viewer.className='pdf-figure-viewer';
+ viewer.hidden=true;
+ viewer.innerHTML='<button type="button" class="pdf-figure-viewer-close" data-close-pdf-figure aria-label="Close image">×</button><div class="pdf-figure-viewer-inner"><div class="pdf-figure-viewer-media"></div><p></p></div>';
+ document.body.appendChild(viewer);
+ viewer.addEventListener('click',e=>{if(e.target===viewer||e.target.closest('[data-close-pdf-figure]'))closePdfFigure();});
+ return viewer;
+}
+function openPdfFigure(src,caption){
+ const viewer=ensurePdfFigureViewer();
+ const media=viewer.querySelector('.pdf-figure-viewer-media');
+ media.innerHTML='<img alt="'+safe(caption||'Science figure')+'" src="'+safe(src)+'">';
  viewer.querySelector('p').textContent=caption||'';
+ viewer.hidden=false;
+ document.body.classList.add('figure-viewer-open');
+ viewer.querySelector('[data-close-pdf-figure]').focus();
+}
+function openPdfFigureSprite(button){
+ const viewer=ensurePdfFigureViewer();
+ const parts=String(button.dataset.pdfViewbox||'').split(',').map(Number);
+ if(parts.length!==4||parts.some(Number.isNaN))return;
+ const [x,y,w,h]=parts;
+ const sw=Number(button.dataset.pdfSpriteWidth),sh=Number(button.dataset.pdfSpriteHeight);
+ const caption=button.dataset.pdfCaption||'Science figure';
+ const media=viewer.querySelector('.pdf-figure-viewer-media');
+ media.innerHTML='<svg class="pdf-figure-viewer-sprite" viewBox="'+[x,y,w,h].join(' ')+'" role="img" aria-label="'+safe(caption)+'"><image href="'+safe(button.dataset.pdfSprite)+'" width="'+sw+'" height="'+sh+'"></image></svg>';
+ viewer.querySelector('p').textContent=caption;
  viewer.hidden=false;
  document.body.classList.add('figure-viewer-open');
  viewer.querySelector('[data-close-pdf-figure]').focus();
@@ -438,7 +477,7 @@ function installEvents(){
  $('gradeShortcuts').addEventListener('click',e=>{const gradeBtn=e.target.closest('[data-grade]');if(gradeBtn){setGrade(Number(gradeBtn.dataset.grade));return;}const changeBtn=e.target.closest('[data-change-class]');if(changeBtn){classChoicesOpen=true;subject='';query='';currentTopicId='';$('searchInput').value='';renderAll();requestAnimationFrame(()=>$('gradeShortcuts')?.scrollIntoView({behavior:'smooth',block:'start'}));}});
  $('subjectFilters').addEventListener('click',e=>{const btn=e.target.closest('[data-subject]');if(btn){stopReadAloud();subject=btn.dataset.subject;query='';currentTopicId='';$('searchInput').value='';renderSubjectFilters();renderCourses();requestAnimationFrame(()=>$('lessonResultsSection')?.scrollIntoView({behavior:'smooth',block:'start'}))}});
  $('searchInput').addEventListener('input',e=>{query=e.target.value.trim().toLowerCase();renderCourses()});
- $('courseGrid').addEventListener('click',e=>{const figure=e.target.closest('[data-pdf-image]');if(figure){openPdfFigure(figure.dataset.pdfImage,figure.dataset.pdfCaption);return;}const topic=e.target.closest('[data-topic-id]');if(topic){stopReadAloud();currentTopicId=topic.dataset.topicId;renderCourses();return;}const aloud=e.target.closest('[data-read-aloud]');if(aloud){readAloudLesson(aloud.dataset.readAloud,aloud);return;}const quiz=e.target.closest('[data-start-quiz]');if(quiz)openLesson(quiz.dataset.startQuiz);});
+ $('courseGrid').addEventListener('click',e=>{const sprite=e.target.closest('[data-pdf-sprite]');if(sprite){openPdfFigureSprite(sprite);return;}const figure=e.target.closest('[data-pdf-image]');if(figure){openPdfFigure(figure.dataset.pdfImage,figure.dataset.pdfCaption);return;}const topic=e.target.closest('[data-topic-id]');if(topic){stopReadAloud();currentTopicId=topic.dataset.topicId;renderCourses();return;}const aloud=e.target.closest('[data-read-aloud]');if(aloud){readAloudLesson(aloud.dataset.readAloud,aloud);return;}const quiz=e.target.closest('[data-start-quiz]');if(quiz)openLesson(quiz.dataset.startQuiz);});
  $('clearFiltersBtn').addEventListener('click',()=>{query='';$('searchInput').value='';renderCourses()});
  $('continueBtn').addEventListener('click',continueLearning);
  $('closeLesson').addEventListener('click',closeLesson);
