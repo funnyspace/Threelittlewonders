@@ -23,18 +23,15 @@ const CLASS10_SCIENCE_CHAPTERS=[
  'Acids, Bases and Salts',
  'Metals and Non-metals',
  'Carbon and its Compounds',
- 'Periodic Classification of Elements',
  'Life Processes',
  'Control and Coordination',
- 'How do Organisms Reproduce',
- 'Heredity and Evolution',
- 'Light: Reflection and Refraction',
- 'Human Eye',
+ 'How do Organisms Reproduce?',
+ 'Heredity',
+ 'Light - Reflection and Refraction',
+ 'The Human Eye and the Colourful World',
  'Electricity',
  'Magnetic Effects of Electric Current',
- 'Sources of Energy',
- 'Our Environment',
- 'Sustainable Management of Natural Resources'
+ 'Our Environment'
 ];
 function isNurseryListeningLesson(lesson){
  return !!lesson&&lesson.grade===-2&&lesson.subject==='English'&&lesson.title==='Listening and Speaking';
