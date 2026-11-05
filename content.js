@@ -23,7 +23,31 @@ add(0,'EVS','A Rainbow of Colours','Find wonderful colours all around you.','�
 add(0,'Maths','Shapes Around Us','Meet circles, triangles, squares and rectangles.','🔺','A circle is round. A triangle has 3 sides. A square has 4 equal sides. A rectangle has 4 sides with opposite sides equal.','A clock face may be a circle, and a window may be a rectangle.','Use your finger to draw each shape in the air.', ['Which shape has 3 sides?',['Square','Triangle','Circle','Rectangle'],1], ['Which shape is round?',['Circle','Square','Triangle','Rectangle'],0]);
 // CLASS 1
 add(1,'Maths','Adding Little Numbers','Learn to put groups together.','🍎','Addition means putting amounts together. The + sign means add, and = means equal to. You can use your fingers or objects to count.','You have 2 apples and get 3 more. 2 + 3 = 5 apples.','Draw dots for each number and count all the dots.', ['2 + 3 = ?',['4','6','5','7'],2], ['1 + 4 = ?',['5','3','6','4'],0]);
-add(1,'English','Small Words, Big Reading','Build words with familiar letters.','📝','Words are made from letters. Short words like cat, sun and pen help us practise sounding out and reading.','C + A + T makes CAT. Say each sound slowly, then blend them.','Read three small words aloud with a grown-up.', ['Which letters make sun?',['S-U-N','S-A-N','C-U-T','S-U-T'],0], ['Which is a three-letter word?',['Book','Cat','Apple','School'],1]);
+[
+  ['Two Little Hands','Unit 1: My Family and Me'],
+  ['Greetings','Unit 1: My Family and Me'],
+  ['Picture Time','Unit 2: Life Around Us'],
+  ['The Cap-seller and the Monkeys','Unit 2: Life Around Us'],
+  ['A Farm','Unit 2: Life Around Us'],
+  ['Fun with Pictures','Unit 3: Food'],
+  ['The Food we Eat','Unit 3: Food'],
+  ['The Four Seasons','Unit 4: Seasons'],
+  ["Anandi’s Rainbow",'Unit 4: Seasons']
+].forEach(([title,unit],index)=>{
+  window.TLW_LESSONS.push({
+    id:'1-english-mridang-'+String(index+1).padStart(2,'0'),
+    grade:1,
+    subject:'English',
+    title,
+    description:unit+' · NCERT Mridang',
+    emoji:'📘',
+    concept:'This Class 1 English topic has been added from the NCERT Mridang textbook contents. Detailed lesson content will be added separately.',
+    example:'',
+    tip:'',
+    minutes:5,
+    questions:[]
+  });
+});
 add(1,'EVS','Plants Are Our Friends','Discover what plants need to grow.','🌱','Plants are living things. Most plants need water, air, sunlight and nutrients to grow. Roots take in water and leaves use sunlight.','A seed planted in soil can grow into a little plant when it gets suitable conditions.','Water a plant only when it needs water and watch it change.', ['Which helps a plant grow?',['Sunlight','Plastic','Toys','Paint'],0], ['Which plant part usually grows under the soil?',['Flower','Leaf','Root','Fruit'],2]);
 add(1,'General Knowledge','Healthy Daily Habits','Tiny habits that keep you healthy.','🪥','Simple healthy habits include washing hands with soap, brushing your teeth, being active and getting enough sleep.','Wash your hands before eating and after using the toilet.','Show someone how you wash your hands properly.', ['When should you wash your hands?',['Before eating','Only on Sundays','Never','Only in winter'],0], ['Which helps keep teeth clean?',['Brushing','Candy all day','Skipping water','Not sleeping'],0]);
 add(1,'Computer','Computers Around Us','Say hello to screens, keyboards and mice.','🖥️','Computers help people learn, write, draw and solve problems. Common parts include a screen, keyboard and mouse.','We type letters using a keyboard and see our work on a screen.','Use devices with a trusted adult and take regular screen breaks.', ['Which part is used for typing?',['Keyboard','Chair','Bottle','Book'],0], ['Where do we see pictures on a computer?',['Screen','Shoe','Pencil','Table'],0]);
