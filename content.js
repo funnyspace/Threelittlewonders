@@ -53,7 +53,35 @@ add(1,'General Knowledge','Healthy Daily Habits','Tiny habits that keep you heal
 add(1,'Computer','Computers Around Us','Say hello to screens, keyboards and mice.','🖥️','Computers help people learn, write, draw and solve problems. Common parts include a screen, keyboard and mouse.','We type letters using a keyboard and see our work on a screen.','Use devices with a trusted adult and take regular screen breaks.', ['Which part is used for typing?',['Keyboard','Chair','Bottle','Book'],0], ['Where do we see pictures on a computer?',['Screen','Shoe','Pencil','Table'],0]);
 // CLASS 2
 add(2,'Maths','Subtract and Discover','Take away to find what is left.','🍪','Subtraction means taking away or finding a difference. The symbol − means subtract.','If you have 8 cookies and eat 3, then 8 − 3 = 5 remain.','Draw eight circles, cross out three and count the rest.', ['8 − 3 = ?',['3','4','5','6'],2], ['10 − 6 = ?',['4','5','3','6'],0]);
-add(2,'English','Nouns: Naming Words','People, places, animals and things.','🐶','A noun is a naming word. Names of people, places, animals and things are nouns.','Teacher, park, tiger and pencil are all nouns.','Spot five nouns in the room you are sitting in.', ['Which word is a noun?',['Run','Happy','School','Quickly'],2], ['Which is the name of an animal?',['Jump','Tiger','Blue','Soft'],1]);
+[
+  ['My Bicycle','Unit 1: Fun with Friends'],
+  ['Picture Reading','Unit 1: Fun with Friends'],
+  ['It is Fun','Unit 2: Welcome to My World'],
+  ['Seeing without Seeing','Unit 2: Welcome to My World'],
+  ['Come Back Soon','Unit 3: Going Places'],
+  ['Between Home and School','Unit 3: Going Places'],
+  ['This is My Town','Unit 3: Going Places'],
+  ['A Show of Clouds','Unit 4: Life Around Us'],
+  ['My Name','Unit 4: Life Around Us'],
+  ['The Crow','Unit 4: Life Around Us'],
+  ['The Smart Monkey','Unit 4: Life Around Us'],
+  ['Little Drops of Water','Unit 5: Harmony'],
+  ['We are all Indians','Unit 5: Harmony']
+].forEach(([title,unit],index)=>{
+  window.TLW_LESSONS.push({
+    id:'2-english-mridang-'+String(index+1).padStart(2,'0'),
+    grade:2,
+    subject:'English',
+    title,
+    description:unit+' · NCERT Mridang',
+    emoji:'📘',
+    concept:'This Class 2 English topic has been added from the NCERT Mridang textbook contents. Detailed lesson content will be added separately.',
+    example:'',
+    tip:'',
+    minutes:5,
+    questions:[]
+  });
+});
 add(2,'EVS','Living and Non-Living','Observe the wonderful world around us.','🦋','Living things need energy and carry out life processes such as growing. Non-living things do not do these by themselves.','A butterfly is living. A stone is non-living.','Look outside and find one living and one non-living thing.', ['Which is living?',['Chair','Butterfly','Spoon','Stone'],1], ['Which is non-living?',['Tree','Cat','Dog','Table'],3]);
 add(2,'Social Science','Find Your Directions','Explore north, south, east and west.','🧭','The four main directions are north, south, east and west. A compass can help us find them.','On a standard map, north is usually shown at the top and south at the bottom.','Try drawing a compass rose on a piece of paper.', ['Which direction is opposite north?',['East','South','West','North'],1], ['Which tool shows directions?',['Compass','Scale for weight','Thermometer','Clock'],0]);
 add(2,'Computer','Let’s Use a Keyboard','Discover keys and smart typing habits.','⌨️','A keyboard has letter keys, number keys, a space bar and special keys. The space bar puts a gap between words.','Type: I LIKE BOOKS. Press the space bar between each word.','Keep your hands comfortable and type slowly and accurately.', ['What does the space bar do?',['Deletes all text','Adds a space','Plays music','Turns off the computer'],1], ['Which keys type letters?',['Alphabet keys','Arrow keys only','Mouse buttons','Speakers'],0]);
