@@ -22,7 +22,35 @@ add(0,'Maths','Count from 1 to 10','Little numbers, big counting fun!','🧮','C
 add(0,'EVS','A Rainbow of Colours','Find wonderful colours all around you.','🌈','Colours make the world beautiful! Red, blue and yellow are familiar colours. Leaves are often green, and the sky often looks blue.','A ripe banana is usually yellow. Grass is often green.','Find one red, one blue and one yellow thing at home.', ['What colour is grass usually?',['Purple','Green','Black','Pink'],1], ['What colour is a ripe banana usually?',['Blue','Yellow','Grey','Violet'],1]);
 add(0,'Maths','Shapes Around Us','Meet circles, triangles, squares and rectangles.','🔺','A circle is round. A triangle has 3 sides. A square has 4 equal sides. A rectangle has 4 sides with opposite sides equal.','A clock face may be a circle, and a window may be a rectangle.','Use your finger to draw each shape in the air.', ['Which shape has 3 sides?',['Square','Triangle','Circle','Rectangle'],1], ['Which shape is round?',['Circle','Square','Triangle','Rectangle'],0]);
 // CLASS 1
-add(1,'Maths','Adding Little Numbers','Learn to put groups together.','🍎','Addition means putting amounts together. The + sign means add, and = means equal to. You can use your fingers or objects to count.','You have 2 apples and get 3 more. 2 + 3 = 5 apples.','Draw dots for each number and count all the dots.', ['2 + 3 = ?',['4','6','5','7'],2], ['1 + 4 = ?',['5','3','6','4'],0]);
+[
+  ['Finding the Furry Cat!','Pre-number Concepts'],
+  ['What is Long? What is Round?','Shapes'],
+  ['Mango Treat','Numbers 1 to 9'],
+  ['Making 10','Numbers 10 to 20'],
+  ['How Many?','Addition and Subtraction of Single Digit Numbers'],
+  ['Vegetable Farm','Addition and Subtraction up to 20'],
+  ["Lina’s Family",'Measurement'],
+  ['Fun with Numbers','Numbers 21 to 99'],
+  ['Utsav','Patterns'],
+  ['How do I Spend my Day?','Time'],
+  ['How Many Times?','Multiplication'],
+  ['How Much Can We Spend?','Money'],
+  ['So Many Toys','Data Handling']
+].forEach(([title,topic],index)=>{
+  window.TLW_LESSONS.push({
+    id:'1-maths-joyful-'+String(index+1).padStart(2,'0'),
+    grade:1,
+    subject:'Maths',
+    title,
+    description:topic+' · NCERT Joyful Mathematics',
+    emoji:'🔢',
+    concept:'This Class 1 Maths topic has been added from the NCERT Joyful Mathematics textbook contents. Detailed lesson content will be added separately.',
+    example:'',
+    tip:'',
+    minutes:5,
+    questions:[]
+  });
+});
 [
   ['Two Little Hands','Unit 1: My Family and Me'],
   ['Greetings','Unit 1: My Family and Me'],
