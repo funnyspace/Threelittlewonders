@@ -1,6 +1,250 @@
 /* Class 2 English NCERT Mridang chapter content imported from user-provided PDFs. */
 (function(){
   const chapters={
+    '2-english-mridang-02':{
+      source:'bemr102.pdf',
+      concept:`## Picture Reading
+**Unit 1: Fun with Friends**
+
+This chapter develops observation, speaking, reading, phonics and sentence-building through playground pictures and the story **OUT! OUT!**
+
+## Picture Reading
+Children observe a playground scene and talk about:
+- what they see
+- how many children are present
+- what the children are doing
+- how they are having fun
+- games they themselves play
+
+## Let us read — OUT! OUT!
+Jeet and Babli enjoy a holiday by skipping rope, playing hide and seek, and then playing bat and ball. When their ball goes into Mohit's garden and cannot be retrieved, Babli makes a new ball from rags, paper, wool and string. The game starts again.
+
+## Sight words
+This, a, how, also, they, after, and, of
+
+## New words
+skipped, threw, courtyard, gathered, brought, picked
+
+## Let us speak
+Children discuss games they play, using materials around them, and arrange story events in the correct order.
+
+## Vowel sound
+The lesson introduces the short vowel sound **e**, using words such as egg, engine, elephant, pen, pencil, bell, kettle, hen and well.
+
+## Let us write
+Activities include:
+- naming story characters
+- listing materials used to make the ball
+- writing opposites such as up/down
+- joining sentences using **and**
+
+## Let us do
+Children enact the story in pairs and ask parents or grandparents about games played in their childhood.
+
+## Learning focus
+- Picture observation
+- Story sequencing
+- Games and play vocabulary
+- Short vowel sound e
+- Opposites
+- Joining sentences with and
+- Speaking and role play`
+    },
+    '2-english-mridang-03':{
+      source:'bemr103.pdf',
+      concept:`## It is Fun
+**Unit 2: Welcome to My World**
+
+This poem introduces animal movements, action words, imagination and the short vowel sound **i**.
+
+## Let us recite
+The child imagines moving like different animals:
+- leap like a lamb
+- climb like a cat
+- hop like a frog
+- swim like a fish
+- trot like a horse
+- fly like a bird
+
+## Sight words
+this, that, like, to, them, all, none
+
+## New words
+fun, climb, leap, swim, trot, fly
+
+## Let us speak
+Children identify animal sounds and respond to imaginative questions such as what they would do if they were a cat or met an elephant.
+
+## Let us write
+Children make sentences with movement words and answer questions about animals and birds.
+
+## Picture Reading
+Children observe an underwater scene and describe what they see in a few sentences.
+
+## Let us think
+Children match animals with actions such as trots, leaps, crawls, runs and swings.
+
+## Vowel sound
+The lesson practises the short vowel sound **i** using inch, inkpot, igloo, pin, list, fish, bin, ring and ship.
+
+## Let us sing
+The **Song of I** helps children understand that **I** can be both a letter and a word referring to oneself.
+
+## Let us draw
+Children follow steps to draw and colour a rangoli.
+
+## Learning focus
+- Animal actions
+- Action verbs
+- Imagination
+- Short vowel sound i
+- Picture description
+- Sentence formation
+- Rangoli drawing`
+    },
+    '2-english-mridang-06':{
+      source:'bemr106.pdf',
+      concept:`## Between Home and School
+**Unit 3: Going Places**
+
+This chapter describes Ravi's daily journey to school and develops route vocabulary, observation, speaking and the consonant blend **ch**.
+
+## Let us read
+Ravi and his friend walk to school through paddy fields, a mango grove and the main road. On the way they jump over canals, climb trees, swing from branches and watch garden lizards, yet still reach school on time.
+
+## New words
+school, paddy, fields, grove, route, canals, branches, lizards, bicycle
+
+## Let us speak
+Children talk about:
+- what time they leave home
+- when school starts
+- fun experiences on the way to school
+
+## Sound practice
+Children listen for **ch** in words such as chart, chalk and chair.
+
+## Let us write
+Children fill in **ch** in words such as lunch, chips, teacher, chart and chair.
+
+## Let us draw
+Children draw the route from home to school.
+
+## Observation and writing
+Children identify things Ravi sees on the way and write about their own daily route and a family member's long journey.
+
+## Word puzzle
+Children rearrange jumbled letters to form lesson words.
+
+## Let us do
+Children make sentences using words such as gate, road, tree, lunch and lizard, and create a class transport chart from cut-out vehicle pictures.
+
+## Learning focus
+- Route and journey vocabulary
+- Daily travel
+- Observation
+- Consonant blend ch
+- Sentence writing
+- Map-like route drawing`
+    },
+    '2-english-mridang-07':{
+      source:'bemr107.pdf',
+      concept:`## This is My Town
+**Unit 3: Going Places**
+
+This poem moves from town to street, house, room, bed and basket, helping children understand location words and their own address.
+
+## Let us read
+The poem follows a nested sequence:
+town → street → house → room → bed → basket → flowers.
+
+It repeatedly uses **in** and **on** to show where things are located.
+
+## Sight words
+in, this, that, there, my
+
+## New words
+train, town, street, house, flower, basket
+
+## Let us speak
+Children talk about what they see, the name of their town or city and the name of their street.
+
+## Let us write
+Children:
+- form words from letter groups
+- use the words in sentences
+- write their home address, including house number, street, area, town, state and country
+
+## Let us listen
+Children distinguish similar-sounding words such as fan/fin, wall/well, house/mouse, lane/line and skin/swim.
+
+## Let us do
+Children count particular letters in the poem, compare frequencies and spot differences between two pictures.
+
+## Let us draw
+Children complete an outdoor picture using their imagination.
+
+## Sound practice
+The lesson introduces **sh** through shirt, shell, shoe, shining, shorts, shawl and shoes.
+
+## Learning focus
+- Town and home vocabulary
+- In/on positional language
+- Address writing
+- Listening discrimination
+- Observation
+- Consonant blend sh`
+    },
+    '2-english-mridang-08':{
+      source:'bemr108.pdf',
+      concept:`## A Show of Clouds
+**Unit 4: Life Around Us**
+
+This poem encourages imagination by finding familiar shapes and objects in clouds.
+
+## Let us recite
+While lying on the ground and looking at the sky, the child imagines seeing:
+- a big white bear
+- a ship sailing on a white sea
+- an elephant waving its trunk
+
+The poem celebrates seeing whatever one's imagination creates in the clouds.
+
+## Sight words
+as, up, at, my, sky, back
+
+## New words
+lie, bear, sea, sailing, waving
+
+## Let us speak
+Children observe clouds, talk about what shapes they see and discuss colours clouds can appear to be.
+
+## Sentence practice
+Children answer prompts using patterns such as:
+- When I look up, I see...
+- When I look down, I see...
+- When I close my eyes, I see...
+
+## Let us write
+Children write about:
+- animals seen in the poem's clouds
+- things visible in the daytime sky
+- things visible in the night sky
+
+## Let us draw
+Children join dots in alphabetical order and colour the completed picture.
+
+## Let us listen
+Children practise the common **ck** sound in words such as back, pack, lack, jack, rack, pick, tick, flick, thick, pluck, duck, muck and truck.
+
+## Learning focus
+- Imagination
+- Clouds and sky vocabulary
+- Full-sentence speaking
+- Day and night observation
+- Alphabetical order
+- ck sound`
+    },
     '2-english-mridang-01':{
       source:'bemr101.pdf',
       concept:`## My Bicycle
