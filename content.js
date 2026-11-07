@@ -153,7 +153,38 @@ add(2,'Social Science','Find Your Directions','Explore north, south, east and we
 add(2,'Computer','Let’s Use a Keyboard','Discover keys and smart typing habits.','⌨️','A keyboard has letter keys, number keys, a space bar and special keys. The space bar puts a gap between words.','Type: I LIKE BOOKS. Press the space bar between each word.','Keep your hands comfortable and type slowly and accurately.', ['What does the space bar do?',['Deletes all text','Adds a space','Plays music','Turns off the computer'],1], ['Which keys type letters?',['Alphabet keys','Arrow keys only','Mouse buttons','Speakers'],0]);
 // CLASS 3
 add(3,'Maths','Multiplication Magic','Turn repeated addition into multiplication.','✖️','Multiplication helps us add equal groups quickly. The × sign means multiply.','3 groups of 4 are 4 + 4 + 4 = 12, so 3 × 4 = 12.','Make three groups of four pencils or dots.', ['3 × 4 = ?',['7','10','12','14'],2], ['5 × 2 = ?',['10','7','12','15'],0]);
-add(3,'English','Action Words: Verbs','What is everyone doing?','🏃','A verb often tells us what someone or something does, or a state of being. Run, read and dance are action verbs.','In “The bird flies”, the word “flies” is the action verb.','Write three short sentences using different action verbs.', ['Which word is a verb?',['Jump','Blue','Chair','Small'],0], ['Find the verb: “Riya sings.”',['Riya','Sings','The','None'],1]);
+[
+  ['Picture Reading','Unit 1: Fun with Friends'],
+  ['Colours','Unit 1: Fun with Friends'],
+  ['Badal and Moti','Unit 1: Fun with Friends'],
+  ['Best Friends','Unit 1: Fun with Friends'],
+  ['Picture Reading','Unit 2: Toys and Games'],
+  ['Out in the Garden','Unit 2: Toys and Games'],
+  ['Talking Toys','Unit 2: Toys and Games'],
+  ['Paper Boats','Unit 2: Toys and Games'],
+  ['Picture Reading','Unit 3: Good Food'],
+  ['The Big Laddoo','Unit 3: Good Food'],
+  ['Thank God','Unit 3: Good Food'],
+  ["Madhu’s Wish",'Unit 3: Good Food'],
+  ['Picture Reading','Unit 4: The Sky'],
+  ['Night','Unit 4: The Sky'],
+  ['Chanda Mama Counts the Stars','Unit 4: The Sky'],
+  ['Chandrayaan','Unit 4: The Sky']
+].forEach(([title,unit],index)=>{
+  window.TLW_LESSONS.push({
+    id:'3-english-santoor-'+String(index+1).padStart(2,'0'),
+    grade:3,
+    subject:'English',
+    title,
+    description:unit+' · NCERT Santoor',
+    emoji:'📘',
+    concept:'This Class 3 English topic has been added from the NCERT Santoor textbook contents. Detailed lesson content will be added separately.',
+    example:'',
+    tip:'',
+    minutes:5,
+    questions:[]
+  });
+});
 add(3,'Science','Parts of a Plant','Meet roots, stems, leaves and flowers.','🌻','Roots help anchor plants and absorb water. Stems support plant parts. Leaves usually make food through photosynthesis.','A sunflower has roots, a stem, leaves and a flower.','Draw and label a simple flowering plant.', ['Which plant part absorbs water from soil?',['Flower','Root','Fruit','Petal'],1], ['Which part usually makes food?',['Leaves','Roots','Seeds','Thorns'],0]);
 add(3,'Social Science','Reading Simple Maps','Maps help us find our way.','🗺️','A map is a drawing that represents a place from above. Symbols can represent roads, rivers and buildings. A map key explains symbols.','A blue wavy line on a map may show a river if its key says so.','Draw a map of your room and add a symbol key.', ['What explains map symbols?',['A key','A calendar','A ruler only','A poem'],0], ['A map usually shows a place from?',['Above','Under the ground only','Inside a book only','Behind'],0]);
 add(3,'Computer','Being Safe Online','Learn kind and safe internet habits.','🛡️','The internet can help us learn, but we must protect personal information. Ask a trusted adult before sharing your name, address or photos online.','If a stranger asks for your home address in a game, do not share it; tell a trusted adult.','Remember: stop, think, and ask before clicking unknown links.', ['Should you share your address with online strangers?',['Yes','No','Always','Only in games'],1], ['Who can help with an unsafe online message?',['A trusted adult','An unknown stranger','A pop-up ad','Nobody'],0]);
