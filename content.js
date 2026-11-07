@@ -245,8 +245,57 @@ add(10,'Social Science','Federalism in India','Understand different levels of go
 add(10,'Computer','Cyber Safety Essentials','Build safe digital habits.','🔐','A strong password or passphrase is long and unique. Multi-factor authentication adds protection. Be careful with phishing messages, strange links and personal information.','A message asking urgently for your password may be a phishing attempt. Verify through an official channel rather than using the message link.','Use a trusted adult’s guidance to improve account safety.', ['What is a safer password choice?',['Your name','123456','A long unique passphrase','Password'],2], ['What should you do with a suspicious link?',['Click immediately','Share it with everyone','Verify safely first','Enter your password'],2]);
 
 
-/* Hindi subject placeholders for Classes 2–10. Detailed NCERT topics/content can be added class-wise later. */
-for (let grade=2; grade<=10; grade++) {
+/* Class 2 Hindi topics from NCERT Sarangi 2. */
+[
+  ['नीमा की दादी','इकाई 1: परिवार'],
+  ['घर','इकाई 1: परिवार'],
+  ['माला की चाँदी की पायल','इकाई 1: परिवार'],
+  ['माँ','इकाई 1: परिवार'],
+  ['थाथू और मैं','इकाई 1: परिवार'],
+  ['चींटा','इकाई 1: परिवार'],
+  ['टिल्लू जी','इकाई 1: परिवार'],
+  ['नटखट दिवाकर','इकाई 1: परिवार · केवल पढ़ने के लिए'],
+  ['तीन दोस्त','इकाई 2: रंग ही रंग'],
+  ['दुनिया रंग-बिरंगी','इकाई 2: रंग ही रंग'],
+  ['कौन','इकाई 2: रंग ही रंग'],
+  ['बैंगनी जोजो','इकाई 2: रंग ही रंग'],
+  ['तोसिया का सपना','इकाई 2: रंग ही रंग'],
+  ['तालाब','इकाई 3: हरी-भरी धरती'],
+  ['बीज','इकाई 3: हरी-भरी धरती'],
+  ['किसान','इकाई 3: हरी-भरी धरती'],
+  ['मूली','इकाई 3: हरी-भरी धरती'],
+  ['बरसात और मेंढक','इकाई 3: हरी-भरी धरती'],
+  ['उठो उठो','इकाई 3: हरी-भरी धरती · केवल पढ़ने के लिए'],
+  ['शेर और चूहे की दोस्ती','इकाई 4: मित्रता'],
+  ['आउट','इकाई 4: मित्रता'],
+  ['खेल सन्ध्या','इकाई 4: मित्रता · केवल पढ़ने के लिए'],
+  ['छुपन-छुपाई','इकाई 4: मित्रता'],
+  ['हाथी साइकिल चला रहा था','इकाई 4: मित्रता'],
+  ['डरो मत!','इकाई 4: मित्रता · केवल पढ़ने के लिए'],
+  ['चार दिशाएँ','इकाई 5: आकाश'],
+  ['चंदा मामा','इकाई 5: आकाश'],
+  ['गिरे ताल में चंदा मामा','इकाई 5: आकाश'],
+  ['सबसे बड़ा छाता','इकाई 5: आकाश'],
+  ['बादल','इकाई 5: आकाश'],
+  ['फिर फुर्र!','इकाई 5: आकाश · केवल पढ़ने के लिए']
+].forEach(([title,unit],index)=>{
+  window.TLW_LESSONS.push({
+    id:'2-hindi-sarangi-'+String(index+1).padStart(2,'0'),
+    grade:2,
+    subject:'Hindi',
+    title,
+    description:unit+' · NCERT सारंगी 2',
+    emoji:'📕',
+    concept:'यह कक्षा 2 हिंदी का विषय NCERT सारंगी 2 पाठ्यपुस्तक की विषय-सूची से जोड़ा गया है। विस्तृत पाठ सामग्री बाद में जोड़ी जाएगी।',
+    example:'',
+    tip:'',
+    minutes:5,
+    questions:[]
+  });
+});
+
+/* Hindi subject placeholders for Classes 3–10. Detailed NCERT topics/content can be added class-wise later. */
+for (let grade=3; grade<=10; grade++) {
   window.TLW_LESSONS.push({
     id:grade+'-hindi-starter',
     grade,
