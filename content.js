@@ -118,7 +118,33 @@ add(0,'Maths','Shapes Around Us','Meet circles, triangles, squares and rectangle
 
 
 // CLASS 2
-add(2,'Maths','Subtract and Discover','Take away to find what is left.','🍪','Subtraction means taking away or finding a difference. The symbol − means subtract.','If you have 8 cookies and eat 3, then 8 − 3 = 5 remain.','Draw eight circles, cross out three and count the rest.', ['8 − 3 = ?',['3','4','5','6'],2], ['10 − 6 = ?',['4','5','3','6'],0]);
+[
+  ['A Day at the Beach','Counting in Groups'],
+  ['Shapes Around Us','3D Shapes'],
+  ['Fun with Numbers','Numbers 1 to 100'],
+  ['Shadow Story (Togalu)','2D Shapes'],
+  ['Playing with Lines','Orientations of a Line'],
+  ['Decoration for Festival','Addition and Subtraction'],
+  ["Rani’s Gift",'Measurement'],
+  ['Grouping and Sharing','Multiplication and Division'],
+  ['Which Season is it?','Measurement of Time'],
+  ['Fun at the Fair','Money'],
+  ['Data Handling','Data Handling']
+].forEach(([title,topic],index)=>{
+  window.TLW_LESSONS.push({
+    id:'2-maths-joyful-'+String(index+1).padStart(2,'0'),
+    grade:2,
+    subject:'Maths',
+    title,
+    description:topic+' · NCERT Joyful Mathematics',
+    emoji:'🔢',
+    concept:'This Class 2 Maths topic has been added from the NCERT Joyful Mathematics textbook contents. Detailed lesson content will be added separately.',
+    example:'',
+    tip:'',
+    minutes:5,
+    questions:[]
+  });
+});
 [
   ['My Bicycle','Unit 1: Fun with Friends'],
   ['Picture Reading','Unit 1: Fun with Friends'],
