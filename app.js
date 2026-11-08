@@ -362,6 +362,11 @@ function renderChapterTopicNavigator(lesson){
  const active=topics.find(t=>t.key===currentSubtopicKey)||null;
  return '<section class="chapter-topics-block"><div class="chapter-topics-heading"><span>TOPICS IN THIS CHAPTER</span><strong>'+topics.length+'</strong></div><div class="chapter-topic-buttons">'+topics.map((t,i)=>'<button type="button" class="chapter-topic-button '+(active&&active.key===t.key?'active':'')+'" data-subtopic-key="'+safe(t.key)+'" '+(t.page===null?'data-page-unverified="true"':'data-pdf-page="'+t.page+'"')+'><span>'+(i+1)+'</span><strong>'+safe(t.title)+'</strong>'+(t.page!==null?'<small>PDF p. '+t.page+'</small>':'<small>Page verification pending</small>')+'</button>').join('')+'</div></section>';
 }
+const originalPdfCache=new Map();
+function pdfBarcodeMasks(filename,pageNumber){
+ const map=window.TLW_PDF_BARCODE_MASKS||{};
+ return (map[filename]||[]).filter(item=>Number(item.page)===Number(pageNumber)&&Array.isArray(item.rect));
+}
 function renderOriginalPdfPanel(lesson){
  const url=sourcePdfUrl(lesson);
  if(!url)return '<section class="original-pdf-panel original-pdf-unavailable"><div><strong>Original PDF</strong><p>No verified source PDF has been assigned to this chapter yet.</p></div></section>';
@@ -369,8 +374,95 @@ function renderOriginalPdfPanel(lesson){
  const active=topics.find(t=>t.key===currentSubtopicKey)||null;
  const page=active&&Number.isInteger(active.page)?active.page:(Number.isInteger(lesson.chapterStartPage)?lesson.chapterStartPage:1);
  const verified=!!(active&&Number.isInteger(active.page));
- const viewerUrl=url+'#page='+page+'&view=FitH';
- return '<section class="original-pdf-panel"><div class="original-pdf-toolbar"><div><span>ORIGINAL PDF</span><strong>'+safe(lesson.sourcePdf)+'</strong><small>'+(active?(verified?'Topic page verified: '+page:'Topic page has not been verified yet. Showing the chapter PDF without inventing a page mapping.'):'Chapter PDF')+'</small></div><a href="'+safe(viewerUrl)+'" target="_blank" rel="noopener">Open PDF ↗</a></div><iframe class="original-pdf-frame" title="Original PDF for '+safe(lesson.title)+'" src="'+safe(viewerUrl)+'" loading="lazy"></iframe></section>';
+ return '<section class="original-pdf-panel full-fidelity-pdf" data-pdf-viewer data-pdf-url="'+safe(url)+'" data-pdf-file="'+safe(lesson.sourcePdf)+'" data-pdf-page="'+page+'">'+
+   '<div class="original-pdf-toolbar"><div><span>ORIGINAL PDF · FULL PAGE</span><strong>'+safe(lesson.sourcePdf)+'</strong><small>'+(active?(verified?'Verified topic page: '+page:'Topic page has not been verified. Showing the chapter start page without guessing.'):'Chapter PDF · use Previous/Next to read every page')+'</small></div>'+
+   '<div class="pdf-viewer-actions"><button type="button" data-pdf-prev aria-label="Previous PDF page">‹</button><span data-pdf-page-status>Page '+page+'</span><button type="button" data-pdf-next aria-label="Next PDF page">›</button><button type="button" data-pdf-zoom-out aria-label="Zoom out">−</button><button type="button" data-pdf-zoom-in aria-label="Zoom in">+</button></div></div>'+
+   '<div class="pdf-canvas-scroll"><div class="pdf-loading" data-pdf-loading>Loading original textbook page…</div><canvas class="original-pdf-canvas" data-pdf-canvas hidden></canvas><div class="pdf-native-fallback" data-pdf-fallback hidden></div></div>'+
+   '<p class="pdf-fidelity-note" data-pdf-note>All textbook text, diagrams, tables and images are shown from the original PDF. Only a verified barcode/QR area is hidden when present.</p>'+
+  '</section>';
+}
+function hydrateOriginalPdfViewer(lesson){
+ const host=$('courseGrid')?.querySelector('[data-pdf-viewer]');
+ if(!host||!lesson?.sourcePdf)return;
+ const url=host.dataset.pdfUrl;
+ const filename=host.dataset.pdfFile;
+ let pageNumber=Math.max(1,Number(host.dataset.pdfPage)||1);
+ let zoom=1;
+ let renderToken=0;
+ const canvas=host.querySelector('[data-pdf-canvas]');
+ const loading=host.querySelector('[data-pdf-loading]');
+ const fallback=host.querySelector('[data-pdf-fallback]');
+ const status=host.querySelector('[data-pdf-page-status]');
+ const note=host.querySelector('[data-pdf-note]');
+ const prev=host.querySelector('[data-pdf-prev]');
+ const next=host.querySelector('[data-pdf-next]');
+ const zoomIn=host.querySelector('[data-pdf-zoom-in]');
+ const zoomOut=host.querySelector('[data-pdf-zoom-out]');
+ function nativeFallback(message){
+  if(loading)loading.hidden=true;
+  if(canvas)canvas.hidden=true;
+  if(fallback){
+   fallback.hidden=false;
+   const viewerUrl=url+'#page='+pageNumber+'&view=FitH';
+   fallback.innerHTML='<p>'+safe(message||'Showing the source PDF directly.')+'</p><iframe class="original-pdf-frame" title="Original PDF for '+safe(lesson.title)+'" src="'+safe(viewerUrl)+'" loading="lazy"></iframe>';
+  }
+  if(note)note.textContent='The source PDF is shown directly because the browser could not use the full-page renderer. No textbook content is removed.';
+ }
+ async function getDocument(){
+  if(originalPdfCache.has(url))return originalPdfCache.get(url);
+  if(!window.pdfjsLib)throw new Error('PDF renderer unavailable');
+  window.pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  const promise=window.pdfjsLib.getDocument({url,withCredentials:false}).promise.catch(err=>{originalPdfCache.delete(url);throw err;});
+  originalPdfCache.set(url,promise);
+  return promise;
+ }
+ async function renderPage(target){
+  const token=++renderToken;
+  if(loading){loading.hidden=false;loading.textContent='Loading original textbook page…';}
+  if(fallback)fallback.hidden=true;
+  try{
+   const doc=await getDocument();
+   if(token!==renderToken||!host.isConnected)return;
+   pageNumber=Math.min(Math.max(1,target),doc.numPages);
+   const page=await doc.getPage(pageNumber);
+   if(token!==renderToken||!host.isConnected)return;
+   const base=page.getViewport({scale:1});
+   const containerWidth=Math.max(280,host.querySelector('.pdf-canvas-scroll')?.clientWidth||base.width);
+   const cssScale=Math.min(2.4,Math.max(.55,(containerWidth/base.width)*zoom));
+   const pixelRatio=Math.min(2.25,window.devicePixelRatio||1);
+   const viewport=page.getViewport({scale:cssScale*pixelRatio});
+   canvas.width=Math.ceil(viewport.width);
+   canvas.height=Math.ceil(viewport.height);
+   canvas.style.width=Math.ceil(viewport.width/pixelRatio)+'px';
+   canvas.style.height=Math.ceil(viewport.height/pixelRatio)+'px';
+   const ctx=canvas.getContext('2d',{alpha:false});
+   await page.render({canvasContext:ctx,viewport}).promise;
+   if(token!==renderToken||!host.isConnected)return;
+   const masks=pdfBarcodeMasks(filename,pageNumber);
+   if(masks.length){
+    ctx.save();
+    ctx.fillStyle='#fff';
+    masks.forEach(item=>{
+     const [x,y,w,h]=item.rect.map(Number);
+     ctx.fillRect(Math.floor(x*canvas.width),Math.floor(y*canvas.height),Math.ceil(w*canvas.width),Math.ceil(h*canvas.height));
+    });
+    ctx.restore();
+   }
+   canvas.hidden=false;
+   if(loading)loading.hidden=true;
+   if(status)status.textContent='Page '+pageNumber+' of '+doc.numPages;
+   if(prev)prev.disabled=pageNumber<=1;
+   if(next)next.disabled=pageNumber>=doc.numPages;
+   if(note)note.textContent=masks.length?'Full original textbook page shown. Verified barcode/QR hidden on this page; all other content is preserved.':'Full original textbook page shown with all text, images, diagrams and tables preserved.';
+  }catch(error){
+   nativeFallback('Full-page rendering was blocked by the source server or browser. The original PDF is shown directly below.');
+  }
+ }
+ prev?.addEventListener('click',()=>renderPage(pageNumber-1));
+ next?.addEventListener('click',()=>renderPage(pageNumber+1));
+ zoomIn?.addEventListener('click',()=>{zoom=Math.min(2.4,zoom+.2);renderPage(pageNumber);});
+ zoomOut?.addEventListener('click',()=>{zoom=Math.max(.6,zoom-.2);renderPage(pageNumber);});
+ renderPage(pageNumber);
 }
 function renderCourses(){
  const lessonSection=$('lessonResultsSection');
@@ -422,27 +514,27 @@ function renderCourses(){
  const posterLesson=isNurseryListeningLesson(selected);
  const structuredLesson=hasStructuredStudyContent(selected.concept);
  const mainColumns=splitMainContent(selected.concept);
- let topicStudyContent=posterLesson
+ let topicStudyContent=selected.sourcePdf?'':posterLesson
   ? '<section class="nursery-listening-poster"><div class="nursery-poster-frame"><div class="nursery-poster-loading" data-poster-loading>Loading visual lesson…</div><img data-nursery-listening-poster alt="Listening and Speaking examples for Nursery with eight illustrated activities" hidden></div><p class="nursery-poster-help">Look at each picture, listen to the question, and practise the answer aloud.</p></section>'
   : structuredLesson
     ? renderStructuredStudyContent(selected.concept,selected)
     : '<section class="topic-main-content"><div class="topic-main-columns"><div class="topic-main-column">'+safe(mainColumns[0])+'</div><div class="topic-main-column '+(!mainColumns[1]?'topic-main-column-empty':'')+'">'+(mainColumns[1]?safe(mainColumns[1]):'<span aria-hidden="true"></span>')+'</div></div>';
- if(!posterLesson&&!structuredLesson&&hasActivities){
+ if(!selected.sourcePdf&&!posterLesson&&!structuredLesson&&hasActivities){
   topicStudyContent+='<div class="lesson-activity-table topic-main-rich">'+
    selected.activities.map((row,i)=>'<div class="lesson-activity-row"><div class="lesson-activity-name"><span class="lesson-activity-number">'+(i+1)+'</span><strong>'+safe(row[0])+'</strong></div><div class="lesson-activity-example"><div class="activity-dialogue">'+safe(row[1]).replace(/\n/g,'<br>')+'</div>'+(row[2]?'<div class="activity-learning"><strong>Learning:</strong> '+safe(row[2])+'</div>':'')+'</div></div>').join('')+
    '</div>';
  }
- if(!posterLesson&&!structuredLesson&&hasRhymes){
+ if(!selected.sourcePdf&&!posterLesson&&!structuredLesson&&hasRhymes){
   topicStudyContent+='<div class="rhyme-grid topic-main-rich">'+
    selected.rhymes.map((r,i)=>'<article class="rhyme-card"><span class="rich-index">'+(i+1)+'</span><h5>'+safe(r.title)+'</h5><p class="rhyme-text">'+safe(r.text).replace(/\n/g,'<br>')+'</p></article>').join('')+
    '</div>';
  }
- if(!posterLesson&&!structuredLesson&&hasStories){
+ if(!selected.sourcePdf&&!posterLesson&&!structuredLesson&&hasStories){
   topicStudyContent+='<div class="story-list topic-main-rich">'+
    selected.stories.map((story,i)=>'<article class="story-card"><div class="story-heading"><span class="rich-index">'+(i+1)+'</span><h5>'+safe(story.title)+'</h5></div><p class="story-text">'+safe(story.text).replace(/\n\n/g,'</p><p class="story-text">').replace(/\n/g,'<br>')+'</p><div class="story-moral"><strong>Moral:</strong> '+safe(story.moral)+'</div></article>').join('')+
    '</div>';
  }
- if(!posterLesson&&!structuredLesson)topicStudyContent+='</section>';
+ if(!selected.sourcePdf&&!posterLesson&&!structuredLesson)topicStudyContent+='</section>';
  const richNote='';
  $('courseGrid').innerHTML=`
   <div class="topic-browser">
@@ -465,7 +557,7 @@ function renderCourses(){
     ${topicStudyContent}
     ${richNote}
     <div class="topic-content-actions">
-     <span class="topic-read-status">${done?'✓ Quiz completed':(Array.isArray(selected.questions)&&selected.questions.length?'Quiz questions are based on the topic content above.':'Chapter topic added. Detailed content will be imported from Google Drive.')}</span>
+     <span class="topic-read-status">${done?'✓ Quiz completed':(selected.sourcePdf?'Original PDF is the authoritative chapter content.':(Array.isArray(selected.questions)&&selected.questions.length?'Quiz questions are based on the lesson material.':'Chapter topic added. Detailed content will be imported from Google Drive.'))}</span>
      <div class="topic-action-buttons">
       <button type="button" class="btn btn-secondary read-aloud-btn" data-read-aloud="${safe(selected.id)}">🔊 Read Aloud</button>
       ${Array.isArray(selected.questions)&&selected.questions.length?'<button type="button" class="btn btn-primary topic-quiz-btn" data-start-quiz="'+safe(selected.id)+'">Start Quiz</button>':''}
@@ -485,7 +577,7 @@ function renderCourses(){
    if(posterLoading?.isConnected)posterLoading.textContent='The visual lesson could not load. Please refresh the page.';
   });
  }
- if(selected.mathFigureAtlas)hydrateMathInlineFigures(selected);
+ if(selected.sourcePdf)hydrateOriginalPdfViewer(selected);\n if(selected.mathFigureAtlas)hydrateMathInlineFigures(selected);
 }
 function renderProgress(){
  const gradeLessons=LESSONS.filter(l=>l.grade===state.grade),doneGrade=gradeLessons.filter(l=>state.completed.includes(l.id)).length;
