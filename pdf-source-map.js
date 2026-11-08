@@ -3,7 +3,8 @@
 const lessons=window.TLW_LESSONS||[];
 lessons.forEach(lesson=>{
   if(!lesson||lesson.sourcePdf)return;
-  const chapter=Number(lesson.sourceChapter);
+  let chapter=Number(lesson.sourceChapter);
+  if(lesson.grade===10&&lesson.subject==='Science'&&lesson.title==='Chemical Reactions and Equations')chapter=1;
   if(!Number.isInteger(chapter)||chapter<1)return;
   if(lesson.grade===10&&lesson.subject==='Maths'){
     lesson.sourcePdf='jemh'+String(100+chapter)+'.pdf';
