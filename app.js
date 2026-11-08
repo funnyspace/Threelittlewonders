@@ -335,7 +335,8 @@ function sourcePdfUrl(lesson){
  const source=String(lesson&&lesson.sourcePdf||'').trim();
  if(!source)return '';
  if(/^https?:\/\//i.test(source))return source;
- return 'https://ncert.nic.in/textbook/pdf/'+encodeURIComponent(source);
+ const officialSource=source.replace(/\s*\(\d+\)(?=\.pdf$)/i,'');
+ return 'https://ncert.nic.in/textbook/pdf/'+encodeURIComponent(officialSource);
 }
 function chapterTopics(lesson){
  if(Array.isArray(lesson&&lesson.topics)&&lesson.topics.length){
@@ -366,6 +367,40 @@ const originalPdfCache=new Map();
 function pdfBarcodeMasks(filename,pageNumber){
  const map=window.TLW_PDF_BARCODE_MASKS||{};
  return (map[filename]||[]).filter(item=>Number(item.page)===Number(pageNumber)&&Array.isArray(item.rect));
+}
+async function detectRenderedBarcodes(canvas){
+ const found=[];
+ try{
+  if('BarcodeDetector' in window){
+   let detector;
+   try{detector=new BarcodeDetector({formats:['qr_code','code_128','code_39','code_93','ean_13','ean_8','upc_a','upc_e','codabar','itf']});}
+   catch{detector=new BarcodeDetector({formats:['qr_code']});}
+   const rows=await detector.detect(canvas);
+   rows.forEach(row=>{
+    const b=row.boundingBox;
+    if(b&&b.width>20&&b.height>20)found.push([b.x/canvas.width,b.y/canvas.height,b.width/canvas.width,b.height/canvas.height]);
+   });
+  }
+ }catch{}
+ if(found.length||typeof window.jsQR!=='function')return found;
+ try{
+  const maxWidth=1400;
+  const ratio=Math.min(1,maxWidth/canvas.width);
+  const scan=document.createElement('canvas');
+  scan.width=Math.max(1,Math.round(canvas.width*ratio));
+  scan.height=Math.max(1,Math.round(canvas.height*ratio));
+  const sctx=scan.getContext('2d',{willReadFrequently:true});
+  sctx.drawImage(canvas,0,0,scan.width,scan.height);
+  const image=sctx.getImageData(0,0,scan.width,scan.height);
+  const code=window.jsQR(image.data,scan.width,scan.height,{inversionAttempts:'attemptBoth'});
+  if(code&&code.location){
+   const pts=[code.location.topLeftCorner,code.location.topRightCorner,code.location.bottomRightCorner,code.location.bottomLeftCorner];
+   const xs=pts.map(p=>p.x),ys=pts.map(p=>p.y);
+   const x0=Math.min(...xs),x1=Math.max(...xs),y0=Math.min(...ys),y1=Math.max(...ys);
+   if(x1-x0>20&&y1-y0>20)found.push([x0/scan.width,y0/scan.height,(x1-x0)/scan.width,(y1-y0)/scan.height]);
+  }
+ }catch{}
+ return found;
 }
 function renderOriginalPdfPanel(lesson){
  const url=sourcePdfUrl(lesson);
@@ -438,13 +473,16 @@ function hydrateOriginalPdfViewer(lesson){
    const ctx=canvas.getContext('2d',{alpha:false});
    await page.render({canvasContext:ctx,viewport}).promise;
    if(token!==renderToken||!host.isConnected)return;
-   const masks=pdfBarcodeMasks(filename,pageNumber);
+   const verifiedMasks=pdfBarcodeMasks(filename,pageNumber).map(item=>item.rect.map(Number));
+   const detectedMasks=verifiedMasks.length?[]:await detectRenderedBarcodes(canvas);
+   const masks=[...verifiedMasks,...detectedMasks];
    if(masks.length){
     ctx.save();
     ctx.fillStyle='#fff';
-    masks.forEach(item=>{
-     const [x,y,w,h]=item.rect.map(Number);
-     ctx.fillRect(Math.floor(x*canvas.width),Math.floor(y*canvas.height),Math.ceil(w*canvas.width),Math.ceil(h*canvas.height));
+    masks.forEach(rect=>{
+     const [x,y,w,h]=rect;
+     const padX=2/canvas.width,padY=2/canvas.height;
+     ctx.fillRect(Math.floor((x-padX)*canvas.width),Math.floor((y-padY)*canvas.height),Math.ceil((w+2*padX)*canvas.width),Math.ceil((h+2*padY)*canvas.height));
     });
     ctx.restore();
    }
