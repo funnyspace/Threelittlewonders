@@ -14,7 +14,7 @@ const GRADE_GROUPS=[
  {key:'secondary',label:'Secondary',range:'Classes 9–10',icon:'🎓',grades:[9,10]}
 ];
 function load(){try{const v=JSON.parse(localStorage.getItem(STORE_KEY)||localStorage.getItem(LEGACY_STORE_KEY)||'{}');return {grade:Number.isInteger(v.grade)&&GRADE_LEVELS.includes(v.grade)?v.grade:3,completed:Array.isArray(v.completed)?[...new Set(v.completed.filter(x=>typeof x==='string'))]:[]}}catch{return {grade:3,completed:[]}}}
-let state=load(),subject='',query='',classChoicesOpen=true,currentTopicId='',currentLesson=null,currentQuestion=0,questionAnswered=false,returnFocus=null,toastTimer;
+let state=load(),subject='',query='',classChoicesOpen=true,currentTopicId='',currentSubtopicKey='',currentLesson=null,currentQuestion=0,questionAnswered=false,returnFocus=null,toastTimer;
 function persist(){try{localStorage.setItem(STORE_KEY,JSON.stringify(state))}catch{showToast('Progress cannot be saved in this browser.')}}
 const gradeName=g=>g===-2?'Nursery':g===-1?'LKG':g===0?'UKG':`Class ${g}`;
 const subjectIcon=s=>SUBJECTS[s]?.icon||'📚';
@@ -288,7 +288,7 @@ function readAloudLesson(id,button){
  window.speechSynthesis.speak(utterance);
 }
 function showToast(msg){const t=$('toast');t.textContent=msg;t.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),2400)}
-function setGrade(g){if(!Number.isInteger(g)||!GRADE_LEVELS.includes(g))return;stopReadAloud();state.grade=g;subject='';query='';currentTopicId='';classChoicesOpen=false;$('searchInput').value='';persist();renderAll();requestAnimationFrame(()=>$('classSubjectSection')?.scrollIntoView({behavior:'smooth',block:'start'}))}
+function setGrade(g){if(!Number.isInteger(g)||!GRADE_LEVELS.includes(g))return;stopReadAloud();state.grade=g;subject='';query='';currentTopicId='';currentSubtopicKey='';classChoicesOpen=false;$('searchInput').value='';persist();renderAll();requestAnimationFrame(()=>$('classSubjectSection')?.scrollIntoView({behavior:'smooth',block:'start'}))}
 function renderGradeSelectors(){
  $('classSelect').innerHTML=GRADE_GROUPS.map(group=>`<optgroup label="${safe(group.label)}">${group.grades.map(g=>`<option value="${g}" ${state.grade===g?'selected':''}>${gradeName(g)}</option>`).join('')}</optgroup>`).join('');
  const classPicker=document.querySelector('.class-picker');
@@ -330,6 +330,47 @@ function renderSubjectFilters(){
  const choices=['All Subjects',...subjects];
  $('subjectGradeName').textContent=gradeName(state.grade);
  $('subjectFilters').innerHTML=choices.map(s=>`<button class="subject-btn subject-choice ${subject===s?'active':''}" data-subject="${safe(s)}" aria-pressed="${subject===s}"><span class="subject-choice-icon" aria-hidden="true">${s==='All Subjects'?'✦':subjectIcon(s)}</span><span class="subject-choice-name">${safe(s)}</span></button>`).join('');
+}
+function sourcePdfUrl(lesson){
+ const source=String(lesson&&lesson.sourcePdf||'').trim();
+ if(!source)return '';
+ if(/^https?:\/\//i.test(source))return source;
+ return 'https://ncert.nic.in/textbook/pdf/'+encodeURIComponent(source);
+}
+function chapterTopics(lesson){
+ if(Array.isArray(lesson&&lesson.topics)&&lesson.topics.length){
+  return lesson.topics.map((item,index)=>typeof item==='string'?{key:'topic-'+index,title:item,page:null}:{key:item.key||('topic-'+index),title:item.title||('Topic '+(index+1)),page:Number.isInteger(item.page)?item.page:null});
+ }
+ const source=String(lesson&&lesson.concept||'').trim();
+ const blocks=source.split(/\n(?=##\s+)/).filter(Boolean);
+ const topics=[];
+ blocks.forEach((block,index)=>{
+  const lines=block.split('\n').map(x=>x.trim()).filter(Boolean);
+  const heading=(lines[0]||'').replace(/^##\s+/,'').trim();
+  if(!heading)return;
+  if(index===0&&heading.toLowerCase()===String(lesson.title||'').trim().toLowerCase())return;
+  const pageMap=lesson&&lesson.topicPages||{};
+  const mapped=pageMap[heading];
+  topics.push({key:'section-'+index,title:heading,page:Number.isInteger(mapped)?mapped:null});
+ });
+ if(!topics.length)topics.push({key:'overview',title:'Overview',page:Number.isInteger(lesson&&lesson.chapterStartPage)?lesson.chapterStartPage:null});
+ return topics;
+}
+function renderChapterTopicNavigator(lesson){
+ const topics=chapterTopics(lesson);
+ if(!topics.length)return '';
+ const active=topics.find(t=>t.key===currentSubtopicKey)||null;
+ return '<section class="chapter-topics-block"><div class="chapter-topics-heading"><span>TOPICS IN THIS CHAPTER</span><strong>'+topics.length+'</strong></div><div class="chapter-topic-buttons">'+topics.map((t,i)=>'<button type="button" class="chapter-topic-button '+(active&&active.key===t.key?'active':'')+'" data-subtopic-key="'+safe(t.key)+'" '+(t.page===null?'data-page-unverified="true"':'data-pdf-page="'+t.page+'"')+'><span>'+(i+1)+'</span><strong>'+safe(t.title)+'</strong>'+(t.page!==null?'<small>PDF p. '+t.page+'</small>':'<small>Page verification pending</small>')+'</button>').join('')+'</div></section>';
+}
+function renderOriginalPdfPanel(lesson){
+ const url=sourcePdfUrl(lesson);
+ if(!url)return '<section class="original-pdf-panel original-pdf-unavailable"><div><strong>Original PDF</strong><p>No verified source PDF has been assigned to this chapter yet.</p></div></section>';
+ const topics=chapterTopics(lesson);
+ const active=topics.find(t=>t.key===currentSubtopicKey)||null;
+ const page=active&&Number.isInteger(active.page)?active.page:(Number.isInteger(lesson.chapterStartPage)?lesson.chapterStartPage:1);
+ const verified=!!(active&&Number.isInteger(active.page));
+ const viewerUrl=url+'#page='+page+'&view=FitH';
+ return '<section class="original-pdf-panel"><div class="original-pdf-toolbar"><div><span>ORIGINAL PDF</span><strong>'+safe(lesson.sourcePdf)+'</strong><small>'+(active?(verified?'Topic page verified: '+page:'Topic page has not been verified yet. Showing the chapter PDF without inventing a page mapping.'):'Chapter PDF')+'</small></div><a href="'+safe(viewerUrl)+'" target="_blank" rel="noopener">Open PDF ↗</a></div><iframe class="original-pdf-frame" title="Original PDF for '+safe(lesson.title)+'" src="'+safe(viewerUrl)+'" loading="lazy"></iframe></section>';
 }
 function renderCourses(){
  const lessonSection=$('lessonResultsSection');
@@ -405,8 +446,8 @@ function renderCourses(){
  const richNote='';
  $('courseGrid').innerHTML=`
   <div class="topic-browser">
-   <aside class="topic-list-panel" aria-label="Topics in ${safe(subject)}">
-    <div class="topic-list-header"><span>TOPICS</span><strong>${lessons.length}</strong></div>
+   <aside class="topic-list-panel" aria-label="Chapters in ${safe(subject)}">
+    <div class="topic-list-header"><span>CHAPTERS</span><strong>${lessons.length}</strong></div>
     <div class="topic-list">
      ${lessons.map((l,i)=>`<button type="button" class="topic-list-item ${l.id===selected.id?'active':''}" data-topic-id="${safe(l.id)}" aria-pressed="${l.id===selected.id}">
        <span class="topic-list-number">${i+1}</span>
@@ -417,8 +458,10 @@ function renderCourses(){
    </aside>
    <article class="topic-content-panel" aria-live="polite">
     <div class="topic-content-top topic-content-top-simple ${posterLesson?'poster-topic-heading':''}">
-     <h3 class="${posterLesson?'visually-hidden':''}">${safe(selected.title)}</h3>
+     <div><span class="chapter-kicker">CHAPTER</span><h3 class="${posterLesson?'visually-hidden':''}">${safe(selected.title)}</h3></div>
     </div>
+    ${renderChapterTopicNavigator(selected)}
+    ${renderOriginalPdfPanel(selected)}
     ${topicStudyContent}
     ${richNote}
     <div class="topic-content-actions">
@@ -566,9 +609,9 @@ function installEvents(){
  }));
  $('classSelect').addEventListener('change',e=>setGrade(Number(e.target.value)));
  $('gradeShortcuts').addEventListener('click',e=>{const gradeBtn=e.target.closest('[data-grade]');if(gradeBtn){setGrade(Number(gradeBtn.dataset.grade));return;}const changeBtn=e.target.closest('[data-change-class]');if(changeBtn){classChoicesOpen=true;subject='';query='';currentTopicId='';$('searchInput').value='';renderAll();requestAnimationFrame(()=>$('gradeShortcuts')?.scrollIntoView({behavior:'smooth',block:'start'}));}});
- $('subjectFilters').addEventListener('click',e=>{const btn=e.target.closest('[data-subject]');if(btn){stopReadAloud();subject=btn.dataset.subject;query='';currentTopicId='';$('searchInput').value='';renderSubjectFilters();renderCourses();requestAnimationFrame(()=>$('lessonResultsSection')?.scrollIntoView({behavior:'smooth',block:'start'}))}});
+ $('subjectFilters').addEventListener('click',e=>{const btn=e.target.closest('[data-subject]');if(btn){stopReadAloud();subject=btn.dataset.subject;query='';currentTopicId='';currentSubtopicKey='';$('searchInput').value='';renderSubjectFilters();renderCourses();requestAnimationFrame(()=>$('lessonResultsSection')?.scrollIntoView({behavior:'smooth',block:'start'}))}});
  $('searchInput').addEventListener('input',e=>{query=e.target.value.trim().toLowerCase();renderCourses()});
- $('courseGrid').addEventListener('click',e=>{const sprite=e.target.closest('[data-pdf-sprite]');if(sprite){openPdfFigureSprite(sprite);return;}const figure=e.target.closest('[data-pdf-image]');if(figure){openPdfFigure(figure.dataset.pdfImage,figure.dataset.pdfCaption);return;}const topic=e.target.closest('[data-topic-id]');if(topic){stopReadAloud();currentTopicId=topic.dataset.topicId;renderCourses();return;}const aloud=e.target.closest('[data-read-aloud]');if(aloud){readAloudLesson(aloud.dataset.readAloud,aloud);return;}const quiz=e.target.closest('[data-start-quiz]');if(quiz)openLesson(quiz.dataset.startQuiz);});
+ $('courseGrid').addEventListener('click',e=>{const sprite=e.target.closest('[data-pdf-sprite]');if(sprite){openPdfFigureSprite(sprite);return;}const figure=e.target.closest('[data-pdf-image]');if(figure){openPdfFigure(figure.dataset.pdfImage,figure.dataset.pdfCaption);return;}const topic=e.target.closest('[data-topic-id]');if(topic){stopReadAloud();currentTopicId=topic.dataset.topicId;currentSubtopicKey='';renderCourses();return;}const subtopic=e.target.closest('[data-subtopic-key]');if(subtopic){stopReadAloud();currentSubtopicKey=subtopic.dataset.subtopicKey;if(subtopic.dataset.pageUnverified==='true')showToast('This topic is listed, but its PDF page has not been verified yet. No page number was guessed.');renderCourses();return;}const aloud=e.target.closest('[data-read-aloud]');if(aloud){readAloudLesson(aloud.dataset.readAloud,aloud);return;}const quiz=e.target.closest('[data-start-quiz]');if(quiz)openLesson(quiz.dataset.startQuiz);});
  $('clearFiltersBtn').addEventListener('click',()=>{query='';$('searchInput').value='';renderCourses()});
  $('continueBtn').addEventListener('click',continueLearning);
  $('closeLesson').addEventListener('click',closeLesson);
