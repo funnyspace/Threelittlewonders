@@ -615,7 +615,8 @@ function renderCourses(){
    if(posterLoading?.isConnected)posterLoading.textContent='The visual lesson could not load. Please refresh the page.';
   });
  }
- if(selected.sourcePdf)hydrateOriginalPdfViewer(selected);\n if(selected.mathFigureAtlas)hydrateMathInlineFigures(selected);
+ if(selected.sourcePdf)hydrateOriginalPdfViewer(selected);
+ if(selected.mathFigureAtlas)hydrateMathInlineFigures(selected);
 }
 function renderProgress(){
  const gradeLessons=LESSONS.filter(l=>l.grade===state.grade),doneGrade=gradeLessons.filter(l=>state.completed.includes(l.id)).length;
