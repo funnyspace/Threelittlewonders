@@ -439,8 +439,12 @@ function hydrateOriginalPdfViewer(lesson){
   if(fallback){
    fallback.hidden=false;
    const sourceUrl=url+'#page='+pageNumber+'&view=FitH';
-   const googleViewer='https://docs.google.com/gview?embedded=1&url='+encodeURIComponent(url)+'#page='+pageNumber;
-   fallback.innerHTML='<p>'+safe(message||'Showing the original PDF through the compatibility viewer.')+'</p><iframe class="original-pdf-frame" title="Original PDF for '+safe(lesson.title)+'" src="'+safe(googleViewer)+'" loading="eager" referrerpolicy="no-referrer"></iframe><div class="pdf-fallback-actions"><a href="'+safe(sourceUrl)+'" target="_blank" rel="noopener">Open original PDF in a new tab ↗</a></div>';
+   fallback.innerHTML='<p>'+safe(message||'Showing the original PDF with your browser PDF viewer.')+'</p>'+
+    '<object class="original-pdf-object" data="'+safe(sourceUrl)+'" type="application/pdf" aria-label="Original PDF for '+safe(lesson.title)+'">'+
+      '<embed class="original-pdf-embed" src="'+safe(sourceUrl)+'" type="application/pdf">'+
+      '<div class="pdf-object-fallback"><p>Your browser could not display this PDF inside the page.</p><a href="'+safe(sourceUrl)+'" target="_blank" rel="noopener">Open original PDF ↗</a></div>'+
+    '</object>'+
+    '<div class="pdf-fallback-actions"><a href="'+safe(sourceUrl)+'" target="_blank" rel="noopener">Open original PDF in a new tab ↗</a></div>';
   }
   if(note)note.textContent='The source PDF is shown directly because the browser could not use the full-page renderer. No textbook content is removed.';
  }
@@ -488,6 +492,7 @@ function hydrateOriginalPdfViewer(lesson){
     ctx.restore();
    }
    canvas.hidden=false;
+   if(fallback)fallback.hidden=true;
    if(loading)loading.hidden=true;
    if(status)status.textContent='Page '+pageNumber+' of '+doc.numPages;
    if(prev)prev.disabled=pageNumber<=1;
