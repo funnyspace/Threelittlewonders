@@ -411,7 +411,7 @@ function renderOriginalPdfPanel(lesson){
  const verified=!!(active&&Number.isInteger(active.page));
  return '<section class="original-pdf-panel full-fidelity-pdf" data-pdf-viewer data-pdf-url="'+safe(url)+'" data-pdf-file="'+safe(lesson.sourcePdf)+'" data-pdf-page="'+page+'">'+
    '<div class="original-pdf-toolbar"><div><span>ORIGINAL PDF · FULL PAGE</span><strong>'+safe(lesson.sourcePdf)+'</strong><small>'+(active?(verified?'Verified topic page: '+page:'Topic page has not been verified. Showing the chapter start page without guessing.'):'Chapter PDF · use Previous/Next to read every page')+'</small></div>'+
-   '<div class="pdf-viewer-actions"><button type="button" data-pdf-prev aria-label="Previous PDF page">‹</button><span data-pdf-page-status>Page '+page+'</span><button type="button" data-pdf-next aria-label="Next PDF page">›</button><button type="button" data-pdf-zoom-out aria-label="Zoom out">−</button><button type="button" data-pdf-zoom-in aria-label="Zoom in">+</button></div></div>'+
+   '<div class="pdf-viewer-actions"><button type="button" data-pdf-prev aria-label="Previous PDF page">‹</button><span data-pdf-page-status>Page '+page+'</span><button type="button" data-pdf-next aria-label="Next PDF page">›</button><button type="button" data-pdf-zoom-out aria-label="Zoom out">−</button><button type="button" data-pdf-zoom-in aria-label="Zoom in">+</button><a class="pdf-open-original" href="'+safe(url+'#page='+page)+'" target="_blank" rel="noopener">Open original PDF ↗</a></div></div>'+
    '<div class="pdf-canvas-scroll"><div class="pdf-loading" data-pdf-loading>Loading original textbook page…</div><canvas class="original-pdf-canvas" data-pdf-canvas hidden></canvas><div class="pdf-native-fallback" data-pdf-fallback hidden></div></div>'+
    '<p class="pdf-fidelity-note" data-pdf-note>All textbook text, diagrams, tables and images are shown from the original PDF. Only a verified barcode/QR area is hidden when present.</p>'+
   '</section>';
@@ -438,8 +438,9 @@ function hydrateOriginalPdfViewer(lesson){
   if(canvas)canvas.hidden=true;
   if(fallback){
    fallback.hidden=false;
-   const viewerUrl=url+'#page='+pageNumber+'&view=FitH';
-   fallback.innerHTML='<p>'+safe(message||'Showing the source PDF directly.')+'</p><iframe class="original-pdf-frame" title="Original PDF for '+safe(lesson.title)+'" src="'+safe(viewerUrl)+'" loading="lazy"></iframe>';
+   const sourceUrl=url+'#page='+pageNumber+'&view=FitH';
+   const googleViewer='https://docs.google.com/gview?embedded=1&url='+encodeURIComponent(url)+'#page='+pageNumber;
+   fallback.innerHTML='<p>'+safe(message||'Showing the original PDF through the compatibility viewer.')+'</p><iframe class="original-pdf-frame" title="Original PDF for '+safe(lesson.title)+'" src="'+safe(googleViewer)+'" loading="eager" referrerpolicy="no-referrer"></iframe><div class="pdf-fallback-actions"><a href="'+safe(sourceUrl)+'" target="_blank" rel="noopener">Open original PDF in a new tab ↗</a></div>';
   }
   if(note)note.textContent='The source PDF is shown directly because the browser could not use the full-page renderer. No textbook content is removed.';
  }
@@ -500,6 +501,7 @@ function hydrateOriginalPdfViewer(lesson){
  next?.addEventListener('click',()=>renderPage(pageNumber+1));
  zoomIn?.addEventListener('click',()=>{zoom=Math.min(2.4,zoom+.2);renderPage(pageNumber);});
  zoomOut?.addEventListener('click',()=>{zoom=Math.max(.6,zoom-.2);renderPage(pageNumber);});
+ nativeFallback('Loading the chapter PDF. If the enhanced renderer becomes available, it will replace this viewer automatically.');
  renderPage(pageNumber);
 }
 function renderCourses(){
