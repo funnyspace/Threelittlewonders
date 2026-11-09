@@ -408,104 +408,42 @@ function renderOriginalPdfPanel(lesson){
  const topics=chapterTopics(lesson);
  const active=topics.find(t=>t.key===currentSubtopicKey)||null;
  const page=active&&Number.isInteger(active.page)?active.page:(Number.isInteger(lesson.chapterStartPage)?lesson.chapterStartPage:1);
- return '<section class="original-pdf-panel full-fidelity-pdf" data-pdf-viewer data-pdf-url="'+safe(url)+'" data-pdf-file="'+safe(lesson.sourcePdf)+'" data-pdf-page="'+page+'">'+
+ const pdfUrl=url+'#page='+page+'&view=FitH';
+ return '<section class="original-pdf-panel full-fidelity-pdf">'+
    '<div class="pdf-nav-bar">'+
-    '<button type="button" data-pdf-prev aria-label="Previous PDF page">‹</button>'+
-    '<span data-pdf-page-status>Page '+page+'</span>'+
-    '<button type="button" data-pdf-next aria-label="Next PDF page">›</button>'+
-    '<span class="pdf-nav-separator" aria-hidden="true"></span>'+
-    '<button type="button" data-pdf-zoom-out aria-label="Zoom out">−</button>'+
-    '<button type="button" data-pdf-zoom-in aria-label="Zoom in">+</button>'+
+    '<button type="button" data-original-pdf-prev aria-label="Previous PDF page">‹</button>'+
+    '<span data-original-pdf-page>Page '+page+'</span>'+
+    '<button type="button" data-original-pdf-next aria-label="Next PDF page">›</button>'+
    '</div>'+
-   '<div class="pdf-canvas-scroll"><div class="pdf-loading" data-pdf-loading aria-label="Loading PDF"><span></span></div><canvas class="original-pdf-canvas" data-pdf-canvas hidden></canvas><div class="pdf-native-fallback" data-pdf-fallback hidden></div></div>'+
+   '<object class="original-pdf-object" data="'+safe(pdfUrl)+'" type="application/pdf" aria-label="'+safe(lesson.title)+' PDF">'+
+     '<embed class="original-pdf-embed" src="'+safe(pdfUrl)+'" type="application/pdf">'+
+     '<div class="pdf-object-fallback"><a href="'+safe(pdfUrl)+'" target="_blank" rel="noopener">Open original PDF</a></div>'+
+   '</object>'+
   '</section>';
 }
 function hydrateOriginalPdfViewer(lesson){
- const host=$('courseGrid')?.querySelector('[data-pdf-viewer]');
- if(!host||!lesson?.sourcePdf)return;
- const url=host.dataset.pdfUrl;
- const filename=host.dataset.pdfFile;
- let pageNumber=Math.max(1,Number(host.dataset.pdfPage)||1);
- let zoom=1;
- let renderToken=0;
- const canvas=host.querySelector('[data-pdf-canvas]');
- const loading=host.querySelector('[data-pdf-loading]');
- const fallback=host.querySelector('[data-pdf-fallback]');
- const status=host.querySelector('[data-pdf-page-status]');
- const prev=host.querySelector('[data-pdf-prev]');
- const next=host.querySelector('[data-pdf-next]');
- const zoomIn=host.querySelector('[data-pdf-zoom-in]');
- const zoomOut=host.querySelector('[data-pdf-zoom-out]');
- function nativeFallback(){
-  if(loading)loading.hidden=true;
-  if(canvas)canvas.hidden=true;
-  if(fallback){
-   fallback.hidden=false;
-   const sourceUrl=url+'#page='+pageNumber+'&view=FitH';
-   fallback.innerHTML='<object class="original-pdf-object" data="'+safe(sourceUrl)+'" type="application/pdf" aria-label="PDF">'+
-    '<embed class="original-pdf-embed" src="'+safe(sourceUrl)+'" type="application/pdf">'+
-   '</object>';
-  }
+ const panel=$('courseGrid')?.querySelector('.original-pdf-panel');
+ if(!panel||!lesson?.sourcePdf)return;
+ const topics=chapterTopics(lesson);
+ const active=topics.find(t=>t.key===currentSubtopicKey)||null;
+ let page=active&&Number.isInteger(active.page)?active.page:(Number.isInteger(lesson.chapterStartPage)?lesson.chapterStartPage:1);
+ const url=sourcePdfUrl(lesson);
+ const object=panel.querySelector('.original-pdf-object');
+ const embed=panel.querySelector('.original-pdf-embed');
+ const status=panel.querySelector('[data-original-pdf-page]');
+ const prev=panel.querySelector('[data-original-pdf-prev]');
+ const next=panel.querySelector('[data-original-pdf-next]');
+ function go(target){
+  page=Math.max(1,target);
+  const src=url+'#page='+page+'&view=FitH';
+  if(object)object.data=src;
+  if(embed)embed.src=src;
+  if(status)status.textContent='Page '+page;
+  if(prev)prev.disabled=page<=1;
  }
- async function getDocument(){
-  if(originalPdfCache.has(url))return originalPdfCache.get(url);
-  if(!window.pdfjsLib)throw new Error('PDF renderer unavailable');
-  window.pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-  const promise=window.pdfjsLib.getDocument({url,withCredentials:false}).promise.catch(err=>{originalPdfCache.delete(url);throw err;});
-  originalPdfCache.set(url,promise);
-  return promise;
- }
- async function renderPage(target){
-  const token=++renderToken;
-  if(loading){loading.hidden=false;loading.textContent='Loading original textbook page…';}
-  if(fallback)fallback.hidden=true;
-  try{
-   const doc=await getDocument();
-   if(token!==renderToken||!host.isConnected)return;
-   pageNumber=Math.min(Math.max(1,target),doc.numPages);
-   const page=await doc.getPage(pageNumber);
-   if(token!==renderToken||!host.isConnected)return;
-   const base=page.getViewport({scale:1});
-   const containerWidth=Math.max(280,host.querySelector('.pdf-canvas-scroll')?.clientWidth||base.width);
-   const cssScale=Math.min(2.4,Math.max(.55,(containerWidth/base.width)*zoom));
-   const pixelRatio=Math.min(2.25,window.devicePixelRatio||1);
-   const viewport=page.getViewport({scale:cssScale*pixelRatio});
-   canvas.width=Math.ceil(viewport.width);
-   canvas.height=Math.ceil(viewport.height);
-   canvas.style.width=Math.ceil(viewport.width/pixelRatio)+'px';
-   canvas.style.height=Math.ceil(viewport.height/pixelRatio)+'px';
-   const ctx=canvas.getContext('2d',{alpha:false});
-   await page.render({canvasContext:ctx,viewport}).promise;
-   if(token!==renderToken||!host.isConnected)return;
-   const verifiedMasks=pdfBarcodeMasks(filename,pageNumber).map(item=>item.rect.map(Number));
-   const detectedMasks=verifiedMasks.length?[]:await detectRenderedBarcodes(canvas);
-   const masks=[...verifiedMasks,...detectedMasks];
-   if(masks.length){
-    ctx.save();
-    ctx.fillStyle='#fff';
-    masks.forEach(rect=>{
-     const [x,y,w,h]=rect;
-     const padX=2/canvas.width,padY=2/canvas.height;
-     ctx.fillRect(Math.floor((x-padX)*canvas.width),Math.floor((y-padY)*canvas.height),Math.ceil((w+2*padX)*canvas.width),Math.ceil((h+2*padY)*canvas.height));
-    });
-    ctx.restore();
-   }
-   canvas.hidden=false;
-   if(fallback)fallback.hidden=true;
-   if(loading)loading.hidden=true;
-   if(status)status.textContent='Page '+pageNumber+' of '+doc.numPages;
-   if(prev)prev.disabled=pageNumber<=1;
-   if(next)next.disabled=pageNumber>=doc.numPages;
-  }catch(error){
-   nativeFallback();
-  }
- }
- prev?.addEventListener('click',()=>renderPage(pageNumber-1));
- next?.addEventListener('click',()=>renderPage(pageNumber+1));
- zoomIn?.addEventListener('click',()=>{zoom=Math.min(2.4,zoom+.2);renderPage(pageNumber);});
- zoomOut?.addEventListener('click',()=>{zoom=Math.max(.6,zoom-.2);renderPage(pageNumber);});
- nativeFallback();
- renderPage(pageNumber);
+ prev?.addEventListener('click',()=>go(page-1));
+ next?.addEventListener('click',()=>go(page+1));
+ if(prev)prev.disabled=page<=1;
 }
 function renderCourses(){
  const lessonSection=$('lessonResultsSection');
