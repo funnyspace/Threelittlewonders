@@ -1,0 +1,34 @@
+name: Sync priority original PDF
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/sync-priority-pdf.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download aemr101 original PDF
+        run: |
+          mkdir -p pdfs
+          curl --insecure --fail --location --retry 3 --connect-timeout 20 --max-time 120 \
+            --user-agent "Mozilla/5.0" \
+            "https://ncert.nic.in/textbook/pdf/aemr101.pdf" \
+            -o pdfs/aemr101.pdf
+          test "$(head -c 4 pdfs/aemr101.pdf)" = "%PDF"
+      - name: Commit priority PDF
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add pdfs/aemr101.pdf
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "Add original NCERT aemr101 PDF"
+          git pull --rebase origin main
+          git push origin HEAD:main
