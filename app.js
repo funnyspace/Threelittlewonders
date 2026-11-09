@@ -334,9 +334,9 @@ function renderSubjectFilters(){
 function sourcePdfUrl(lesson){
  const source=String(lesson&&lesson.sourcePdf||'').trim();
  if(!source)return '';
- if(/^https?:\/\//i.test(source)||source.startsWith('/'))return source;
+ if(/^https?:\/\//i.test(source))return source;
  const officialSource=source.replace(/\s*\(\d+\)(?=\.pdf$)/i,'');
- return '/api/pdf?file='+encodeURIComponent(officialSource);
+ return new URL('pdfs/'+encodeURIComponent(officialSource),document.baseURI).href;
 }
 function chapterTopics(lesson){
  if(Array.isArray(lesson&&lesson.topics)&&lesson.topics.length){
