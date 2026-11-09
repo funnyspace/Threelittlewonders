@@ -460,6 +460,8 @@ function hydrateOriginalPdfViewer(lesson){
 
 let testGrade=null;
 let activeTestItems=[];
+let descriptivePaperRun=0;
+let lastDescriptivePaperSignature='';
 function validLessonQuestions(lesson){
  return (Array.isArray(lesson&&lesson.questions)?lesson.questions:[]).filter(q=>
   q&&typeof q.text==='string'&&Array.isArray(q.options)&&q.options.length>=2&&Number.isInteger(q.answer)&&q.answer>=0&&q.answer<q.options.length
@@ -525,6 +527,7 @@ function populateTestTopics(){
 function updateTestScopeNote(){
  const note=$('testScopeNote');
  if(!note)return;
+ const paperType=$('testPaperTypeSelect')?.value||'objective';
  const subject=$('testSubjectSelect')?.value||'';
  const chapterId=$('testChapterSelect')?.value||'';
  const topicKey=$('testTopicSelect')?.value||'';
@@ -533,7 +536,13 @@ function updateTestScopeNote(){
  let scope=subject||'Subject';
  if(chapter)scope+=' · '+chapter.title;
  if(topic)scope+=' · '+topic.title;
- note.textContent='Paper scope: '+scope+'. Up to 10 available questions will be used.';
+ if(paperType==='descriptive'){
+  note.textContent='Paper scope: '+scope+'. CBSE-style descriptive practice uses 2, 3, 5 and 4-mark case-based questions. A new set is created every time you start the paper.';
+ }else{
+  note.textContent='Paper scope: '+scope+'. Up to 10 available objective questions will be used.';
+ }
+ const start=$('generateTestBtn');
+ if(start)start.innerHTML=(paperType==='descriptive'?'Start Exam Paper':'Start Test')+' <span aria-hidden="true">↗</span>';
 }
 function openTestBuilder(grade){
  testGrade=grade;
@@ -575,6 +584,171 @@ function buildTestQuestionPool(){
  }
  return {items:shuffledTestItems(items).slice(0,10),topicFallback};
 }
+
+function rotatePick(items,count,offset){
+ if(!items.length)return [];
+ const out=[];
+ for(let i=0;i<count;i++)out.push(items[(offset+i)%items.length]);
+ return out;
+}
+function descriptiveSubjectPrompts(subject,focus,marks){
+ const f='"'+focus+'"';
+ const generic={
+  2:[
+   'State the main idea of '+f+' in one or two clear sentences.',
+   'Write any two important points, rules or facts about '+f+'.',
+   'Give one suitable example related to '+f+' and explain it briefly.',
+   'Define or identify the key concept in '+f+' and mention one important feature.',
+   'Write a brief note on '+f+' using two relevant points.',
+   'Mention one use or importance of '+f+' and support it with one example.',
+   'State one common error or misconception about '+f+' and write the correct idea.',
+   'Write two keywords connected with '+f+' and explain what each means.'
+  ],
+  3:[
+   'Explain '+f+' in your own words with one suitable example.',
+   'Describe the main steps, process or reasoning used in '+f+'.',
+   'Compare two ideas or cases connected with '+f+' using at least three clear points.',
+   'Explain how '+f+' can be applied in a familiar real-life situation.',
+   'Write a short structured answer on '+f+' with an introduction, key explanation and example.',
+   'Explain one connection between '+f+' and another concept in this subject.',
+   'Use a simple diagram, table, flow chart or worked example where suitable to explain '+f+'.',
+   'Explain how you would check whether an answer or conclusion related to '+f+' is correct.'
+  ],
+  5:[
+   'Explain '+f+' in detail. Include the key idea, method or process, a suitable example and a clear conclusion.',
+   'Analyse '+f+' step by step and show how the concept can be used to solve or explain a new situation.',
+   'Write a detailed answer on '+f+' using important terms, reasoning and at least one relevant example.',
+   'Discuss '+f+' thoroughly and justify why the main method, rule or idea works.',
+   'Teach '+f+' to a classmate through a complete explanation, worked example or illustration, and a final summary.',
+   'Connect '+f+' with two related ideas from the subject and explain the relationship with examples.'
+  ],
+  4:[
+   'Case study: A student knows the definition of '+f+' but is unable to apply it in a new situation. Explain how the student should identify the relevant idea, apply it and check the conclusion.',
+   'Case study: Consider a real-life situation where '+f+' is useful. Identify the concept involved and explain, step by step, how it should be applied.',
+   'Case study: A classmate gives an incomplete explanation of '+f+'. Identify what a complete answer should contain and justify the correct reasoning.',
+   'Case study: Imagine you must solve or explain an unfamiliar situation using '+f+'. State the information you would look for, the method you would use and the conclusion you would draw.',
+   'Competency question: Use your understanding of '+f+' to explain what would happen if one important condition or step were changed. Give reasons.',
+   'Competency question: Create a practical example involving '+f+', analyse it and explain the result using subject knowledge.'
+  ]
+ };
+ const maths={
+  2:['State the rule, formula or key mathematical idea used in '+f+'.','Write the first two steps you would use to solve a problem from '+f+'.'],
+  3:['Solve or construct one representative example from '+f+' and show all essential steps.','Explain how you would verify a solution obtained in '+f+'.'],
+  5:['Solve a multi-step problem based on '+f+' and justify each major step.','Create a real-life mathematical problem using '+f+', solve it completely and interpret the answer.'],
+  4:['Case study: A learner applies '+f+' to a practical numerical situation. Show the method, calculations or reasoning needed, then explain how the result can be checked.']
+ };
+ const science={
+  2:['State two scientifically important points about '+f+'.','Name the main process, principle or structure involved in '+f+' and state its role.'],
+  3:['Explain '+f+' scientifically using cause-and-effect reasoning and one example.','Draw or describe a labelled representation of '+f+' where appropriate and explain its important parts.'],
+  5:['Explain '+f+' in detail using scientific terms, mechanism or sequence, evidence/example and conclusion.','Analyse a real-world application of '+f+' and explain the science behind it.'],
+  4:['Case study: A real-life observation is connected with '+f+'. Identify the scientific principle, explain the observation and predict what may change if one condition is altered.']
+ };
+ const language={
+  2:['Write two important ideas, words, expressions or features connected with '+f+'.','State the central idea or purpose of '+f+' in a brief response.'],
+  3:['Explain the meaning, theme or key language feature of '+f+' with one supporting example.','Write a short response on '+f+' using clear sentences and suitable vocabulary.'],
+  5:['Write a well-organised descriptive answer on '+f+' with an introduction, supporting details/examples and conclusion.','Analyse the theme, message, language or communication skill involved in '+f+' and support your answer with examples.'],
+  4:['Case study: A learner must use the language skill from '+f+' in a real communication situation. Write an appropriate response and explain the choices made.']
+ };
+ let extra={2:[],3:[],4:[],5:[]};
+ if(subject==='Maths')extra=maths;
+ else if(subject==='Science'||subject==='EVS')extra=science;
+ else if(['English','Hindi','Sanskrit','Urdu'].includes(subject))extra=language;
+ return [...(extra[marks]||[]),...(generic[marks]||[])];
+}
+function selectedDescriptiveLessons(){
+ const subject=$('testSubjectSelect')?.value||'';
+ const chapterId=$('testChapterSelect')?.value||'';
+ let lessons=testLessonsForGrade().filter(l=>l.subject===subject);
+ if(chapterId)lessons=lessons.filter(l=>l.id===chapterId);
+ return lessons;
+}
+function descriptiveFocusFor(lesson,index){
+ const chapterId=$('testChapterSelect')?.value||'';
+ const topicKey=$('testTopicSelect')?.value||'';
+ if(chapterId&&topicKey){
+  const topic=chapterTopics(lesson).find(t=>t.key===topicKey);
+  if(topic)return topic.title;
+ }
+ return lesson?.title||($('testSubjectSelect')?.value||'this topic');
+}
+function buildDescriptiveSection(lessons,marks,count,runOffset){
+ if(!lessons.length)return [];
+ const candidates=[];
+ lessons.forEach((lesson,li)=>{
+  const focus=descriptiveFocusFor(lesson,li);
+  const prompts=descriptiveSubjectPrompts(lesson.subject,focus,marks);
+  prompts.forEach((text,pi)=>candidates.push({lesson,focus,text,marks,key:lesson.id+':'+marks+':'+pi}));
+  if(marks===2){
+   validLessonQuestions(lesson).forEach((q,qi)=>{
+    let stem=String(q.text||'').trim();
+    if(!/[?.!]$/.test(stem))stem+='.';
+    candidates.push({lesson,focus,text:'Answer without using options: '+stem+' Give the answer with a brief reason or working.',marks,key:lesson.id+':quiz:'+qi});
+   });
+  }
+ });
+ const offset=(descriptivePaperRun*runOffset)%Math.max(1,candidates.length);
+ return rotatePick(candidates,count,offset);
+}
+function buildDescriptivePaper(){
+ const lessons=selectedDescriptiveLessons();
+ if(!lessons.length)return [];
+ descriptivePaperRun++;
+ let sections=[
+  {id:'A',title:'Very Short Answer',marks:2,count:5,items:buildDescriptiveSection(lessons,2,5,3)},
+  {id:'B',title:'Short Answer',marks:3,count:4,items:buildDescriptiveSection(lessons,3,4,5)},
+  {id:'C',title:'Long Answer',marks:5,count:2,items:buildDescriptiveSection(lessons,5,2,7)},
+  {id:'D',title:'Case / Competency Based',marks:4,count:2,items:buildDescriptiveSection(lessons,4,2,11)}
+ ];
+ let signature=sections.flatMap(s=>s.items.map(x=>x.key)).join('|');
+ if(signature===lastDescriptivePaperSignature){
+  descriptivePaperRun++;
+  sections=[
+   {id:'A',title:'Very Short Answer',marks:2,count:5,items:buildDescriptiveSection(lessons,2,5,3)},
+   {id:'B',title:'Short Answer',marks:3,count:4,items:buildDescriptiveSection(lessons,3,4,5)},
+   {id:'C',title:'Long Answer',marks:5,count:2,items:buildDescriptiveSection(lessons,5,2,7)},
+   {id:'D',title:'Case / Competency Based',marks:4,count:2,items:buildDescriptiveSection(lessons,4,2,11)}
+  ];
+  signature=sections.flatMap(s=>s.items.map(x=>x.key)).join('|');
+ }
+ lastDescriptivePaperSignature=signature;
+ return sections;
+}
+function renderDescriptivePaper(){
+ const panel=$('testPaperPanel');
+ if(!panel)return;
+ const sections=buildDescriptivePaper();
+ const subject=$('testSubjectSelect')?.value||'';
+ const chapterId=$('testChapterSelect')?.value||'';
+ const topicKey=$('testTopicSelect')?.value||'';
+ const chapter=LESSONS.find(l=>l.id===chapterId);
+ const topic=chapter?chapterTopics(chapter).find(t=>t.key===topicKey):null;
+ const scope=[gradeName(testGrade),subject,chapter&&chapter.title,topic&&topic.title].filter(Boolean).join(' · ');
+ if(!sections.length||!sections.some(s=>s.items.length)){
+  panel.hidden=false;
+  panel.innerHTML='<div class="test-empty"><span aria-hidden="true">📝</span><h4>No descriptive paper can be created for this selection yet.</h4><p>Choose a subject or chapter that has lesson content.</p></div>';
+  return;
+ }
+ let qNo=1,total=0;
+ const body=sections.map(section=>{
+  const rows=section.items.map(item=>{
+   total+=item.marks;
+   const n=qNo++;
+   const lines=item.marks>=5?6:item.marks>=3?4:3;
+   return '<article class="descriptive-question"><div class="descriptive-q-head"><span>Q'+n+'.</span><p>'+safe(item.text)+'</p><strong>'+item.marks+'</strong></div><div class="answer-lines" aria-label="Answer space">'+Array.from({length:lines},()=>'<i></i>').join('')+'</div></article>';
+  }).join('');
+  return '<section class="descriptive-section"><div class="descriptive-section-head"><div><span>SECTION '+section.id+'</span><h4>'+safe(section.title)+'</h4></div><strong>'+section.items.length+' × '+section.marks+' = '+(section.items.length*section.marks)+'</strong></div>'+rows+'</section>';
+ }).join('');
+ panel.hidden=false;
+ panel.innerHTML='<div class="descriptive-paper">'+
+  '<div class="descriptive-paper-title"><div><span>CBSE-STYLE DESCRIPTIVE PRACTICE PAPER</span><h3>'+safe(scope)+'</h3><p>Practice format modelled on descriptive and case-based sections used in CBSE sample papers. This is not an official CBSE question paper.</p></div><div class="descriptive-paper-actions"><button type="button" class="btn btn-light" data-new-descriptive>New Paper</button><button type="button" class="btn btn-secondary" data-print-descriptive>Print</button></div></div>'+
+  '<div class="descriptive-meta"><span><b>Maximum Marks:</b> '+total+'</span><span><b>Suggested Time:</b> 90 minutes</span><span><b>Paper changes:</b> Every new start</span></div>'+
+  '<div class="descriptive-student"><span>Name: ______________________________</span><span>Date: __________________</span></div>'+
+  '<div class="descriptive-instructions"><strong>General Instructions</strong><ol><li>Attempt all questions.</li><li>Write complete steps, reasons and diagrams wherever required.</li><li>Read case-based questions carefully before answering.</li><li>Marks are shown against each question.</li></ol></div>'+
+  body+
+  '</div>';
+ panel.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
 function renderTestPaper(){
  const panel=$('testPaperPanel');
  if(!panel)return;
@@ -882,12 +1056,17 @@ function installEvents(){
  $('courseGrid').addEventListener('click',e=>{const sprite=e.target.closest('[data-pdf-sprite]');if(sprite){openPdfFigureSprite(sprite);return;}const figure=e.target.closest('[data-pdf-image]');if(figure){openPdfFigure(figure.dataset.pdfImage,figure.dataset.pdfCaption);return;}const topic=e.target.closest('[data-topic-id]');if(topic){stopReadAloud();currentTopicId=topic.dataset.topicId;currentSubtopicKey='';renderCourses();return;}const subtopic=e.target.closest('[data-subtopic-key]');if(subtopic){stopReadAloud();currentSubtopicKey=subtopic.dataset.subtopicKey;if(subtopic.dataset.pageUnverified==='true')showToast('This topic is listed, but its PDF page has not been verified yet. No page number was guessed.');renderCourses();return;}const aloud=e.target.closest('[data-read-aloud]');if(aloud){readAloudLesson(aloud.dataset.readAloud,aloud);return;}const quiz=e.target.closest('[data-start-quiz]');if(quiz)openLesson(quiz.dataset.startQuiz);});
  $('testClassGrid')?.addEventListener('click',e=>{const button=e.target.closest('[data-test-grade]');if(button)openTestBuilder(Number(button.dataset.testGrade));});
  $('testChangeClassBtn')?.addEventListener('click',()=>{resetTestPaper();$('testBuilder').hidden=true;$('testClassGrid')?.scrollIntoView({behavior:'smooth',block:'start'});});
+ $('testPaperTypeSelect')?.addEventListener('change',()=>{resetTestPaper();updateTestScopeNote();});
  $('testSubjectSelect')?.addEventListener('change',populateTestChapters);
  $('testChapterSelect')?.addEventListener('change',populateTestTopics);
  $('testTopicSelect')?.addEventListener('change',()=>{resetTestPaper();updateTestScopeNote();});
- $('generateTestBtn')?.addEventListener('click',renderTestPaper);
+ $('generateTestBtn')?.addEventListener('click',()=>{if(($('testPaperTypeSelect')?.value||'objective')==='descriptive')renderDescriptivePaper();else renderTestPaper();});
  $('testPaperPanel')?.addEventListener('submit',e=>{if(e.target.id==='testPaperForm'){e.preventDefault();submitTestPaper();}});
- $('testPaperPanel')?.addEventListener('click',e=>{if(e.target.closest('[data-retry-test]'))renderTestPaper();});
+ $('testPaperPanel')?.addEventListener('click',e=>{
+  if(e.target.closest('[data-retry-test]'))renderTestPaper();
+  if(e.target.closest('[data-new-descriptive]'))renderDescriptivePaper();
+  if(e.target.closest('[data-print-descriptive]'))window.print();
+ });
  $('clearFiltersBtn').addEventListener('click',()=>{query='';$('searchInput').value='';renderCourses()});
  $('continueBtn').addEventListener('click',continueLearning);
  $('closeLesson').addEventListener('click',closeLesson);
