@@ -336,7 +336,9 @@ function sourcePdfUrl(lesson){
  if(!source)return '';
  if(/^https?:\/\//i.test(source))return source;
  const officialSource=source.replace(/\s*\(\d+\)(?=\.pdf$)/i,'');
- return new URL('pdfs/'+encodeURIComponent(officialSource),document.baseURI).href;
+ const bundled=new Set(['aemr101.pdf']);
+ if(bundled.has(officialSource))return new URL('pdfs/'+encodeURIComponent(officialSource),document.baseURI).href;
+ return 'https://ncert.nic.in/textbook/pdf/'+encodeURIComponent(officialSource);
 }
 function chapterTopics(lesson){
  if(Array.isArray(lesson&&lesson.topics)&&lesson.topics.length){
