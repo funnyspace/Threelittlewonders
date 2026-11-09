@@ -59,7 +59,7 @@ function stopReadAloud(){
  if('speechSynthesis' in window)window.speechSynthesis.cancel();
  activeSpeech=null;
  const btn=document.querySelector('[data-read-aloud].speaking');
- if(btn){btn.classList.remove('speaking');btn.innerHTML='🔊 Read Chapter';}
+ if(btn){btn.classList.remove('speaking');btn.innerHTML='🔊 Read Aloud';}
 }
 function lessonSpeechLanguage(lesson){
  if(lesson.subject==='Hindi'||lesson.subject==='Sanskrit')return 'hi-IN';
@@ -293,8 +293,8 @@ function readAloudLesson(id,button){
  activeSpeech=id;
  button.classList.add('speaking');
  button.innerHTML='⏹ Stop Reading';
- utterance.onend=()=>{if(activeSpeech===id){activeSpeech=null;button.classList.remove('speaking');button.innerHTML='🔊 Read Chapter';}};
- utterance.onerror=()=>{if(activeSpeech===id){activeSpeech=null;button.classList.remove('speaking');button.innerHTML='🔊 Read Chapter';}};
+ utterance.onend=()=>{if(activeSpeech===id){activeSpeech=null;button.classList.remove('speaking');button.innerHTML='🔊 Read Aloud';}};
+ utterance.onerror=()=>{if(activeSpeech===id){activeSpeech=null;button.classList.remove('speaking');button.innerHTML='🔊 Read Aloud';}};
  window.speechSynthesis.speak(utterance);
 }
 function showToast(msg){const t=$('toast');t.textContent=msg;t.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),2400)}
@@ -546,7 +546,7 @@ function renderCourses(){
    </aside>
    <article class="topic-content-panel" aria-live="polite">
     <div class="topic-content-top topic-content-top-simple ${posterLesson?'poster-topic-heading':''}">
-     <div><span class="chapter-kicker">CHAPTER</span><h3 class="${posterLesson?'visually-hidden':''}">${safe(selected.title)}</h3>${posterLesson?'':'<button type="button" class="btn btn-secondary read-aloud-btn chapter-read-aloud-btn" data-read-aloud="'+safe(selected.id)+'">🔊 Read Chapter</button>'}</div>
+     <div><span class="chapter-kicker">CHAPTER</span><h3 class="${posterLesson?'visually-hidden':''}">${safe(selected.title)}</h3></div>
     </div>
     ${renderChapterTopicNavigator(selected)}
     ${renderOriginalPdfPanel(selected)}
@@ -555,8 +555,8 @@ function renderCourses(){
     <div class="topic-content-actions">
      <span class="topic-read-status">${done?'✓ Quiz completed':(selected.sourcePdf?'Original PDF is the authoritative chapter content.':(Array.isArray(selected.questions)&&selected.questions.length?'Quiz questions are based on the lesson material.':'Chapter topic added. Detailed content will be imported from Google Drive.'))}</span>
      <div class="topic-action-buttons">
-      ${posterLesson?'<button type="button" class="btn btn-secondary read-aloud-btn" data-read-aloud="'+safe(selected.id)+'">🔊 Read Chapter</button>':''}
-      ${Array.isArray(selected.questions)&&selected.questions.length?'<button type="button" class="btn btn-primary topic-quiz-btn" data-start-quiz="'+safe(selected.id)+'">Start Quiz</button>':''}
+      <button type="button" class="btn btn-secondary read-aloud-btn" data-read-aloud="${safe(selected.id)}">🔊 Read Aloud</button>
+      ${Array.isArray(selected.questions)&&selected.questions.length?'<button type="button" class="btn btn-primary topic-quiz-btn" data-start-quiz="'+safe(selected.id)+'">🧩 Quiz Test</button>':''}
      </div>
     </div>
    </article>
