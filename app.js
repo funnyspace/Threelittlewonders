@@ -457,6 +457,185 @@ function hydrateOriginalPdfViewer(lesson){
  next?.addEventListener('click',()=>go(page+1));
  if(prev)prev.disabled=page<=1;
 }
+
+let testGrade=null;
+let activeTestItems=[];
+function validLessonQuestions(lesson){
+ return (Array.isArray(lesson&&lesson.questions)?lesson.questions:[]).filter(q=>
+  q&&typeof q.text==='string'&&Array.isArray(q.options)&&q.options.length>=2&&Number.isInteger(q.answer)&&q.answer>=0&&q.answer<q.options.length
+ );
+}
+function renderTestSeriesClasses(){
+ const host=$('testClassGrid');
+ if(!host)return;
+ host.innerHTML=GRADE_LEVELS.map(g=>{
+  const lessons=LESSONS.filter(l=>l.grade===g);
+  const subjects=new Set(lessons.map(l=>l.subject)).size;
+  const questionCount=lessons.reduce((sum,l)=>sum+validLessonQuestions(l).length,0);
+  return '<article class="test-class-row">'+
+   '<div class="test-class-info"><span class="test-class-icon" aria-hidden="true">📝</span><div><strong>'+safe(gradeName(g))+'</strong><small>'+subjects+' subjects · '+questionCount+' questions available</small></div></div>'+
+   '<button type="button" class="btn btn-primary test-class-start" data-test-grade="'+g+'">Start</button>'+
+  '</article>';
+ }).join('');
+}
+function testLessonsForGrade(){
+ return LESSONS.filter(l=>l.grade===testGrade);
+}
+function resetTestPaper(){
+ activeTestItems=[];
+ const panel=$('testPaperPanel');
+ if(panel){panel.hidden=true;panel.innerHTML='';}
+}
+function populateTestSubjects(){
+ const select=$('testSubjectSelect');
+ if(!select)return;
+ const subjects=[...new Set(testLessonsForGrade().map(l=>l.subject))].sort((a,b)=>a.localeCompare(b));
+ select.innerHTML=subjects.length?subjects.map(s=>'<option value="'+safe(s)+'">'+safe(s)+'</option>').join(''):'<option value="">No subjects available</option>';
+ populateTestChapters();
+}
+function populateTestChapters(){
+ resetTestPaper();
+ const subject=$('testSubjectSelect')?.value||'';
+ const lessons=testLessonsForGrade().filter(l=>l.subject===subject);
+ const select=$('testChapterSelect');
+ if(!select)return;
+ select.innerHTML='<option value="">All chapters</option>'+lessons.map((lesson,index)=>
+  '<option value="'+safe(lesson.id)+'">'+(index+1)+'. '+safe(lesson.title)+'</option>'
+ ).join('');
+ populateTestTopics();
+}
+function populateTestTopics(){
+ resetTestPaper();
+ const chapterId=$('testChapterSelect')?.value||'';
+ const select=$('testTopicSelect');
+ if(!select)return;
+ if(!chapterId){
+  select.innerHTML='<option value="">All topics</option>';
+  select.disabled=true;
+ }else{
+  const lesson=LESSONS.find(l=>l.id===chapterId);
+  const topics=lesson?chapterTopics(lesson):[];
+  select.disabled=false;
+  select.innerHTML='<option value="">All topics</option>'+topics.map(t=>
+   '<option value="'+safe(t.key)+'">'+safe(t.title)+'</option>'
+  ).join('');
+ }
+ updateTestScopeNote();
+}
+function updateTestScopeNote(){
+ const note=$('testScopeNote');
+ if(!note)return;
+ const subject=$('testSubjectSelect')?.value||'';
+ const chapterId=$('testChapterSelect')?.value||'';
+ const topicKey=$('testTopicSelect')?.value||'';
+ const chapter=LESSONS.find(l=>l.id===chapterId);
+ const topic=chapter?chapterTopics(chapter).find(t=>t.key===topicKey):null;
+ let scope=subject||'Subject';
+ if(chapter)scope+=' · '+chapter.title;
+ if(topic)scope+=' · '+topic.title;
+ note.textContent='Paper scope: '+scope+'. Up to 10 available questions will be used.';
+}
+function openTestBuilder(grade){
+ testGrade=grade;
+ resetTestPaper();
+ const builder=$('testBuilder');
+ if(!builder)return;
+ builder.hidden=false;
+ $('testBuilderTitle').textContent=gradeName(grade)+' Test Series';
+ populateTestSubjects();
+ requestAnimationFrame(()=>builder.scrollIntoView({behavior:'smooth',block:'start'}));
+}
+function shuffledTestItems(items){
+ const copy=[...items];
+ for(let i=copy.length-1;i>0;i--){
+  const j=Math.floor(Math.random()*(i+1));
+  [copy[i],copy[j]]=[copy[j],copy[i]];
+ }
+ return copy;
+}
+function buildTestQuestionPool(){
+ const subject=$('testSubjectSelect')?.value||'';
+ const chapterId=$('testChapterSelect')?.value||'';
+ const topicKey=$('testTopicSelect')?.value||'';
+ let lessons=testLessonsForGrade().filter(l=>l.subject===subject);
+ if(chapterId)lessons=lessons.filter(l=>l.id===chapterId);
+ let items=lessons.flatMap(lesson=>validLessonQuestions(lesson).map((question,index)=>({lesson,question,index})));
+ let topicFallback=false;
+ if(topicKey&&chapterId){
+  const chapter=lessons[0];
+  const topic=chapterTopics(chapter).find(t=>t.key===topicKey);
+  const tagged=items.filter(item=>{
+   const q=item.question;
+   return q.topicKey===topicKey||
+    (topic&&String(q.topic||'').toLowerCase()===String(topic.title||'').toLowerCase())||
+    (topic&&String(q.section||'').toLowerCase()===String(topic.title||'').toLowerCase());
+  });
+  if(tagged.length)items=tagged;
+  else topicFallback=true;
+ }
+ return {items:shuffledTestItems(items).slice(0,10),topicFallback};
+}
+function renderTestPaper(){
+ const panel=$('testPaperPanel');
+ if(!panel)return;
+ const {items,topicFallback}=buildTestQuestionPool();
+ activeTestItems=items;
+ const subject=$('testSubjectSelect')?.value||'';
+ const chapterId=$('testChapterSelect')?.value||'';
+ const topicKey=$('testTopicSelect')?.value||'';
+ const chapter=LESSONS.find(l=>l.id===chapterId);
+ const topic=chapter?chapterTopics(chapter).find(t=>t.key===topicKey):null;
+ const scope=[gradeName(testGrade),subject,chapter&&chapter.title,topic&&topic.title].filter(Boolean).join(' · ');
+ if(!items.length){
+  panel.hidden=false;
+  panel.innerHTML='<div class="test-empty"><span aria-hidden="true">📝</span><h4>No test questions are available for this selection yet.</h4><p>Choose another subject or chapter with an existing quiz question bank.</p></div>';
+  return;
+ }
+ const fallbackNote=topicFallback?'<p class="test-paper-note">This topic does not yet have separately tagged questions, so the paper uses the available questions from its chapter.</p>':'';
+ panel.hidden=false;
+ panel.innerHTML='<div class="test-paper-head"><div><span>TEST PAPER</span><h3>'+safe(scope)+'</h3><p>'+items.length+' questions · 1 mark each</p></div><strong>'+items.length+' marks</strong></div>'+
+  fallbackNote+
+  '<form id="testPaperForm" class="test-paper-form">'+items.map((item,i)=>
+   '<fieldset class="test-question-card" data-test-question="'+i+'"><legend><span>'+(i+1)+'</span>'+safe(item.question.text)+'</legend>'+
+   '<div class="test-option-list">'+item.question.options.map((option,oi)=>
+    '<label class="test-option"><input type="radio" name="test-q-'+i+'" value="'+oi+'"><span>'+String.fromCharCode(65+oi)+'. '+safe(option)+'</span></label>'
+   ).join('')+'</div><div class="test-question-feedback" data-test-feedback="'+i+'"></div></fieldset>'
+  ).join('')+
+  '<div class="test-submit-row"><span>Answer all questions, then submit your test.</span><button type="submit" class="btn btn-primary">Submit Test</button></div>'+
+  '</form><div class="test-result" id="testResult" hidden></div>';
+ panel.scrollIntoView({behavior:'smooth',block:'start'});
+}
+function submitTestPaper(){
+ if(!activeTestItems.length)return;
+ let score=0,answered=0;
+ activeTestItems.forEach((item,i)=>{
+  const checked=document.querySelector('input[name="test-q-'+i+'"]:checked');
+  const card=document.querySelector('[data-test-question="'+i+'"]');
+  const feedback=document.querySelector('[data-test-feedback="'+i+'"]');
+  if(checked){
+   answered++;
+   const selected=Number(checked.value);
+   if(selected===item.question.answer){score++;card?.classList.add('test-correct');}
+   else card?.classList.add('test-wrong');
+  }else{
+   card?.classList.add('test-unanswered');
+  }
+  if(feedback){
+   feedback.textContent='Correct answer: '+String.fromCharCode(65+item.question.answer)+'. '+item.question.options[item.question.answer];
+  }
+ });
+ document.querySelectorAll('#testPaperForm input').forEach(input=>input.disabled=true);
+ const submit=document.querySelector('#testPaperForm button[type="submit"]');
+ if(submit)submit.disabled=true;
+ const result=$('testResult');
+ if(result){
+  const percent=Math.round(score/activeTestItems.length*100);
+  result.hidden=false;
+  result.innerHTML='<div><span>YOUR SCORE</span><strong>'+score+' / '+activeTestItems.length+'</strong><p>'+percent+'% · '+answered+' answered</p></div><button type="button" class="btn btn-secondary" data-retry-test>Try Again</button>';
+  result.scrollIntoView({behavior:'smooth',block:'center'});
+ }
+}
+
 function renderCourses(){
  const lessonSection=$('lessonResultsSection');
  if(!subject){
@@ -701,6 +880,14 @@ function installEvents(){
  $('subjectFilters').addEventListener('click',e=>{const btn=e.target.closest('[data-subject]');if(btn){stopReadAloud();subject=btn.dataset.subject;query='';currentTopicId='';currentSubtopicKey='';$('searchInput').value='';renderSubjectFilters();renderCourses();requestAnimationFrame(()=>$('lessonResultsSection')?.scrollIntoView({behavior:'smooth',block:'start'}))}});
  $('searchInput').addEventListener('input',e=>{query=e.target.value.trim().toLowerCase();renderCourses()});
  $('courseGrid').addEventListener('click',e=>{const sprite=e.target.closest('[data-pdf-sprite]');if(sprite){openPdfFigureSprite(sprite);return;}const figure=e.target.closest('[data-pdf-image]');if(figure){openPdfFigure(figure.dataset.pdfImage,figure.dataset.pdfCaption);return;}const topic=e.target.closest('[data-topic-id]');if(topic){stopReadAloud();currentTopicId=topic.dataset.topicId;currentSubtopicKey='';renderCourses();return;}const subtopic=e.target.closest('[data-subtopic-key]');if(subtopic){stopReadAloud();currentSubtopicKey=subtopic.dataset.subtopicKey;if(subtopic.dataset.pageUnverified==='true')showToast('This topic is listed, but its PDF page has not been verified yet. No page number was guessed.');renderCourses();return;}const aloud=e.target.closest('[data-read-aloud]');if(aloud){readAloudLesson(aloud.dataset.readAloud,aloud);return;}const quiz=e.target.closest('[data-start-quiz]');if(quiz)openLesson(quiz.dataset.startQuiz);});
+ $('testClassGrid')?.addEventListener('click',e=>{const button=e.target.closest('[data-test-grade]');if(button)openTestBuilder(Number(button.dataset.testGrade));});
+ $('testChangeClassBtn')?.addEventListener('click',()=>{resetTestPaper();$('testBuilder').hidden=true;$('testClassGrid')?.scrollIntoView({behavior:'smooth',block:'start'});});
+ $('testSubjectSelect')?.addEventListener('change',populateTestChapters);
+ $('testChapterSelect')?.addEventListener('change',populateTestTopics);
+ $('testTopicSelect')?.addEventListener('change',()=>{resetTestPaper();updateTestScopeNote();});
+ $('generateTestBtn')?.addEventListener('click',renderTestPaper);
+ $('testPaperPanel')?.addEventListener('submit',e=>{if(e.target.id==='testPaperForm'){e.preventDefault();submitTestPaper();}});
+ $('testPaperPanel')?.addEventListener('click',e=>{if(e.target.closest('[data-retry-test]'))renderTestPaper();});
  $('clearFiltersBtn').addEventListener('click',()=>{query='';$('searchInput').value='';renderCourses()});
  $('continueBtn').addEventListener('click',continueLearning);
  $('closeLesson').addEventListener('click',closeLesson);
@@ -712,6 +899,7 @@ function installEvents(){
 $('currentYear').textContent=new Date().getFullYear();
 Promise.resolve(window.TLW_DRIVE_READY).catch(()=>false).finally(()=>{
  renderAll();
+ renderTestSeriesClasses();
  installEvents();
 });
 })();
