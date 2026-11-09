@@ -334,9 +334,9 @@ function renderSubjectFilters(){
 function sourcePdfUrl(lesson){
  const source=String(lesson&&lesson.sourcePdf||'').trim();
  if(!source)return '';
- if(/^https?:\/\//i.test(source))return source;
+ if(/^https?:\/\//i.test(source)||source.startsWith('/'))return source;
  const officialSource=source.replace(/\s*\(\d+\)(?=\.pdf$)/i,'');
- return 'https://ncert.nic.in/textbook/pdf/'+encodeURIComponent(officialSource);
+ return '/api/pdf?file='+encodeURIComponent(officialSource);
 }
 function chapterTopics(lesson){
  if(Array.isArray(lesson&&lesson.topics)&&lesson.topics.length){
@@ -404,16 +404,20 @@ async function detectRenderedBarcodes(canvas){
 }
 function renderOriginalPdfPanel(lesson){
  const url=sourcePdfUrl(lesson);
- if(!url)return '<section class="original-pdf-panel original-pdf-unavailable"><div><strong>Original PDF</strong><p>No verified source PDF has been assigned to this chapter yet.</p></div></section>';
+ if(!url)return '';
  const topics=chapterTopics(lesson);
  const active=topics.find(t=>t.key===currentSubtopicKey)||null;
  const page=active&&Number.isInteger(active.page)?active.page:(Number.isInteger(lesson.chapterStartPage)?lesson.chapterStartPage:1);
- const verified=!!(active&&Number.isInteger(active.page));
  return '<section class="original-pdf-panel full-fidelity-pdf" data-pdf-viewer data-pdf-url="'+safe(url)+'" data-pdf-file="'+safe(lesson.sourcePdf)+'" data-pdf-page="'+page+'">'+
-   '<div class="original-pdf-toolbar"><div><span>ORIGINAL PDF · FULL PAGE</span><strong>'+safe(lesson.sourcePdf)+'</strong><small>'+(active?(verified?'Verified topic page: '+page:'Topic page has not been verified. Showing the chapter start page without guessing.'):'Chapter PDF · use Previous/Next to read every page')+'</small></div>'+
-   '<div class="pdf-viewer-actions"><button type="button" data-pdf-prev aria-label="Previous PDF page">‹</button><span data-pdf-page-status>Page '+page+'</span><button type="button" data-pdf-next aria-label="Next PDF page">›</button><button type="button" data-pdf-zoom-out aria-label="Zoom out">−</button><button type="button" data-pdf-zoom-in aria-label="Zoom in">+</button><a class="pdf-open-original" href="'+safe(url+'#page='+page)+'" target="_blank" rel="noopener">Open original PDF ↗</a></div></div>'+
-   '<div class="pdf-canvas-scroll"><div class="pdf-loading" data-pdf-loading>Loading original textbook page…</div><canvas class="original-pdf-canvas" data-pdf-canvas hidden></canvas><div class="pdf-native-fallback" data-pdf-fallback hidden></div></div>'+
-   '<p class="pdf-fidelity-note" data-pdf-note>All textbook text, diagrams, tables and images are shown from the original PDF. Only a verified barcode/QR area is hidden when present.</p>'+
+   '<div class="pdf-nav-bar">'+
+    '<button type="button" data-pdf-prev aria-label="Previous PDF page">‹</button>'+
+    '<span data-pdf-page-status>Page '+page+'</span>'+
+    '<button type="button" data-pdf-next aria-label="Next PDF page">›</button>'+
+    '<span class="pdf-nav-separator" aria-hidden="true"></span>'+
+    '<button type="button" data-pdf-zoom-out aria-label="Zoom out">−</button>'+
+    '<button type="button" data-pdf-zoom-in aria-label="Zoom in">+</button>'+
+   '</div>'+
+   '<div class="pdf-canvas-scroll"><div class="pdf-loading" data-pdf-loading aria-label="Loading PDF"><span></span></div><canvas class="original-pdf-canvas" data-pdf-canvas hidden></canvas><div class="pdf-native-fallback" data-pdf-fallback hidden></div></div>'+
   '</section>';
 }
 function hydrateOriginalPdfViewer(lesson){
@@ -428,25 +432,20 @@ function hydrateOriginalPdfViewer(lesson){
  const loading=host.querySelector('[data-pdf-loading]');
  const fallback=host.querySelector('[data-pdf-fallback]');
  const status=host.querySelector('[data-pdf-page-status]');
- const note=host.querySelector('[data-pdf-note]');
  const prev=host.querySelector('[data-pdf-prev]');
  const next=host.querySelector('[data-pdf-next]');
  const zoomIn=host.querySelector('[data-pdf-zoom-in]');
  const zoomOut=host.querySelector('[data-pdf-zoom-out]');
- function nativeFallback(message){
+ function nativeFallback(){
   if(loading)loading.hidden=true;
   if(canvas)canvas.hidden=true;
   if(fallback){
    fallback.hidden=false;
    const sourceUrl=url+'#page='+pageNumber+'&view=FitH';
-   fallback.innerHTML='<p>'+safe(message||'Showing the original PDF with your browser PDF viewer.')+'</p>'+
-    '<object class="original-pdf-object" data="'+safe(sourceUrl)+'" type="application/pdf" aria-label="Original PDF for '+safe(lesson.title)+'">'+
-      '<embed class="original-pdf-embed" src="'+safe(sourceUrl)+'" type="application/pdf">'+
-      '<div class="pdf-object-fallback"><p>Your browser could not display this PDF inside the page.</p><a href="'+safe(sourceUrl)+'" target="_blank" rel="noopener">Open original PDF ↗</a></div>'+
-    '</object>'+
-    '<div class="pdf-fallback-actions"><a href="'+safe(sourceUrl)+'" target="_blank" rel="noopener">Open original PDF in a new tab ↗</a></div>';
+   fallback.innerHTML='<object class="original-pdf-object" data="'+safe(sourceUrl)+'" type="application/pdf" aria-label="PDF">'+
+    '<embed class="original-pdf-embed" src="'+safe(sourceUrl)+'" type="application/pdf">'+
+   '</object>';
   }
-  if(note)note.textContent='The source PDF is shown directly because the browser could not use the full-page renderer. No textbook content is removed.';
  }
  async function getDocument(){
   if(originalPdfCache.has(url))return originalPdfCache.get(url);
@@ -496,17 +495,16 @@ function hydrateOriginalPdfViewer(lesson){
    if(loading)loading.hidden=true;
    if(status)status.textContent='Page '+pageNumber+' of '+doc.numPages;
    if(prev)prev.disabled=pageNumber<=1;
-   if(next)next.disabled=pageNumber>=doc.numPages;
-   if(note)note.textContent=masks.length?'Full original textbook page shown. Verified barcode/QR hidden on this page; all other content is preserved.':'Full original textbook page shown with all text, images, diagrams and tables preserved.';
+   if(next)next.disabled=pageNumber>=doc.numPages; all other content is preserved.':'Full original textbook page shown with all text, images, diagrams and tables preserved.';
   }catch(error){
-   nativeFallback('Full-page rendering was blocked by the source server or browser. The original PDF is shown directly below.');
+   nativeFallback();
   }
  }
  prev?.addEventListener('click',()=>renderPage(pageNumber-1));
  next?.addEventListener('click',()=>renderPage(pageNumber+1));
  zoomIn?.addEventListener('click',()=>{zoom=Math.min(2.4,zoom+.2);renderPage(pageNumber);});
  zoomOut?.addEventListener('click',()=>{zoom=Math.max(.6,zoom-.2);renderPage(pageNumber);});
- nativeFallback('Loading the chapter PDF. If the enhanced renderer becomes available, it will replace this viewer automatically.');
+ nativeFallback();
  renderPage(pageNumber);
 }
 function renderCourses(){
