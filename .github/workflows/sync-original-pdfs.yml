@@ -1,0 +1,108 @@
+name: Sync original NCERT PDFs
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/sync-original-pdfs.yml"
+      - "class1-english-mridang-content.js"
+      - "class1-hindi-sarangi-content.js"
+      - "class1-maths-joyful-content.js"
+      - "class2-english-mridang-content.js"
+      - "class2-hindi-sarangi-content.js"
+      - "class2-maths-joyful-content.js"
+      - "class3-english-santoor-content.js"
+      - "pdf-source-map.js"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  sync-pdfs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download original NCERT chapter PDFs
+        shell: bash
+        run: |
+          set -u
+          mkdir -p pdfs
+
+          files=()
+
+          add_range() {
+            local prefix="$1"
+            local first="$2"
+            local last="$3"
+            local n
+            for n in $(seq "$first" "$last"); do
+              files+=("${prefix}${n}.pdf")
+            done
+          }
+
+          add_range aemr 101 109
+          add_range ahsr 101 119
+          add_range aejm 101 113
+          add_range bemr 101 113
+          add_range bhsr 101 126
+          add_range bejm 101 111
+          add_range cesa 101 112
+          add_range jemh 101 114
+          add_range jesc 101 113
+
+          failed=()
+
+          for file in "${files[@]}"; do
+            if [ -s "pdfs/$file" ] && [ "$(head -c 4 "pdfs/$file" 2>/dev/null || true)" = "%PDF" ]; then
+              echo "Already present: $file"
+              continue
+            fi
+
+            url="https://ncert.nic.in/textbook/pdf/$file"
+            tmp="pdfs/$file.tmp"
+
+            echo "Downloading $file"
+            if curl --fail --location --retry 3 --retry-delay 2 --connect-timeout 20 --max-time 180 \
+              --user-agent "Mozilla/5.0" \
+              --header "Accept: application/pdf,*/*" \
+              "$url" -o "$tmp"; then
+              if [ "$(head -c 4 "$tmp" 2>/dev/null || true)" = "%PDF" ]; then
+                mv "$tmp" "pdfs/$file"
+              else
+                echo "Not a valid PDF: $file"
+                rm -f "$tmp"
+                failed+=("$file")
+              fi
+            else
+              echo "Could not download: $file"
+              rm -f "$tmp"
+              failed+=("$file")
+            fi
+          done
+
+          echo "Downloaded PDF count:"
+          find pdfs -maxdepth 1 -type f -name "*.pdf" | wc -l
+
+          if [ "${#failed[@]}" -gt 0 ]; then
+            echo "Files unavailable from NCERT:"
+            printf "%s\n" "${failed[@]}"
+          fi
+
+      - name: Commit PDFs to the site
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add pdfs
+
+          if git diff --cached --quiet; then
+            echo "No PDF changes to commit."
+            exit 0
+          fi
+
+          git commit -m "Sync original NCERT chapter PDFs"
+          git push
