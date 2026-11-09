@@ -2,7 +2,11 @@
 'use strict';
 const lessons=window.TLW_LESSONS||[];
 lessons.forEach(lesson=>{
-  if(!lesson||lesson.sourcePdf)return;
+  if(!lesson)return;
+  if(lesson.sourcePdf){
+    if(!Number.isInteger(lesson.chapterStartPage))lesson.chapterStartPage=1;
+    return;
+  }
   let chapter=Number(lesson.sourceChapter);
   if(lesson.grade===10&&lesson.subject==='Science'&&lesson.title==='Chemical Reactions and Equations')chapter=1;
   if(!Number.isInteger(chapter)||chapter<1)return;
