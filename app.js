@@ -537,7 +537,8 @@ function updateTestScopeNote(){
  if(chapter)scope+=' · '+chapter.title;
  if(topic)scope+=' · '+topic.title;
  if(paperType==='descriptive'){
-  note.textContent='Paper scope: '+scope+'. CBSE-style descriptive practice uses 2, 3, 5 and 4-mark case-based questions. A new set is created every time you start the paper.';
+  const pattern=testGrade===10?'Current CBSE reference: 2026-27. ':'';
+  note.textContent=pattern+'Paper scope: '+scope+'. Questions only, with competency, reasoning and case-based styles. A different question set is generated on each new start.';
  }else{
   note.textContent='Paper scope: '+scope+'. Up to 10 available objective questions will be used.';
  }
@@ -591,70 +592,230 @@ function rotatePick(items,count,offset){
  for(let i=0;i<count;i++)out.push(items[(offset+i)%items.length]);
  return out;
 }
+const CBSE_PATTERN_SESSION='2026-27';
+
+function class10ScienceSpecificPrompts(focus,marks){
+ const f=String(focus||'').toLowerCase();
+ const byMarks={2:[],3:[],4:[],5:[]};
+ if(/chemical reactions? in daily life|chemical reaction/.test(f)){
+  byMarks[2].push(
+   'A student mixes two colourless solutions and observes a precipitate. State two observations that can be used as evidence that a chemical reaction has occurred.',
+   'Magnesium ribbon burns with a dazzling white flame and forms a white powder. Name the product and state one observation that confirms a chemical change.'
+  );
+  byMarks[3].push(
+   'A student says that every change of state is a chemical reaction. Evaluate the statement. Give one example of a chemical change and identify two observations that support your conclusion.'
+  );
+ }
+ if(/chemical equations?|writing a chemical equation/.test(f)){
+  byMarks[2].push(
+   'For the reaction of magnesium with oxygen, write the chemical equation and identify the reactant(s) and product.',
+   'Why is a word equation less informative than a chemical equation? Give one suitable example.'
+  );
+  byMarks[3].push(
+   'Write the chemical equation for zinc reacting with dilute sulphuric acid. Add physical-state symbols and identify the gas evolved.'
+  );
+ }
+ if(/balanced|balancing|hit-and-trial/.test(f)){
+  byMarks[2].push(
+   'Balance the equation Fe + H₂O → Fe₃O₄ + H₂ using the smallest whole-number coefficients. State the law that requires the number of atoms of each element to remain equal on both sides.',
+   'A student balances H₂ + O₂ → H₂O by changing H₂O to H₂O₂. Explain why this method is incorrect and state what should be changed instead.'
+  );
+  byMarks[3].push(
+   'A learner writes Fe + 4H₂O → Fe₃O₄ + 4H₂ and claims that the equation is balanced. Check the atom count, identify the error and write the correctly balanced equation.'
+  );
+  byMarks[5].push(
+   'Balance the following equations using the smallest whole-number coefficients and justify how each balanced equation obeys conservation of mass: (i) Fe + H₂O → Fe₃O₄ + H₂, (ii) H₂ + O₂ → H₂O, (iii) Al + HCl → AlCl₃ + H₂.'
+  );
+ }
+ if(/physical states|reaction conditions/.test(f)){
+  byMarks[2].push(
+   'What information is conveyed by the symbols (s), (l), (g) and (aq) in a chemical equation? Write any two of them with their meanings.',
+   'Why are temperature, pressure, sunlight or a catalyst sometimes written above or below the reaction arrow?'
+  );
+  byMarks[3].push(
+   'Write an informative balanced equation for iron reacting with steam to form Fe₃O₄ and hydrogen. Include physical-state symbols and explain what H₂O(g) represents.'
+  );
+ }
+ if(/combination/.test(f)){
+  byMarks[2].push(
+   'Calcium oxide is mixed with water. Write the balanced equation, name the product and identify the reaction type.',
+   'Why does a beaker become warm when quick lime reacts with water? Classify the reaction on the basis of energy change.'
+  );
+  byMarks[3].push(
+   'During whitewashing, calcium hydroxide slowly reacts with carbon dioxide in air. Write the equation and explain why a shiny layer develops on the wall after a few days.'
+  );
+ }
+ if(/exothermic/.test(f)){
+  byMarks[2].push(
+   'Why is respiration considered an exothermic reaction? State the energy change and write the overall reaction of glucose with oxygen.',
+   'Differentiate an exothermic reaction from an endothermic reaction using one observable energy change.'
+  );
+  byMarks[3].push(
+   'A compost heap becomes warm while vegetable matter decomposes. Explain the observation and relate it to the meaning of an exothermic process.'
+  );
+ }
+ if(/decomposition/.test(f)){
+  byMarks[2].push(
+   'Silver chloride turns grey when exposed to sunlight. Write the reaction and identify the type of decomposition involved.',
+   'On heating ferrous sulphate crystals, the colour changes and gases are evolved. State what this observation shows about decomposition reactions.'
+  );
+  byMarks[3].push(
+   'Compare thermal, electrolytic and photochemical decomposition. For each, state the form of energy supplied and give one reaction example.'
+  );
+  byMarks[4].push(
+   'Case-based question: A student keeps silver chloride in sunlight and notices that the white solid gradually becomes grey. (a) Name the type of reaction. (1) (b) Write the balanced chemical equation. (1) (c) Explain the colour change and predict what would happen if the sample were kept in darkness. (2)'
+  );
+  byMarks[5].push(
+   'A student studies decomposition using three activities: heating ferrous sulphate, electrolysis of water and exposure of silver chloride to sunlight. For each activity, identify the energy source, write or describe the products formed, and explain why all three are classified as decomposition reactions.'
+  );
+ }
+ if(/displacement/.test(f)&&!/double/.test(f)){
+  byMarks[2].push(
+   'An iron nail is placed in copper sulphate solution. State the expected colour changes in the nail and solution, and name the reaction type.',
+   'Why can zinc displace copper from copper sulphate solution? Explain using relative reactivity.'
+  );
+  byMarks[3].push(
+   'Iron nails are immersed in blue copper sulphate solution for 20 minutes. Write the balanced equation, explain the two visible observations and identify which element is displaced.'
+  );
+  byMarks[4].push(
+   'Case-based question: Three clean metal strips, Fe, Zn and Cu, are separately placed in copper sulphate solution. (a) Which of Fe and Zn can displace copper? (1) (b) What visible change would indicate displacement? (1) (c) Explain why copper itself does not displace copper from its salt and relate the result to reactivity. (2)'
+  );
+ }
+ if(/double displacement|precipitation/.test(f)){
+  byMarks[2].push(
+   'Aqueous sodium sulphate is mixed with aqueous barium chloride. Name the precipitate and write the balanced chemical equation.',
+   'Why is the reaction between sodium sulphate and barium chloride classified as both double displacement and precipitation?'
+  );
+  byMarks[3].push(
+   'Lead nitrate solution is mixed with potassium iodide solution. State the expected observation, name the precipitate and write the balanced chemical equation.'
+  );
+  byMarks[4].push(
+   'Case-based question: Two clear aqueous solutions are mixed and a white insoluble solid appears. The reactants are Na₂SO₄(aq) and BaCl₂(aq). (a) Name the precipitate. (1) (b) Write the balanced equation. (1) (c) Explain why this is a double displacement reaction and how the observation confirms precipitation. (2)'
+  );
+ }
+ if(/oxidation|reduction|redox/.test(f)){
+  byMarks[2].push(
+   'Copper powder becomes black when heated in air. Name the black substance and state which change represents oxidation.',
+   'In CuO + H₂ → Cu + H₂O, identify the substance oxidised and the substance reduced.'
+  );
+  byMarks[3].push(
+   'Copper(II) oxide is heated in a stream of hydrogen. Explain the colour change and show, using gain or loss of oxygen, which substance is oxidised and which is reduced.'
+  );
+  byMarks[4].push(
+   'Case-based question: A black metal oxide is heated while hydrogen gas is passed over it. The solid becomes reddish-brown and water is formed. (a) Identify the metal oxide if the metal is copper. (1) (b) Which reactant is reduced? (1) (c) Explain why the reaction is simultaneously oxidation and reduction. (2)'
+  );
+ }
+ if(/corrosion|rust/.test(f)){
+  byMarks[2].push(
+   'State the two essential conditions needed for rusting of iron and mention one method used to prevent rusting.',
+   'Why does painting an iron surface reduce corrosion? Explain the role of the coating.'
+  );
+  byMarks[3].push(
+   'Two iron nails are kept separately: one in dry air and one in water exposed to air. Predict the relative rusting and justify your answer using the conditions required for corrosion.'
+  );
+  byMarks[4].push(
+   'Case-based question: An iron gate near the coast rusts faster than a similar gate in a dry region. (a) Name the process. (1) (b) State one condition common to rusting in both places. (1) (c) Explain why coastal conditions accelerate the process and suggest one suitable preventive method. (2)'
+  );
+ }
+ if(/rancidity/.test(f)){
+  byMarks[2].push(
+   'What is rancidity? State one method used to slow it down in foods containing fats and oils.',
+   'Why are packets of chips often flushed with nitrogen? Relate your answer to oxidation.'
+  );
+  byMarks[3].push(
+   'A food sample containing oil develops an unpleasant smell after long exposure to air. Explain the chemical change involved and suggest two storage conditions that would slow it down.'
+  );
+  byMarks[4].push(
+   'Case-based question: The same fried food is stored in three ways: an open plate, an airtight container and a nitrogen-flushed packet. (a) Which sample is expected to become rancid fastest? (1) (b) Which condition best limits oxidation? (1) (c) Explain the trend using the role of oxygen and storage conditions. (2)'
+  );
+ }
+ return byMarks[marks]||[];
+}
+
 function descriptiveSubjectPrompts(subject,focus,marks){
  const f='"'+focus+'"';
- const generic={
+ const competency={
   2:[
-   'State the main idea of '+f+' in one or two clear sentences.',
-   'Write any two important points, rules or facts about '+f+'.',
-   'Give one suitable example related to '+f+' and explain it briefly.',
-   'Define or identify the key concept in '+f+' and mention one important feature.',
-   'Write a brief note on '+f+' using two relevant points.',
-   'Mention one use or importance of '+f+' and support it with one example.',
-   'State one common error or misconception about '+f+' and write the correct idea.',
-   'Write two keywords connected with '+f+' and explain what each means.'
+   'A learner applies '+f+' in a new situation. State the relevant concept or rule and give one reason that supports its use.',
+   'Predict what will happen if one important condition related to '+f+' is changed. Give a reason for your prediction.',
+   'State two scientifically or logically valid points needed to distinguish a correct use of '+f+' from an incorrect one.',
+   'A student gives an incomplete statement about '+f+'. Write the corrected idea and one reason for the correction.'
   ],
   3:[
-   'Explain '+f+' in your own words with one suitable example.',
-   'Describe the main steps, process or reasoning used in '+f+'.',
-   'Compare two ideas or cases connected with '+f+' using at least three clear points.',
-   'Explain how '+f+' can be applied in a familiar real-life situation.',
-   'Write a short structured answer on '+f+' with an introduction, key explanation and example.',
-   'Explain one connection between '+f+' and another concept in this subject.',
-   'Use a simple diagram, table, flow chart or worked example where suitable to explain '+f+'.',
-   'Explain how you would check whether an answer or conclusion related to '+f+' is correct.'
-  ],
-  5:[
-   'Explain '+f+' in detail. Include the key idea, method or process, a suitable example and a clear conclusion.',
-   'Analyse '+f+' step by step and show how the concept can be used to solve or explain a new situation.',
-   'Write a detailed answer on '+f+' using important terms, reasoning and at least one relevant example.',
-   'Discuss '+f+' thoroughly and justify why the main method, rule or idea works.',
-   'Teach '+f+' to a classmate through a complete explanation, worked example or illustration, and a final summary.',
-   'Connect '+f+' with two related ideas from the subject and explain the relationship with examples.'
+   'Analyse a familiar situation involving '+f+'. Identify the relevant concept, explain the reasoning and state the expected conclusion.',
+   'A student reaches a conclusion using '+f+'. Describe how the conclusion can be checked and justify the method used.',
+   'Compare two possible situations involving '+f+' and explain, with three relevant points, why their outcomes may differ.',
+   'Apply '+f+' to a new example. Show the essential reasoning or steps and explain how you know the result is reasonable.'
   ],
   4:[
-   'Case study: A student knows the definition of '+f+' but is unable to apply it in a new situation. Explain how the student should identify the relevant idea, apply it and check the conclusion.',
-   'Case study: Consider a real-life situation where '+f+' is useful. Identify the concept involved and explain, step by step, how it should be applied.',
-   'Case study: A classmate gives an incomplete explanation of '+f+'. Identify what a complete answer should contain and justify the correct reasoning.',
-   'Case study: Imagine you must solve or explain an unfamiliar situation using '+f+'. State the information you would look for, the method you would use and the conclusion you would draw.',
-   'Competency question: Use your understanding of '+f+' to explain what would happen if one important condition or step were changed. Give reasons.',
-   'Competency question: Create a practical example involving '+f+', analyse it and explain the result using subject knowledge.'
+   'Case-based question: A student encounters a new situation involving '+f+'. (a) Identify the relevant concept. (1) (b) State one observation, rule or relationship that applies. (1) (c) Predict the outcome and justify it using the concept. (2)',
+   'Competency-based question: A learner changes one important condition while working with '+f+'. (a) State what changes first. (1) (b) Give one reason. (1) (c) Analyse the final effect and justify your conclusion. (2)'
+  ],
+  5:[
+   'Analyse a multi-step situation involving '+f+'. Identify the main concept, apply it systematically, justify the important steps and state a clear conclusion.',
+   'A learner proposes an explanation for '+f+'. Evaluate the explanation using subject knowledge, correct any weakness, support the corrected reasoning with an example and state the final conclusion.',
+   'Apply '+f+' to an unfamiliar real-life situation. Explain the method or mechanism, use appropriate evidence or working, and justify the result.'
   ]
  };
  const maths={
-  2:['State the rule, formula or key mathematical idea used in '+f+'.','Write the first two steps you would use to solve a problem from '+f+'.'],
-  3:['Solve or construct one representative example from '+f+' and show all essential steps.','Explain how you would verify a solution obtained in '+f+'.'],
-  5:['Solve a multi-step problem based on '+f+' and justify each major step.','Create a real-life mathematical problem using '+f+', solve it completely and interpret the answer.'],
-  4:['Case study: A learner applies '+f+' to a practical numerical situation. Show the method, calculations or reasoning needed, then explain how the result can be checked.']
+  2:[
+   'A student chooses a method for a problem based on '+f+'. State the method and give one reason why it is appropriate.',
+   'Write the key mathematical relation used in '+f+' and explain how one condition in a problem determines its use.'
+  ],
+  3:[
+   'Solve a representative problem based on '+f+' and show the essential steps. Verify the result using a second check or substitution where possible.',
+   'A worked solution involving '+f+' contains an incorrect step. Explain how you would identify the error, correct it and verify the final result.'
+  ],
+  4:[
+   'Case-based question: A real-life situation can be modelled using '+f+'. (a) Identify the required mathematical quantities. (1) (b) Form the relevant relation. (1) (c) Complete the calculation or reasoning and interpret the result. (2)'
+  ],
+  5:[
+   'Solve a multi-step application problem based on '+f+'. Show the mathematical model, complete the working, justify the method and interpret the final answer.',
+   'Construct and solve a real-life problem using '+f+'. State the assumptions, show all essential steps and verify that the answer satisfies the original conditions.'
+  ]
  };
  const science={
-  2:['State two scientifically important points about '+f+'.','Name the main process, principle or structure involved in '+f+' and state its role.'],
-  3:['Explain '+f+' scientifically using cause-and-effect reasoning and one example.','Draw or describe a labelled representation of '+f+' where appropriate and explain its important parts.'],
-  5:['Explain '+f+' in detail using scientific terms, mechanism or sequence, evidence/example and conclusion.','Analyse a real-world application of '+f+' and explain the science behind it.'],
-  4:['Case study: A real-life observation is connected with '+f+'. Identify the scientific principle, explain the observation and predict what may change if one condition is altered.']
+  2:[
+   'A student observes a situation related to '+f+'. State one relevant scientific principle or process and give one reason that supports the observation.',
+   'Predict what would happen if one essential condition for '+f+' were removed or changed. Give a scientific reason.'
+  ],
+  3:[
+   'Plan or interpret a simple investigation related to '+f+'. State the observation to record, explain the science behind it and give the expected conclusion.',
+   'Analyse a real-life example of '+f+'. Identify the process involved, explain one piece of evidence and justify the conclusion.'
+  ],
+  4:[
+   'Case-based question: During an activity involving '+f+', a student records an observation. (a) Identify the concept involved. (1) (b) State one relevant observation or relationship. (1) (c) Explain the observation and predict the effect of changing one condition. (2)'
+  ],
+  5:[
+   'Evaluate a claim about '+f+' using scientific reasoning. Include the relevant process or mechanism, supporting evidence or an equation/diagram where appropriate, and explain the effect of changing one important condition.',
+   'Analyse an investigation involving '+f+' from observation to conclusion. Explain the method, identify the evidence, justify the scientific inference and state one limitation or condition that must be controlled.'
+  ]
  };
  const language={
-  2:['Write two important ideas, words, expressions or features connected with '+f+'.','State the central idea or purpose of '+f+' in a brief response.'],
-  3:['Explain the meaning, theme or key language feature of '+f+' with one supporting example.','Write a short response on '+f+' using clear sentences and suitable vocabulary.'],
-  5:['Write a well-organised descriptive answer on '+f+' with an introduction, supporting details/examples and conclusion.','Analyse the theme, message, language or communication skill involved in '+f+' and support your answer with examples.'],
-  4:['Case study: A learner must use the language skill from '+f+' in a real communication situation. Write an appropriate response and explain the choices made.']
+  2:[
+   'Read or recall an example related to '+f+'. State its central idea or language purpose and support the answer with one relevant detail.',
+   'Identify one important language feature used in '+f+' and explain its effect in context.'
+  ],
+  3:[
+   'Analyse '+f+' in context. Explain the main idea or language feature and support your response with a relevant example.',
+   'Apply the skill in '+f+' to a new communication situation and justify two important choices in your response.'
+  ],
+  4:[
+   'Case-based question: A learner must use '+f+' in a real communication situation. (a) Identify the purpose. (1) (b) Choose an appropriate language feature. (1) (c) Write the required response and justify the choice. (2)'
+  ],
+  5:[
+   'Write a well-organised response applying '+f+' to an unfamiliar context. Develop the main idea, use suitable language features and support the response with relevant details.',
+   'Analyse the theme, message or language choices involved in '+f+' and support your interpretation with logically connected evidence.'
+  ]
  };
  let extra={2:[],3:[],4:[],5:[]};
  if(subject==='Maths')extra=maths;
  else if(subject==='Science'||subject==='EVS')extra=science;
  else if(['English','Hindi','Sanskrit','Urdu'].includes(subject))extra=language;
- return [...(extra[marks]||[]),...(generic[marks]||[])];
+ const scienceSpecific=subject==='Science'&&testGrade===10?class10ScienceSpecificPrompts(focus,marks):[];
+ return [...scienceSpecific,...(extra[marks]||[]),...(competency[marks]||[])];
 }
+
 function selectedDescriptiveLessons(){
  const subject=$('testSubjectSelect')?.value||'';
  const chapterId=$('testChapterSelect')?.value||'';
@@ -662,57 +823,111 @@ function selectedDescriptiveLessons(){
  if(chapterId)lessons=lessons.filter(l=>l.id===chapterId);
  return lessons;
 }
-function descriptiveFocusFor(lesson,index){
+
+function descriptiveFocusesFor(lesson){
  const chapterId=$('testChapterSelect')?.value||'';
  const topicKey=$('testTopicSelect')?.value||'';
+ const topics=lesson?chapterTopics(lesson):[];
  if(chapterId&&topicKey){
-  const topic=chapterTopics(lesson).find(t=>t.key===topicKey);
-  if(topic)return topic.title;
+  const topic=topics.find(t=>t.key===topicKey);
+  if(topic)return [topic.title];
  }
- return lesson?.title||($('testSubjectSelect')?.value||'this topic');
+ const names=[...new Set(topics.map(t=>String(t.title||'').trim()).filter(Boolean))];
+ return names.length?names:[lesson?.title||($('testSubjectSelect')?.value||'this topic')];
 }
+
+function lessonCheckpointQuestions(lesson){
+ const source=String(lesson?.concept||'');
+ return source.split(/\n+/).map(line=>line.trim()).filter(line=>/^QUESTION:\s*/i.test(line))
+  .map(line=>line.replace(/^QUESTION:\s*/i,'').replace(/^\d+\.\s*/,'').trim())
+  .filter(Boolean);
+}
+
 function buildDescriptiveSection(lessons,marks,count,runOffset){
  if(!lessons.length)return [];
  const candidates=[];
- lessons.forEach((lesson,li)=>{
-  const focus=descriptiveFocusFor(lesson,li);
-  const prompts=descriptiveSubjectPrompts(lesson.subject,focus,marks);
-  prompts.forEach((text,pi)=>candidates.push({lesson,focus,text,marks,key:lesson.id+':'+marks+':'+pi}));
-  if(marks===2){
-   validLessonQuestions(lesson).forEach((q,qi)=>{
-    let stem=String(q.text||'').trim();
-    if(!/[?.!]$/.test(stem))stem+='.';
-    candidates.push({lesson,focus,text:'Answer without using options: '+stem+' Give the answer with a brief reason or working.',marks,key:lesson.id+':quiz:'+qi});
+ lessons.forEach(lesson=>{
+  descriptiveFocusesFor(lesson).forEach((focus,fi)=>{
+   const prompts=descriptiveSubjectPrompts(lesson.subject,focus,marks);
+   prompts.forEach((text,pi)=>candidates.push({
+    lesson,focus,text,marks,key:lesson.id+':'+focus+':'+marks+':'+pi
+   }));
+  });
+  if(marks===2||marks===3){
+   lessonCheckpointQuestions(lesson).forEach((text,qi)=>{
+    const suffix=marks===3?' Explain the reasoning or observation that supports your answer.':' Give a brief reason where required.';
+    candidates.push({lesson,focus:lesson.title,text:text+suffix,marks,key:lesson.id+':checkpoint:'+marks+':'+qi});
    });
   }
  });
  const offset=(descriptivePaperRun*runOffset)%Math.max(1,candidates.length);
  return rotatePick(candidates,count,offset);
 }
+
+function scienceBranchForLesson(lesson){
+ const chapter=Number(lesson?.sourceChapter)||(CLASS10_SCIENCE_CHAPTERS.indexOf(lesson?.title)+1);
+ if([1,2,3,4].includes(chapter))return {id:'B',title:'Chemistry'};
+ if([9,10,11,12].includes(chapter))return {id:'C',title:'Physics'};
+ return {id:'A',title:'Biology'};
+}
+
+function descriptivePatternBlueprint(lessons){
+ const subject=$('testSubjectSelect')?.value||'';
+ if(testGrade===10&&subject==='Maths'){
+  return [
+   {id:'B',label:'SECTION B',title:'Very Short Answer',marks:2,count:5,run:3},
+   {id:'C',label:'SECTION C',title:'Short Answer',marks:3,count:6,run:5},
+   {id:'D',label:'SECTION D',title:'Long Answer',marks:5,count:4,run:7},
+   {id:'E',label:'SECTION E',title:'Case Study Based',marks:4,count:3,run:11}
+  ];
+ }
+ if(testGrade===10&&subject==='Science'){
+  const branch=lessons.length===1?scienceBranchForLesson(lessons[0]):null;
+  const prefix=branch?('SECTION '+branch.id+' · '+branch.title.toUpperCase()):'CLASS X SCIENCE';
+  return [
+   {id:'S2',label:prefix,title:'Very Short / Reasoning',marks:2,count:3,run:3},
+   {id:'S3',label:prefix,title:'Short Answer / Application',marks:3,count:3,run:5},
+   {id:'S4',label:prefix,title:'Case / Competency Based',marks:4,count:2,run:7},
+   {id:'S5',label:prefix,title:'Long Answer / Analysis',marks:5,count:1,run:11}
+  ];
+ }
+ return [
+  {id:'A',label:'SECTION A',title:'Very Short Answer',marks:2,count:5,run:3},
+  {id:'B',label:'SECTION B',title:'Short Answer / Application',marks:3,count:4,run:5},
+  {id:'C',label:'SECTION C',title:'Long Answer / Analysis',marks:5,count:2,run:7},
+  {id:'D',label:'SECTION D',title:'Case / Competency Based',marks:4,count:2,run:11}
+ ];
+}
+
 function buildDescriptivePaper(){
  const lessons=selectedDescriptiveLessons();
  if(!lessons.length)return [];
  descriptivePaperRun++;
- let sections=[
-  {id:'A',title:'Very Short Answer',marks:2,count:5,items:buildDescriptiveSection(lessons,2,5,3)},
-  {id:'B',title:'Short Answer',marks:3,count:4,items:buildDescriptiveSection(lessons,3,4,5)},
-  {id:'C',title:'Long Answer',marks:5,count:2,items:buildDescriptiveSection(lessons,5,2,7)},
-  {id:'D',title:'Case / Competency Based',marks:4,count:2,items:buildDescriptiveSection(lessons,4,2,11)}
- ];
+ const build=()=>descriptivePatternBlueprint(lessons).map(section=>({
+  ...section,
+  items:buildDescriptiveSection(lessons,section.marks,section.count,section.run)
+ }));
+ let sections=build();
  let signature=sections.flatMap(s=>s.items.map(x=>x.key)).join('|');
  if(signature===lastDescriptivePaperSignature){
   descriptivePaperRun++;
-  sections=[
-   {id:'A',title:'Very Short Answer',marks:2,count:5,items:buildDescriptiveSection(lessons,2,5,3)},
-   {id:'B',title:'Short Answer',marks:3,count:4,items:buildDescriptiveSection(lessons,3,4,5)},
-   {id:'C',title:'Long Answer',marks:5,count:2,items:buildDescriptiveSection(lessons,5,2,7)},
-   {id:'D',title:'Case / Competency Based',marks:4,count:2,items:buildDescriptiveSection(lessons,4,2,11)}
-  ];
+  sections=build();
   signature=sections.flatMap(s=>s.items.map(x=>x.key)).join('|');
  }
  lastDescriptivePaperSignature=signature;
  return sections;
 }
+
+function descriptivePatternNote(subject){
+ if(testGrade===10&&subject==='Maths'){
+  return 'Pattern reference: CBSE Class X Mathematics Standard Sample Question Paper '+CBSE_PATTERN_SESSION+'. This descriptive practice uses the official 2-mark, 3-mark, 5-mark and 4-mark case-study sections; the 1-mark objective section remains in Objective Quiz mode.';
+ }
+ if(testGrade===10&&subject==='Science'){
+  return 'Pattern reference: CBSE Class X Science Sample Question Paper '+CBSE_PATTERN_SESSION+'. Questions use the current application, reasoning, case-based and multi-mark style. A chapter-wise paper is a practice subset, not the complete 39-question board paper.';
+ }
+ return 'CBSE-style competency practice using the current '+CBSE_PATTERN_SESSION+' approach. CBSE does not publish one board sample-paper blueprint for every lower class and subject.';
+}
+
 function renderDescriptivePaper(){
  const panel=$('testPaperPanel');
  if(!panel)return;
@@ -733,17 +948,15 @@ function renderDescriptivePaper(){
   const rows=section.items.map(item=>{
    total+=item.marks;
    const n=qNo++;
-   const lines=item.marks>=5?6:item.marks>=3?4:3;
-   return '<article class="descriptive-question"><div class="descriptive-q-head"><span>Q'+n+'.</span><p>'+safe(item.text)+'</p><strong>'+item.marks+'</strong></div><div class="answer-lines" aria-label="Answer space">'+Array.from({length:lines},()=>'<i></i>').join('')+'</div></article>';
+   return '<article class="descriptive-question"><div class="descriptive-q-head"><span>Q'+n+'.</span><p>'+safe(item.text)+'</p><strong>'+item.marks+'</strong></div></article>';
   }).join('');
-  return '<section class="descriptive-section"><div class="descriptive-section-head"><div><span>SECTION '+section.id+'</span><h4>'+safe(section.title)+'</h4></div><strong>'+section.items.length+' × '+section.marks+' = '+(section.items.length*section.marks)+'</strong></div>'+rows+'</section>';
+  return '<section class="descriptive-section"><div class="descriptive-section-head"><div><span>'+safe(section.label||('SECTION '+section.id))+'</span><h4>'+safe(section.title)+'</h4></div><strong>'+section.items.length+' × '+section.marks+' = '+(section.items.length*section.marks)+'</strong></div>'+rows+'</section>';
  }).join('');
  panel.hidden=false;
  panel.innerHTML='<div class="descriptive-paper">'+
-  '<div class="descriptive-paper-title"><div><span>CBSE-STYLE DESCRIPTIVE PRACTICE PAPER</span><h3>'+safe(scope)+'</h3><p>Practice format modelled on descriptive and case-based sections used in CBSE sample papers. This is not an official CBSE question paper.</p></div><div class="descriptive-paper-actions"><button type="button" class="btn btn-light" data-new-descriptive>New Paper</button><button type="button" class="btn btn-secondary" data-print-descriptive>Print</button></div></div>'+
-  '<div class="descriptive-meta"><span><b>Maximum Marks:</b> '+total+'</span><span><b>Suggested Time:</b> 90 minutes</span><span><b>Paper changes:</b> Every new start</span></div>'+
-  '<div class="descriptive-student"><span>Name: ______________________________</span><span>Date: __________________</span></div>'+
-  '<div class="descriptive-instructions"><strong>General Instructions</strong><ol><li>Attempt all questions.</li><li>Write complete steps, reasons and diagrams wherever required.</li><li>Read case-based questions carefully before answering.</li><li>Marks are shown against each question.</li></ol></div>'+
+  '<div class="descriptive-paper-title"><div><span>CBSE '+CBSE_PATTERN_SESSION+' QUESTION-ONLY PRACTICE PAPER</span><h3>'+safe(scope)+'</h3><p>'+safe(descriptivePatternNote(subject))+'</p></div><div class="descriptive-paper-actions"><button type="button" class="btn btn-light" data-new-descriptive>New Paper</button><button type="button" class="btn btn-secondary" data-print-descriptive>Print</button></div></div>'+
+  '<div class="descriptive-meta"><span><b>Maximum Marks:</b> '+total+'</span><span><b>Current CBSE reference:</b> '+CBSE_PATTERN_SESSION+'</span><span><b>Questions change:</b> Every new start</span></div>'+
+  '<div class="descriptive-instructions"><strong>General Instructions</strong><ol><li>Attempt the questions according to the marks shown.</li><li>Use complete reasoning, steps, equations or diagrams wherever the question requires them.</li><li>Read application and case-based questions carefully before answering.</li></ol></div>'+
   body+
   '</div>';
  panel.scrollIntoView({behavior:'smooth',block:'start'});
