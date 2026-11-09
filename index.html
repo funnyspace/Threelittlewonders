@@ -7,7 +7,7 @@
   <meta name="description" content="Threelittlewonders makes learning delightful with bite-sized lessons, fun quizzes and learning paths from Nursery through Class 10." />
   <title>Threelittlewonders | Little lessons, big wonders</title>
   <link rel="icon" href="favicon.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="styles.css?v=20261109-descriptive-paper-v1" />
+  <link rel="stylesheet" href="styles.css?v=20261109-local-login-v1" />
   <script src="content.js?v=20261103-class10-maths-14ch" defer></script>
   <script src="class1-english-mridang-content.js?v=20261105-ncert-v1" defer></script>
   <script src="class1-maths-joyful-content.js?v=20261106-ncert-v1" defer></script>
@@ -43,6 +43,7 @@
   <script src="curriculum-ui.js?v=20261030-hide-all-roadmaps" defer></script>
   <script src="contact-form.js" defer></script>
   <script src="site-navigation.js?v=20261109-test-series-v1" defer></script>
+  <script src="auth.js?v=20261109-local-login-v1" defer></script>
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to content</a>
@@ -61,10 +62,18 @@
         <a class="nav-link" href="#how-it-works">How it works</a>
       </nav>
       <a class="nav-progress" href="#my-learning"><span aria-hidden="true">⭐</span> My learning <span id="navStars" class="nav-stars">0</span></a>
+      <div class="nav-auth" id="navAuth">
+        <button type="button" class="nav-auth-button" id="authButton" aria-haspopup="dialog"><span aria-hidden="true">👤</span><span id="authButtonLabel">Log in</span></button>
+        <div class="auth-user-menu" id="authUserMenu" hidden>
+          <div class="auth-user-summary"><strong id="authUserName">Student</strong><small id="authUserGrade">Class</small></div>
+          <a href="#my-learning" id="authMyLearningLink">My learning</a>
+          <button type="button" id="authLogoutButton">Log out</button>
+        </div>
+      </div>
       <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Open menu" aria-expanded="false" aria-controls="mobileMenu">☰</button>
     </div>
     <div id="mobileMenu" class="mobile-menu" hidden>
-      <a href="#home">Home</a><a href="#explore">Explore courses</a><a href="#test-series">Test Series</a><a href="#contact">Contact</a><a href="#how-it-works">How it works</a><a href="#my-learning">My learning ⭐</a>
+      <a href="#home">Home</a><a href="#explore">Explore courses</a><a href="#test-series">Test Series</a><a href="#contact">Contact</a><a href="#how-it-works">How it works</a><a href="#my-learning">My learning ⭐</a><button type="button" class="mobile-auth-button" id="mobileAuthButton">Log in / Sign up</button>
     </div>
   </header>
   <main id="main">
@@ -245,7 +254,7 @@
     </section>
     <section class="info-page section-padding" id="privacy" aria-labelledby="privacyTitle" hidden>
       <div class="container info-page-inner"><span class="kicker">✦ YOUR INFORMATION</span><h2 id="privacyTitle">Privacy Policy</h2>
-        <p>Learning progress and activity practice are saved locally in your browser. They are not synced to an account or to our own database. Clearing browser storage may remove progress.</p>
+        <p>Learning progress and activity practice are saved locally in your browser. An optional student login can also be created in this browser using a student display name, class, parent or guardian email and password verification data. These local accounts are not synced to our own database or across devices. Clearing browser storage may remove both the local account and progress.</p>
         <p>The contact form prepares a message in your email application. It does not send or store your enquiry on this website. Any email you choose to send is handled by your email provider and the receiving mailbox.</p>
         <p>This site is hosted on GitHub Pages, which may process technical request information to deliver the site. Please provide only a parent or guardian’s details when contacting us, and avoid sharing children’s private information.</p>
         <p>For questions, email <a href="mailto:hello@threelittlewonders.com">hello@threelittlewonders.com</a>.</p>
@@ -255,7 +264,7 @@
       <div class="container info-page-inner"><span class="kicker">✦ USING OUR WEBSITE</span><h2 id="termsTitle">Terms &amp; Conditions</h2>
         <p>ThreeLittleWonders provides introductory educational resources for general learning and practice. Topics and examples may differ from a child’s school or board curriculum and should be checked against official school materials.</p>
         <p>Adult guidance is recommended for younger learners, practical activities and use of external websites. We may revise or add educational content as the website develops.</p>
-        <p>The website currently has no online payment, student account or direct messaging service. Contact us for questions or corrections using the Contact page.</p>
+        <p>The website currently has no online payment or direct messaging service. The optional student login is a browser-local profile, not a cloud account, and does not currently sync between devices. Contact us for questions or corrections using the Contact page.</p>
       </div>
     </section>
     <section class="info-page section-padding" id="child-safety" aria-labelledby="safetyTitle" hidden>
@@ -268,7 +277,7 @@
     <section class="info-page section-padding" id="faqs" aria-labelledby="faqTitle" hidden>
       <div class="container info-page-inner"><span class="kicker">✦ COMMON QUESTIONS</span><h2 id="faqTitle">Frequently Asked Questions</h2>
         <h3>Which classes are included?</h3><p>Nursery, LKG, UKG and Classes 1 to 10 have starter learning material. The topic roadmaps offer guided practice rather than full school textbooks.</p>
-        <h3>Is learning progress saved?</h3><p>Yes. Progress is saved in your current browser on this device, without an account. Clearing browser storage can remove it.</p>
+        <h3>Is learning progress saved?</h3><p>Yes. Progress is saved in your current browser on this device. You may also create an optional browser-local student login. Neither the login nor progress currently syncs across devices, and clearing browser storage can remove them.</p>
         <h3>How do I send a message?</h3><p>Open Contact, complete the enquiry form and press Send Message. Your email app opens a prepared draft that you must send yourself.</p>
         <h3>Are there downloadable worksheets and live classes?</h3><p>The current site focuses on starter lessons and guided activities. Additional resources can be introduced as they are developed.</p>
       </div>
@@ -286,6 +295,45 @@
       <small>© <span id="currentYear"></span> ThreeLittleWonders. WhatsApp and social profile links will be added when available.</small>
     </div>
   </footer>
+
+  <div class="auth-backdrop" id="authModal" hidden>
+    <section class="auth-modal" role="dialog" aria-modal="true" aria-labelledby="authTitle">
+      <header class="auth-modal-header">
+        <div class="auth-brand-lockup">
+          <span class="auth-logo" aria-hidden="true">🌱</span>
+          <div><span class="auth-kicker">THREELITTLEWONDERS</span><h2 id="authTitle">Welcome back</h2></div>
+        </div>
+        <button type="button" class="auth-close" id="authCloseButton" aria-label="Close login">✕</button>
+      </header>
+      <div class="auth-tabs" role="tablist" aria-label="Account options">
+        <button type="button" class="auth-tab active" id="authLoginTab" data-auth-tab="login" role="tab" aria-selected="true">Log in</button>
+        <button type="button" class="auth-tab" id="authSignupTab" data-auth-tab="signup" role="tab" aria-selected="false">Create account</button>
+      </div>
+      <div class="auth-modal-body">
+        <form class="auth-form" id="authLoginForm">
+          <div class="auth-intro"><h3>Continue learning</h3><p>Use the parent or guardian email connected to this browser account.</p></div>
+          <label class="auth-field"><span>Parent / guardian email</span><input id="authLoginEmail" name="email" type="email" autocomplete="email" required placeholder="name@example.com"></label>
+          <label class="auth-field"><span>Password</span><input id="authLoginPassword" name="password" type="password" autocomplete="current-password" minlength="8" required placeholder="Enter password"></label>
+          <p class="auth-status" id="authLoginStatus" role="status" aria-live="polite"></p>
+          <button class="btn btn-primary auth-submit" type="submit">Log in</button>
+          <button class="auth-switch-link" type="button" data-auth-open-signup>New here? Create a student account</button>
+        </form>
+        <form class="auth-form" id="authSignupForm" hidden>
+          <div class="auth-intro"><h3>Create a student account</h3><p>Use a simple student display name. For child safety, use a parent or guardian email rather than a child’s personal email.</p></div>
+          <label class="auth-field"><span>Student display name</span><input id="authSignupName" name="displayName" type="text" autocomplete="nickname" minlength="2" maxlength="40" required placeholder="Example: Aanya"></label>
+          <label class="auth-field"><span>Class</span><select id="authSignupGrade" name="grade" required><option value="">Select class</option><option value="-2">Nursery</option><option value="-1">LKG</option><option value="0">UKG</option><option value="1">Class 1</option><option value="2">Class 2</option><option value="3">Class 3</option><option value="4">Class 4</option><option value="5">Class 5</option><option value="6">Class 6</option><option value="7">Class 7</option><option value="8">Class 8</option><option value="9">Class 9</option><option value="10">Class 10</option></select></label>
+          <label class="auth-field"><span>Parent / guardian email</span><input id="authSignupEmail" name="email" type="email" autocomplete="email" required placeholder="name@example.com"></label>
+          <label class="auth-field"><span>Password</span><input id="authSignupPassword" name="password" type="password" autocomplete="new-password" minlength="8" required placeholder="At least 8 characters"></label>
+          <label class="auth-field"><span>Confirm password</span><input id="authSignupConfirm" name="confirmPassword" type="password" autocomplete="new-password" minlength="8" required placeholder="Repeat password"></label>
+          <p class="auth-status" id="authSignupStatus" role="status" aria-live="polite"></p>
+          <button class="btn btn-primary auth-submit" type="submit">Create account</button>
+          <button class="auth-switch-link" type="button" data-auth-open-login>Already have an account? Log in</button>
+        </form>
+        <div class="auth-local-note"><span aria-hidden="true">🔒</span><p><strong>Browser-only account.</strong> This login is stored on this device and browser. It does not sync across devices yet. Passwords are not stored as plain text.</p></div>
+      </div>
+    </section>
+  </div>
+
   <div class="modal-backdrop" id="lessonModal" hidden><section class="lesson-modal" role="dialog" aria-modal="true" aria-labelledby="lessonTitle"><header class="modal-header"><div class="modal-header-left"><span class="modal-subject-icon" id="modalSubjectIcon">📚</span><div><p class="modal-kicker" id="modalMeta">LET'S LEARN</p><h2 id="lessonTitle">Your lesson</h2></div></div><button class="close-btn" id="closeLesson" aria-label="Close lesson">✕</button></header><div class="lesson-steps" aria-label="Lesson stages"><span class="stage active" id="stageLearn">1. Learn</span><span class="stage" id="stageQuiz">2. Try a quiz</span><span class="stage" id="stageComplete">3. Celebrate</span></div><div class="lesson-body" id="lessonBody"></div><div class="modal-footer" id="lessonFooter"></div></section></div>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 </body>
