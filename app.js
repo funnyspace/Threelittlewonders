@@ -495,7 +495,7 @@ function hydrateOriginalPdfViewer(lesson){
    if(loading)loading.hidden=true;
    if(status)status.textContent='Page '+pageNumber+' of '+doc.numPages;
    if(prev)prev.disabled=pageNumber<=1;
-   if(next)next.disabled=pageNumber>=doc.numPages; all other content is preserved.':'Full original textbook page shown with all text, images, diagrams and tables preserved.';
+   if(next)next.disabled=pageNumber>=doc.numPages;
   }catch(error){
    nativeFallback();
   }
