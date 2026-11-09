@@ -1389,3 +1389,28 @@
 .pdf-object-fallback p{margin:0 0 12px;color:#68766e;font-size:12px}
 .pdf-object-fallback a{display:inline-flex;padding:9px 12px;border-radius:8px;background:var(--green);color:#fff;font-weight:800;font-size:11px;text-decoration:none}
 @media(max-width:760px){.original-pdf-object,.original-pdf-embed{height:520px}}
+
+/* Clean full-page PDF reader */
+.original-pdf-panel.full-fidelity-pdf{margin:0 0 22px;border:1px solid #dde5de;border-radius:16px;background:#fff;overflow:hidden}
+.pdf-nav-bar{display:flex;align-items:center;justify-content:center;gap:8px;padding:10px 12px;background:#f7f9f7;border-bottom:1px solid #e2e7e2}
+.pdf-nav-bar button{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border:1px solid #d8e1da;border-radius:9px;background:#fff;color:var(--green);font-size:18px;font-weight:900;line-height:1;cursor:pointer}
+.pdf-nav-bar button:hover:not(:disabled){background:var(--green);color:#fff}
+.pdf-nav-bar button:disabled{opacity:.35;cursor:not-allowed}
+.pdf-nav-bar [data-pdf-page-status]{min-width:96px;text-align:center;font-size:11px;font-weight:800;color:#52635a}
+.pdf-nav-separator{width:1px;height:24px;background:#dbe3dd;margin:0 2px}
+.pdf-canvas-scroll{position:relative;overflow:auto;background:#e9ece9;padding:12px;min-height:540px;display:flex;justify-content:center;align-items:flex-start}
+.original-pdf-canvas{display:block;margin:0 auto;background:#fff;box-shadow:0 4px 18px rgba(28,48,37,.14);max-width:none}
+.pdf-loading{width:100%;min-height:500px;display:flex;align-items:center;justify-content:center}
+.pdf-loading span{width:28px;height:28px;border:3px solid #dce5de;border-top-color:var(--green);border-radius:50%;animation:pdf-spin .8s linear infinite}
+@keyframes pdf-spin{to{transform:rotate(360deg)}}
+.pdf-native-fallback{width:100%;background:#fff}
+.original-pdf-object,.original-pdf-embed{display:block;width:100%;height:760px;border:0;background:#fff}
+.original-pdf-toolbar,.pdf-fidelity-note,.pdf-fallback-actions,.pdf-native-fallback>p,.pdf-open-original{display:none!important}
+@media(max-width:760px){
+ .pdf-nav-bar{gap:6px;padding:8px}
+ .pdf-nav-bar button{width:32px;height:32px}
+ .pdf-nav-bar [data-pdf-page-status]{min-width:84px;font-size:10px}
+ .pdf-canvas-scroll{padding:6px;min-height:430px}
+ .pdf-loading{min-height:400px}
+ .original-pdf-object,.original-pdf-embed{height:560px}
+}
