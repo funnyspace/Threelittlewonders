@@ -1505,8 +1505,6 @@
 .descriptive-q-head>span{font-weight:900;color:#28513a;font-size:12px}
 .descriptive-q-head p{margin:0;color:#2e4135;font-size:12px;line-height:1.65}
 .descriptive-q-head>strong{min-width:24px;text-align:right;color:#5d7265;font-size:11px}
-.answer-lines{display:grid;gap:11px;margin:14px 0 0 29px}
-.answer-lines i{display:block;height:1px;background:#d9ded9}
 @media(max-width:900px){.test-scope-grid-four{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:620px){
  .test-scope-grid-four{grid-template-columns:1fr}
@@ -1520,7 +1518,6 @@
  #testPaperPanel{position:absolute;left:0;top:0;width:100%;margin:0}
  .descriptive-paper{border:0}
  .descriptive-paper-actions{display:none!important}
- .answer-lines i{background:#bbb!important}
 }
 
 
@@ -1576,3 +1573,10 @@
  .auth-tabs{padding:10px 13px 0}
  .auth-modal-body{padding:15px 16px 18px}
 }
+
+
+/* Question-only CBSE paper */
+.descriptive-question{padding:18px 22px 19px}
+.descriptive-q-head p{font-size:13px;line-height:1.72}
+.descriptive-section-head span{letter-spacing:1.35px}
+.descriptive-paper-title p{max-width:860px}
