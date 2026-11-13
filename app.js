@@ -543,7 +543,7 @@ function updateTestScopeNote(){
   note.textContent='Paper scope: '+scope+'. Up to 10 available objective questions will be used.';
  }
  const start=$('generateTestBtn');
- if(start)start.innerHTML=(paperType==='descriptive'?'Start Exam Paper':'Start Test')+' <span aria-hidden="true">↗</span>';
+ if(start)start.innerHTML=(paperType==='descriptive'?'Begin Descriptive Exam':'Begin MCQ Test')+' <span aria-hidden="true">↗</span>';
 }
 function openTestBuilder(grade){
  testGrade=grade;
@@ -552,8 +552,34 @@ function openTestBuilder(grade){
  if(!builder)return;
  builder.hidden=false;
  $('testBuilderTitle').textContent=gradeName(grade)+' Test Series';
- populateTestSubjects();
+ const modeChoice=$('testModeChoice');
+ const scope=$('testScopeControls');
+ if(modeChoice)modeChoice.hidden=false;
+ if(scope)scope.hidden=true;
+ const paperType=$('testPaperTypeSelect');
+ if(paperType)paperType.value='objective';
+ const subjectSelect=$('testSubjectSelect');
+ const chapterSelect=$('testChapterSelect');
+ const topicSelect=$('testTopicSelect');
+ if(subjectSelect)subjectSelect.innerHTML='';
+ if(chapterSelect)chapterSelect.innerHTML='';
+ if(topicSelect)topicSelect.innerHTML='';
  requestAnimationFrame(()=>builder.scrollIntoView({behavior:'smooth',block:'start'}));
+}
+function chooseTestMode(mode){
+ const paperType=$('testPaperTypeSelect');
+ const scope=$('testScopeControls');
+ const modeChoice=$('testModeChoice');
+ if(!paperType||!scope)return;
+ paperType.value=mode==='descriptive'?'descriptive':'objective';
+ resetTestPaper();
+ scope.hidden=false;
+ if(modeChoice)modeChoice.querySelectorAll('[data-test-mode]').forEach(button=>{
+  button.classList.toggle('selected',button.dataset.testMode===paperType.value);
+ });
+ populateTestSubjects();
+ updateTestScopeNote();
+ requestAnimationFrame(()=>scope.scrollIntoView({behavior:'smooth',block:'start'}));
 }
 function shuffledTestItems(items){
  const copy=[...items];
@@ -1268,8 +1294,8 @@ function installEvents(){
  $('searchInput').addEventListener('input',e=>{query=e.target.value.trim().toLowerCase();renderCourses()});
  $('courseGrid').addEventListener('click',e=>{const sprite=e.target.closest('[data-pdf-sprite]');if(sprite){openPdfFigureSprite(sprite);return;}const figure=e.target.closest('[data-pdf-image]');if(figure){openPdfFigure(figure.dataset.pdfImage,figure.dataset.pdfCaption);return;}const topic=e.target.closest('[data-topic-id]');if(topic){stopReadAloud();currentTopicId=topic.dataset.topicId;currentSubtopicKey='';renderCourses();return;}const subtopic=e.target.closest('[data-subtopic-key]');if(subtopic){stopReadAloud();currentSubtopicKey=subtopic.dataset.subtopicKey;if(subtopic.dataset.pageUnverified==='true')showToast('This topic is listed, but its PDF page has not been verified yet. No page number was guessed.');renderCourses();return;}const aloud=e.target.closest('[data-read-aloud]');if(aloud){readAloudLesson(aloud.dataset.readAloud,aloud);return;}const quiz=e.target.closest('[data-start-quiz]');if(quiz)openLesson(quiz.dataset.startQuiz);});
  $('testClassGrid')?.addEventListener('click',e=>{const button=e.target.closest('[data-test-grade]');if(button)openTestBuilder(Number(button.dataset.testGrade));});
- $('testChangeClassBtn')?.addEventListener('click',()=>{resetTestPaper();$('testBuilder').hidden=true;$('testClassGrid')?.scrollIntoView({behavior:'smooth',block:'start'});});
- $('testPaperTypeSelect')?.addEventListener('change',()=>{resetTestPaper();updateTestScopeNote();});
+ $('testChangeClassBtn')?.addEventListener('click',()=>{resetTestPaper();const scope=$('testScopeControls');if(scope)scope.hidden=true;$('testBuilder').hidden=true;$('testClassGrid')?.scrollIntoView({behavior:'smooth',block:'start'});});
+ $('testModeChoice')?.addEventListener('click',e=>{const button=e.target.closest('[data-test-mode]');if(button)chooseTestMode(button.dataset.testMode);});
  $('testSubjectSelect')?.addEventListener('change',populateTestChapters);
  $('testChapterSelect')?.addEventListener('change',populateTestTopics);
  $('testTopicSelect')?.addEventListener('change',()=>{resetTestPaper();updateTestScopeNote();});
