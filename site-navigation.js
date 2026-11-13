@@ -6,6 +6,10 @@
   const viewIds=['home','explore','test-series','contact','how-it-works','my-learning','about','privacy','terms','child-safety','faqs'];
   const views=new Map(viewIds.map(id=>[id,document.getElementById(id)]));
   const pageLinks=document.querySelectorAll('a[href^="#"]');
+  // Always start on Home when the website is opened or refreshed.
+  if(window.location.hash!=='#home'){
+    history.replaceState(null,'',window.location.pathname+window.location.search+'#home');
+  }
   function currentView(){
     const hash=decodeURIComponent(window.location.hash.slice(1));
     return views.has(hash)?hash:'home';
