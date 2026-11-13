@@ -348,6 +348,18 @@
     </section>
   </div>
 
+  <div class="topic-video-backdrop" id="topicVideoModal" hidden>
+    <section class="topic-video-modal" role="dialog" aria-modal="true" aria-labelledby="topicVideoTitle">
+      <header class="topic-video-header">
+        <div><span>TOPIC VIDEO</span><h2 id="topicVideoTitle">Video lesson</h2></div>
+        <button type="button" id="topicVideoClose" aria-label="Close video">✕</button>
+      </header>
+      <div class="topic-video-player">
+        <iframe id="topicVideoFrame" title="Topic video" src="" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>
+      </div>
+    </section>
+  </div>
+
   <div class="modal-backdrop" id="lessonModal" hidden><section class="lesson-modal" role="dialog" aria-modal="true" aria-labelledby="lessonTitle"><header class="modal-header"><div class="modal-header-left"><span class="modal-subject-icon" id="modalSubjectIcon">📚</span><div><p class="modal-kicker" id="modalMeta">LET'S LEARN</p><h2 id="lessonTitle">Your lesson</h2></div></div><button class="close-btn" id="closeLesson" aria-label="Close lesson">✕</button></header><div class="lesson-steps" aria-label="Lesson stages"><span class="stage active" id="stageLearn">1. Learn</span><span class="stage" id="stageQuiz">2. Try a quiz</span><span class="stage" id="stageComplete">3. Celebrate</span></div><div class="lesson-body" id="lessonBody"></div><div class="modal-footer" id="lessonFooter"></div></section></div>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 </body>
