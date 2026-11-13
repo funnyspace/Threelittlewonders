@@ -369,11 +369,61 @@ function chapterTopics(lesson){
  if(!topics.length)topics.push({key:'overview',title:'Overview',page:Number.isInteger(lesson&&lesson.chapterStartPage)?lesson.chapterStartPage:null});
  return topics;
 }
+function topicVideoMapping(lesson,topic){
+ const local=lesson&&lesson.topicVideos||{};
+ const globalMap=window.TLW_TOPIC_VIDEOS||{};
+ const raw=local[topic.key]||local[topic.title]||globalMap[lesson.id+':'+topic.key]||globalMap[lesson.id+':'+topic.title]||'';
+ if(!raw)return null;
+ if(typeof raw==='string')return {url:raw};
+ return raw&&typeof raw==='object'?raw:null;
+}
+function youtubeVideoId(value){
+ const raw=String(value||'').trim();
+ if(/^[A-Za-z0-9_-]{11}$/.test(raw))return raw;
+ const match=raw.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/i);
+ return match?match[1]:'';
+}
+function topicVideoSearchUrl(lesson,topic){
+ const query=[gradeName(lesson.grade),lesson.subject,lesson.title,topic.title,'CBSE NCERT explained'].filter(Boolean).join(' ');
+ return 'https://www.youtube.com/results?search_query='+encodeURIComponent(query);
+}
+function openTopicVideo(lesson,topic){
+ const mapping=topicVideoMapping(lesson,topic);
+ const mappedValue=mapping&&(mapping.videoId||mapping.url||mapping.youtube||'');
+ const id=youtubeVideoId(mappedValue);
+ if(id){
+  const modal=$('topicVideoModal');
+  const frame=$('topicVideoFrame');
+  const title=$('topicVideoTitle');
+  if(!modal||!frame)return;
+  if(title)title.textContent=topic.title;
+  frame.src='https://www.youtube-nocookie.com/embed/'+encodeURIComponent(id)+'?autoplay=1&rel=0';
+  modal.hidden=false;
+  document.body.classList.add('modal-open');
+  return;
+ }
+ window.open(topicVideoSearchUrl(lesson,topic),'_blank','noopener,noreferrer');
+}
+function closeTopicVideo(){
+ const modal=$('topicVideoModal');
+ const frame=$('topicVideoFrame');
+ if(frame)frame.src='';
+ if(modal)modal.hidden=true;
+ if($('lessonModal')?.hidden!==false&&$('authModal')?.hidden!==false)document.body.classList.remove('modal-open');
+}
 function renderChapterTopicNavigator(lesson){
  const topics=chapterTopics(lesson);
  if(!topics.length)return '';
  const active=topics.find(t=>t.key===currentSubtopicKey)||null;
- return '<section class="chapter-topics-block"><div class="chapter-topics-heading"><span>TOPICS IN THIS CHAPTER</span><strong>'+topics.length+'</strong></div><div class="chapter-topic-buttons">'+topics.map((t,i)=>'<button type="button" class="chapter-topic-button '+(active&&active.key===t.key?'active':'')+'" data-subtopic-key="'+safe(t.key)+'" '+(t.page===null?'data-page-unverified="true"':'data-pdf-page="'+t.page+'"')+'><span>'+(i+1)+'</span><strong>'+safe(t.title)+'</strong>'+(t.page!==null?'<small>PDF p. '+t.page+'</small>':'<small>Page verification pending</small>')+'</button>').join('')+'</div></section>';
+ return '<section class="chapter-topics-block"><div class="chapter-topics-heading"><span>TOPICS IN THIS CHAPTER</span><strong>'+topics.length+'</strong></div><div class="chapter-topic-buttons">'+topics.map((t,i)=>
+  '<article class="chapter-topic-card '+(active&&active.key===t.key?'active':'')+'">'+
+   '<button type="button" class="chapter-topic-button" data-subtopic-key="'+safe(t.key)+'" '+(t.page===null?'data-page-unverified="true"':'data-pdf-page="'+t.page+'"')+'><span>'+(i+1)+'</span><strong>'+safe(t.title)+'</strong></button>'+
+   '<div class="chapter-topic-meta">'+
+    (t.page!==null?'<small>PDF p. '+t.page+'</small>':'<small>Page verification pending</small>')+
+    '<button type="button" class="topic-video-button" data-topic-video="'+safe(t.key)+'">▶ Watch Video</button>'+
+   '</div>'+
+  '</article>'
+ ).join('')+'</div></section>';
 }
 const originalPdfCache=new Map();
 function pdfBarcodeMasks(filename,pageNumber){
@@ -1292,7 +1342,7 @@ function installEvents(){
  $('gradeShortcuts').addEventListener('click',e=>{const gradeBtn=e.target.closest('[data-grade]');if(gradeBtn){setGrade(Number(gradeBtn.dataset.grade));return;}const changeBtn=e.target.closest('[data-change-class]');if(changeBtn){classChoicesOpen=true;subject='';query='';currentTopicId='';$('searchInput').value='';renderAll();requestAnimationFrame(()=>$('gradeShortcuts')?.scrollIntoView({behavior:'smooth',block:'start'}));}});
  $('subjectFilters').addEventListener('click',e=>{const btn=e.target.closest('[data-subject]');if(btn){stopReadAloud();subject=btn.dataset.subject;query='';currentTopicId='';currentSubtopicKey='';$('searchInput').value='';renderSubjectFilters();renderCourses();requestAnimationFrame(()=>$('lessonResultsSection')?.scrollIntoView({behavior:'smooth',block:'start'}))}});
  $('searchInput').addEventListener('input',e=>{query=e.target.value.trim().toLowerCase();renderCourses()});
- $('courseGrid').addEventListener('click',e=>{const sprite=e.target.closest('[data-pdf-sprite]');if(sprite){openPdfFigureSprite(sprite);return;}const figure=e.target.closest('[data-pdf-image]');if(figure){openPdfFigure(figure.dataset.pdfImage,figure.dataset.pdfCaption);return;}const topic=e.target.closest('[data-topic-id]');if(topic){stopReadAloud();currentTopicId=topic.dataset.topicId;currentSubtopicKey='';renderCourses();return;}const subtopic=e.target.closest('[data-subtopic-key]');if(subtopic){stopReadAloud();currentSubtopicKey=subtopic.dataset.subtopicKey;if(subtopic.dataset.pageUnverified==='true')showToast('This topic is listed, but its PDF page has not been verified yet. No page number was guessed.');renderCourses();return;}const aloud=e.target.closest('[data-read-aloud]');if(aloud){readAloudLesson(aloud.dataset.readAloud,aloud);return;}const quiz=e.target.closest('[data-start-quiz]');if(quiz)openLesson(quiz.dataset.startQuiz);});
+ $('courseGrid').addEventListener('click',e=>{const video=e.target.closest('[data-topic-video]');if(video){const lesson=LESSONS.find(l=>l.id===currentTopicId);const topic=lesson?chapterTopics(lesson).find(t=>t.key===video.dataset.topicVideo):null;if(lesson&&topic)openTopicVideo(lesson,topic);return;}const sprite=e.target.closest('[data-pdf-sprite]');if(sprite){openPdfFigureSprite(sprite);return;}const figure=e.target.closest('[data-pdf-image]');if(figure){openPdfFigure(figure.dataset.pdfImage,figure.dataset.pdfCaption);return;}const topic=e.target.closest('[data-topic-id]');if(topic){stopReadAloud();currentTopicId=topic.dataset.topicId;currentSubtopicKey='';renderCourses();return;}const subtopic=e.target.closest('[data-subtopic-key]');if(subtopic){stopReadAloud();currentSubtopicKey=subtopic.dataset.subtopicKey;if(subtopic.dataset.pageUnverified==='true')showToast('This topic is listed, but its PDF page has not been verified yet. No page number was guessed.');renderCourses();return;}const aloud=e.target.closest('[data-read-aloud]');if(aloud){readAloudLesson(aloud.dataset.readAloud,aloud);return;}const quiz=e.target.closest('[data-start-quiz]');if(quiz)openLesson(quiz.dataset.startQuiz);});
  $('testClassGrid')?.addEventListener('click',e=>{const button=e.target.closest('[data-test-grade]');if(button)openTestBuilder(Number(button.dataset.testGrade));});
  $('testChangeClassBtn')?.addEventListener('click',()=>{resetTestPaper();const scope=$('testScopeControls');if(scope)scope.hidden=true;$('testBuilder').hidden=true;$('testClassGrid')?.scrollIntoView({behavior:'smooth',block:'start'});});
  $('testModeChoice')?.addEventListener('click',e=>{const button=e.target.closest('[data-test-mode]');if(button)chooseTestMode(button.dataset.testMode);});
@@ -1310,7 +1360,9 @@ function installEvents(){
  $('continueBtn').addEventListener('click',continueLearning);
  $('closeLesson').addEventListener('click',closeLesson);
  $('lessonModal').addEventListener('click',e=>{if(e.target===$('lessonModal'))closeLesson()});
- window.addEventListener('keydown',e=>{if(e.key==='Escape'){const viewer=$('pdfFigureViewer');if(viewer&&!viewer.hidden){closePdfFigure();return;}if(!$('lessonModal').hidden)closeLesson();}});
+ $('topicVideoClose')?.addEventListener('click',closeTopicVideo);
+ $('topicVideoModal')?.addEventListener('click',e=>{if(e.target===$('topicVideoModal'))closeTopicVideo();});
+ window.addEventListener('keydown',e=>{if(e.key==='Escape'){if($('topicVideoModal')&&!$('topicVideoModal').hidden){closeTopicVideo();return;}const viewer=$('pdfFigureViewer');if(viewer&&!viewer.hidden){closePdfFigure();return;}if(!$('lessonModal').hidden)closeLesson();}});
  $('mobileMenuBtn').addEventListener('click',()=>{const menu=$('mobileMenu');menu.hidden=!menu.hidden;$('mobileMenuBtn').setAttribute('aria-expanded',String(!menu.hidden));$('mobileMenuBtn').textContent=menu.hidden?'☰':'✕'});
  $('mobileMenu').addEventListener('click',e=>{if(e.target.closest('a')){$('mobileMenu').hidden=true;$('mobileMenuBtn').setAttribute('aria-expanded','false');$('mobileMenuBtn').textContent='☰'}});
 }
