@@ -523,9 +523,8 @@ function renderTestSeriesClasses(){
  host.innerHTML=GRADE_LEVELS.map(g=>{
   const lessons=LESSONS.filter(l=>l.grade===g);
   const subjects=new Set(lessons.map(l=>l.subject)).size;
-  const questionCount=lessons.reduce((sum,l)=>sum+validLessonQuestions(l).length,0);
   return '<article class="test-class-row">'+
-   '<div class="test-class-info"><span class="test-class-icon" aria-hidden="true">📝</span><div><strong>'+safe(gradeName(g))+'</strong><small>'+subjects+' subjects · '+questionCount+' questions available</small></div></div>'+
+   '<div class="test-class-info"><span class="test-class-icon" aria-hidden="true">📝</span><div><strong>'+safe(gradeName(g))+'</strong><small>'+subjects+' subjects</small></div></div>'+
    '<button type="button" class="btn btn-primary test-class-start" data-test-grade="'+g+'">Start</button>'+
   '</article>';
  }).join('');
