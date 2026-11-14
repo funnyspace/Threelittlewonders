@@ -266,7 +266,7 @@ add(10,'Maths','Areas Related to Circles','NCERT Class 10 Mathematics — Chapte
 add(10,'Maths','Surface Areas and Volumes','NCERT Class 10 Mathematics — Chapter 12.','🔢','This card represents Chapter 12: Surface Areas and Volumes from the Class 10 Mathematics textbook.','Chapter 12 is titled “Surface Areas and Volumes”.','Follow the NCERT chapter order while studying.', ['What is the title of Chapter 12?',['Surface Areas and Volumes','Statistics','Probability','Real Numbers'],0], ['Which chapter number is “Surface Areas and Volumes”?',['12','13','11','14'],0]);
 add(10,'Maths','Statistics','NCERT Class 10 Mathematics — Chapter 13.','🔢','This card represents Chapter 13: Statistics from the Class 10 Mathematics textbook.','Chapter 13 is titled “Statistics”.','Follow the NCERT chapter order while studying.', ['What is the title of Chapter 13?',['Statistics','Probability','Real Numbers','Polynomials'],0], ['Which chapter number is “Statistics”?',['13','14','12','15'],0]);
 add(10,'Maths','Probability','NCERT Class 10 Mathematics — Chapter 14.','🔢','This card represents Chapter 14: Probability from the Class 10 Mathematics textbook.','Chapter 14 is titled “Probability”.','Follow the NCERT chapter order while studying.', ['What is the title of Chapter 14?',['Probability','Real Numbers','Polynomials','Pair of Linear Equations in Two Variables'],0], ['Which chapter number is “Probability”?',['14','13','13','12'],0]);
-/* Class 10 English: NCERT First Flight numbered chapters, Reprint 2026-27. */
+/* Class 10 English: NCERT First Flight chapters and original chapter PDFs. */
 [
   "A Letter to God",
   "Nelson Mandela: Long Walk to Freedom",
@@ -279,6 +279,7 @@ add(10,'Maths','Probability','NCERT Class 10 Mathematics — Chapter 14.','🔢'
   "The Proposal"
 ].forEach((title,index)=>{
   const chapter=index+1;
+  const pdf='jeff'+String(100+chapter)+'.pdf';
   window.TLW_LESSONS.push({
     id:'10-english-first-flight-ch'+String(chapter).padStart(2,'0'),
     grade:10,
@@ -291,6 +292,9 @@ add(10,'Maths','Probability','NCERT Class 10 Mathematics — Chapter 14.','🔢'
     tip:'',
     minutes:20,
     sourceChapter:chapter,
+    sourcePdf:pdf,
+    chapterStartPage:1,
+    originalPdfTitle:'NCERT First Flight - Class 10 English - Chapter '+chapter+': '+title,
     questions:[]
   });
 });
