@@ -1731,3 +1731,50 @@
  .mcq-feedback-actions button{width:100%}
  .test-scope-grid{grid-template-columns:1fr}
 }
+
+
+/* Smart Revision and Wrong Answer Notebook */
+.dashboard-revision-plan,.dashboard-mistakes{grid-column:span 12}
+.revision-sequence{margin:6px 0 13px!important;padding:8px 10px;border-radius:10px;background:#f4f8f5;color:#557060!important;font-size:10px!important;font-weight:850;letter-spacing:.15px}
+.revision-plan-list{display:grid;gap:8px}
+.revision-plan-row{display:flex;align-items:center;justify-content:space-between;gap:14px;width:100%;border:1px solid #e5ebe6;border-radius:11px;background:#fbfdfb;padding:10px 12px;text-align:left}
+.revision-plan-row.due{border-color:#e6c57c;background:#fff9ea}
+.revision-plan-row span{min-width:0}
+.revision-plan-row strong{display:block;color:#34533f;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.revision-plan-row small{display:block;margin-top:2px;color:#87948b;font-size:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.revision-plan-row b{flex:none;border-radius:999px;background:#edf4ef;color:#356149;padding:5px 8px;font-size:9px}
+.revision-plan-row.due b{background:#fff0c7;color:#876317}
+
+.mistake-count{display:inline-flex;align-items:center;gap:4px;border-radius:999px;background:#fff1ef;color:#a44a3d;padding:6px 9px;font-size:9px;font-weight:800}
+.mistakes-intro{margin:6px 0 13px!important}
+.mistake-notebook-list{display:grid;gap:11px}
+.mistake-card{border:1px solid #e5e8e5;border-radius:14px;background:#fff;padding:14px}
+.mistake-card-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px}
+.mistake-card-head>span{display:inline-flex;border-radius:999px;background:#eef5ef;color:#2f6848;padding:5px 8px;font-size:8px;font-weight:900;text-transform:uppercase;letter-spacing:.7px}
+.mistake-card-head small{color:#8a958e;font-size:8px;text-align:right}
+.mistake-card h4{margin:0 0 10px;color:#314d3c;font-size:12px;line-height:1.55}
+.mistake-card>p{margin:5px 0!important;font-size:10px!important;line-height:1.5}
+.mistake-wrong{color:#9f4d43!important}
+.mistake-correct{color:#34734f!important}
+.mistake-explanation{margin-top:10px;padding:10px 11px;border-radius:10px;background:#f7faf7;border:1px solid #e7ebe7}
+.mistake-explanation>b{display:block;color:#385845;font-size:9px}
+.mistake-explanation p{margin:4px 0 0!important;color:#617168!important;font-size:10px!important;line-height:1.55}
+.mistake-actions{display:flex;flex-wrap:wrap;gap:7px;margin-top:11px}
+.mistake-actions button{border:1px solid #dce6de;border-radius:999px;background:#fff;color:#32684a;padding:7px 10px;font-size:9px;font-weight:900}
+.mistake-actions button:hover{background:#eef6f0}
+
+.mcq-confidence{display:flex;align-items:center;flex-wrap:wrap;gap:7px;margin-top:10px;padding-top:10px;border-top:1px solid #e6ebe7}
+.mcq-confidence>span{margin-right:auto;color:#64766a;font-size:9px;font-weight:850}
+.mcq-confidence button{border:1px solid #dce5dd;border-radius:999px;background:#fff;color:#496154;padding:6px 9px;font-size:9px;font-weight:850}
+.mcq-confidence button.selected{background:#e8f5ec;border-color:#9cc4aa;color:#286846}
+.mcq-confidence button:disabled{opacity:.7}
+
+@media(max-width:680px){
+ .revision-plan-row,.mistake-card-head{align-items:flex-start;flex-direction:column}
+ .revision-plan-row b{align-self:flex-start}
+ .mistake-card-head small{text-align:left}
+ .mistake-actions{display:grid;grid-template-columns:1fr}
+ .mistake-actions button{width:100%}
+ .mcq-confidence{display:grid;grid-template-columns:1fr}
+ .mcq-confidence>span{margin-right:0}
+}
