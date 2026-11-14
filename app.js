@@ -15,7 +15,7 @@ const GRADE_GROUPS=[
  {key:'secondary',label:'Secondary',range:'Classes 9–10',icon:'🎓',grades:[9,10]}
 ];
 function load(){try{const v=JSON.parse(localStorage.getItem(STORE_KEY)||localStorage.getItem(LEGACY_STORE_KEY)||'{}');return {grade:Number.isInteger(v.grade)&&GRADE_LEVELS.includes(v.grade)?v.grade:3,completed:Array.isArray(v.completed)?[...new Set(v.completed.filter(x=>typeof x==='string'))]:[]}}catch{return {grade:3,completed:[]}}}
-let state=load(),subject='',query='',classChoicesOpen=true,currentTopicId='',currentSubtopicKey='',currentLesson=null,currentQuestion=0,questionAnswered=false,currentQuizDifficulty='all',currentQuizQuestions=[],currentMistakeId='',currentPracticeSource='',returnFocus=null,toastTimer;
+let state=load(),subject='',query='',classChoicesOpen=true,currentTopicId='',currentSubtopicKey='',currentLesson=null,currentQuestion=0,questionAnswered=false,currentQuizDifficulty='all',currentQuizQuestions=[],currentMistakeId='',currentPracticeSource='',currentFlashcardId='',returnFocus=null,toastTimer;
 function persist(){
  try{localStorage.setItem(STORE_KEY,JSON.stringify(state))}catch{showToast('Progress cannot be saved in this browser.')}
  queueCloudLearningSync();
@@ -31,6 +31,7 @@ function emptyStudyData(){
   testAttempts:[],
   mistakes:[],
   badges:[],
+  flashcardStats:{},
   timeByDate:{},
   daily:{date:'',completedLessonIds:[],practicedTopics:[],dailyChallengeDone:false,mysteryChallengeDone:false}
  };
@@ -46,6 +47,7 @@ function loadStudyData(){
    testAttempts:Array.isArray(raw&&raw.testAttempts)?raw.testAttempts:[],
    mistakes:Array.isArray(raw&&raw.mistakes)?raw.mistakes:[],
    badges:Array.isArray(raw&&raw.badges)?raw.badges:[],
+   flashcardStats:raw&&raw.flashcardStats&&typeof raw.flashcardStats==='object'?raw.flashcardStats:{},
    timeByDate:raw&&raw.timeByDate&&typeof raw.timeByDate==='object'?raw.timeByDate:{},
    daily:raw&&raw.daily&&typeof raw.daily==='object'?{
     date:String(raw.daily.date||''),
@@ -96,6 +98,7 @@ function normaliseCloudStudyData(raw){
   testAttempts:Array.isArray(value.testAttempts)?value.testAttempts:[],
   mistakes:Array.isArray(value.mistakes)?value.mistakes:[],
   badges:Array.isArray(value.badges)?value.badges:[],
+  flashcardStats:value.flashcardStats&&typeof value.flashcardStats==='object'?value.flashcardStats:{},
   timeByDate:value.timeByDate&&typeof value.timeByDate==='object'?value.timeByDate:{},
   daily:value.daily&&typeof value.daily==='object'?{
    date:String(value.daily.date||''),
@@ -878,6 +881,259 @@ function renderScienceConceptMap(lesson){
    }).join('')+'</div></section>'
   ).join('')+'</div>'+
  '</section>';
+}
+function chapterStepStatus(lesson){
+ const mastery=chapterMastery(lesson);
+ const hasPdf=!!sourcePdfUrl(lesson);
+ const hasQuestions=validLessonQuestions(lesson).length>0;
+ const mistakes=activeMistakesForGrade(lesson.grade).filter(m=>m.lessonId===lesson.id).length;
+ return {
+  learn:hasPdf?'ready':'available',
+  understand:'ready',
+  practice:hasQuestions?'ready':'pending',
+  test:hasQuestions?'ready':'pending',
+  revise:(mistakes||mastery>0)?'ready':'available',
+  mastered:mastery>=80?'done':'progress'
+ };
+}
+function renderChapterJourney(lesson){
+ const status=chapterStepStatus(lesson);
+ const mastery=chapterMastery(lesson);
+ const steps=[
+  {n:1,key:'learn',icon:'📖',title:'Learn',sub:'Original NCERT PDF'},
+  {n:2,key:'understand',icon:'▶',title:'Understand',sub:'Video · Read Aloud · illustrations'},
+  {n:3,key:'practice',icon:'🧩',title:'Quick Practice',sub:'Up to 5 verified questions'},
+  {n:4,key:'test',icon:'📝',title:'Chapter Test',sub:'MCQ / Descriptive'},
+  {n:5,key:'revise',icon:'🔁',title:'Revise',sub:'Flashcards · mistakes · weak topics'},
+  {n:6,key:'mastered',icon:'🏆',title:'Mastered',sub:mastery+'% chapter mastery'}
+ ];
+ return '<nav class="chapter-learning-path" aria-label="Chapter learning path">'+
+  '<div class="chapter-learning-path-head"><span>LEARN → PRACTICE → TEST → REVISE</span><strong>Your chapter path</strong></div>'+
+  '<div class="chapter-learning-steps">'+steps.map(step=>
+   '<button type="button" class="chapter-learning-step step-'+safe(status[step.key])+'" data-chapter-step="'+step.key+'">'+
+    '<b>'+step.n+'</b><i aria-hidden="true">'+step.icon+'</i><span><strong>'+safe(step.title)+'</strong><small>'+safe(step.sub)+'</small></span>'+
+   '</button>'
+  ).join('')+'</div>'+
+ '</nav>';
+}
+function journeySectionHead(number,icon,title,subtitle){
+ return '<div class="journey-section-head"><span>'+number+'</span><i aria-hidden="true">'+icon+'</i><div><strong>'+safe(title)+'</strong><small>'+safe(subtitle)+'</small></div></div>';
+}
+function renderUnderstandSection(lesson){
+ const topics=chapterTopics(lesson);
+ const active=topics.find(t=>t.key===currentSubtopicKey)||topics[0]||null;
+ return '<section class="chapter-journey-section" id="chapter-step-understand" data-journey-section="understand">'+
+  journeySectionHead(2,'▶','Understand','Video, Read Aloud and visual revision')+
+  renderScienceConceptMap(lesson)+
+  '<div class="understand-actions">'+
+   '<button type="button" class="btn btn-secondary" data-understand-video '+(!active?'disabled':'')+'>▶ Watch topic video</button>'+
+   '<button type="button" class="btn btn-secondary read-aloud-btn" data-read-aloud="'+safe(lesson.id)+'">🔊 Read Aloud</button>'+
+  '</div>'+
+ '</section>';
+}
+function openQuickPractice(lesson){
+ if(!lesson)return;
+ const questions=shuffledTestItems(quizQuestionsForLesson(lesson,'all')).slice(0,5);
+ if(!questions.length){showToast('No verified quick-practice questions are available for this chapter yet.');return;}
+ touchStudyLesson(lesson.id,currentSubtopicKey);
+ stopReadAloud();
+ currentLesson=lesson;
+ currentMistakeId='';
+ currentPracticeSource='quick-practice';
+ currentQuizDifficulty='all';
+ currentQuizQuestions=questions;
+ currentQuestion=0;
+ questionAnswered=false;
+ returnFocus=document.activeElement;
+ $('lessonModal').hidden=false;
+ document.body.classList.add('modal-open');
+ $('lessonTitle').textContent='Quick Practice · '+lesson.title;
+ $('modalSubjectIcon').textContent=subjectIcon(lesson.subject);
+ $('modalMeta').textContent=gradeName(lesson.grade).toUpperCase()+' · QUICK PRACTICE · '+questions.length+' QUESTIONS';
+ showQuiz();
+ $('closeLesson').focus();
+}
+function renderQuickPracticeSection(lesson){
+ const count=Math.min(5,validLessonQuestions(lesson).length);
+ return '<section class="chapter-journey-section" id="chapter-step-practice" data-journey-section="practice">'+
+  journeySectionHead(3,'🧩','Quick Practice','Short retrieval practice before the chapter test')+
+  '<div class="quick-practice-card"><div><strong>'+(count?count+' question'+(count===1?'':'s'):'No questions yet')+'</strong><p>'+(count?'A focused set from the verified chapter question bank.':'Verified questions must be added before Quick Practice is enabled.')+'</p></div>'+
+  '<button type="button" class="btn btn-primary" data-quick-practice="'+safe(lesson.id)+'" '+(count?'':'disabled')+'>Start Quick Practice</button></div>'+
+  renderDifficultySelector(lesson)+
+ '</section>';
+}
+function openChapterTestFromLesson(lesson,mode='objective'){
+ if(!lesson)return;
+ window.location.hash='#test-series';
+ openTestBuilder(lesson.grade);
+ chooseTestMode(mode);
+ const subjectSelect=$('testSubjectSelect');
+ if(subjectSelect){
+  subjectSelect.value=lesson.subject;
+  populateTestChapters();
+ }
+ const chapterSelect=$('testChapterSelect');
+ if(chapterSelect){
+  chapterSelect.value=lesson.id;
+  populateTestTopics();
+ }
+ if(mode==='descriptive')selectExamPreset('chapter');
+ updateTestScopeNote();
+ requestAnimationFrame(()=>$('testBuilder')?.scrollIntoView({behavior:'smooth',block:'start'}));
+}
+function renderChapterTestSection(lesson){
+ const count=validLessonQuestions(lesson).length;
+ return '<section class="chapter-journey-section" id="chapter-step-test" data-journey-section="test">'+
+  journeySectionHead(4,'📝','Chapter Test','Check what you can retrieve and apply')+
+  '<div class="chapter-test-actions">'+
+   '<button type="button" class="btn btn-primary" data-chapter-test="objective" '+(count?'':'disabled')+'>MCQ Chapter Test</button>'+
+   '<button type="button" class="btn btn-secondary" data-chapter-test="descriptive">Descriptive Chapter Test</button>'+
+  '</div>'+
+ '</section>';
+}
+function flashcardHash(value){
+ let hash=0;
+ const text=String(value||'');
+ for(let i=0;i<text.length;i++)hash=((hash<<5)-hash+text.charCodeAt(i))|0;
+ return Math.abs(hash);
+}
+function flashcardsForLesson(lesson){
+ if(Array.isArray(lesson?.flashcards)&&lesson.flashcards.length){
+  return lesson.flashcards.filter(card=>card&&card.front&&card.back).map((card,index)=>({
+   id:'flash:'+lesson.id+':custom:'+index,
+   lessonId:lesson.id,
+   topicKey:card.topicKey||'overview',
+   front:String(card.front),
+   back:String(card.back)
+  }));
+ }
+ return validLessonQuestions(lesson).slice(0,20).map((question,index)=>{
+  const correct=String(question.options[question.answer]||'');
+  const explanation=questionExplanation(lesson,question);
+  const back=explanation&&explanation!==correct?correct+' — '+explanation:correct;
+  return {
+   id:'flash:'+lesson.id+':'+flashcardHash(question.text+'|'+index),
+   lessonId:lesson.id,
+   topicKey:String(question.topicKey||'overview'),
+   front:String(question.text),
+   back
+  };
+ });
+}
+function flashcardStat(card){
+ if(!studyData.flashcardStats[card.id]){
+  studyData.flashcardStats[card.id]={step:0,nextReviewAt:'',lastRating:'',lastReviewedAt:'',reviews:0};
+ }
+ return studyData.flashcardStats[card.id];
+}
+function flashcardDue(card){
+ const stat=studyData.flashcardStats[card.id];
+ return !stat?.nextReviewAt||new Date(stat.nextReviewAt).getTime()<=Date.now();
+}
+function flashcardReviewLabel(card){
+ const stat=studyData.flashcardStats[card.id];
+ if(!stat?.nextReviewAt)return 'New card';
+ const target=new Date(stat.nextReviewAt);
+ const today=new Date();today.setHours(0,0,0,0);
+ const day=new Date(target);day.setHours(0,0,0,0);
+ const diff=Math.round((day-today)/86400000);
+ if(diff<=0)return 'Due today';
+ if(diff===1)return 'Due tomorrow';
+ return 'Due in '+diff+' days';
+}
+function selectedFlashcard(lesson){
+ const cards=flashcardsForLesson(lesson);
+ if(!cards.length)return null;
+ const current=cards.find(card=>card.id===currentFlashcardId);
+ if(current)return current;
+ const due=cards.find(flashcardDue);
+ if(due)return due;
+ return [...cards].sort((a,b)=>{
+  const sa=studyData.flashcardStats[a.id]?.nextReviewAt||'9999-12-31';
+  const sb=studyData.flashcardStats[b.id]?.nextReviewAt||'9999-12-31';
+  return new Date(sa)-new Date(sb);
+ })[0];
+}
+function flashcardTopicKey(lesson,card){
+ if(card.topicKey&&chapterTopics(lesson).some(t=>t.key===card.topicKey))return card.topicKey;
+ if(currentSubtopicKey&&chapterTopics(lesson).some(t=>t.key===currentSubtopicKey))return currentSubtopicKey;
+ return 'overview';
+}
+function rateFlashcard(lesson,card,rating){
+ if(!lesson||!card)return;
+ const stat=flashcardStat(card);
+ let step=Number(stat.step)||0;
+ if(rating==='again')step=1;
+ else if(rating==='good')step=Math.max(2,Math.min(REVISION_INTERVALS.length-1,step+1));
+ else step=Math.max(3,Math.min(REVISION_INTERVALS.length-1,step+2));
+ stat.step=step;
+ stat.nextReviewAt=dateAfterDays(REVISION_INTERVALS[step]);
+ stat.lastRating=rating;
+ stat.lastReviewedAt=new Date().toISOString();
+ stat.reviews=(Number(stat.reviews)||0)+1;
+ const topicKey=flashcardTopicKey(lesson,card);
+ const topicStat=topicStudyStat(lesson.id,topicKey);
+ topicStat.lastStudied=stat.lastReviewedAt;
+ topicStat.revisionStep=step;
+ topicStat.nextReviewAt=stat.nextReviewAt;
+ topicStat.lastReviewAt=stat.lastReviewedAt;
+ topicStat.lastOutcome=rating==='again'?'needs-review':'flashcard';
+ markPracticedTopic(lesson.id,topicKey);
+ currentFlashcardId='';
+ saveStudyData();
+ renderCourses();
+ renderStudyDashboard();
+}
+function renderFlashcardSection(lesson){
+ const cards=flashcardsForLesson(lesson);
+ if(!cards.length){
+  return '<div class="flashcard-empty"><strong>Flashcards are not available yet.</strong><p>They will appear when verified chapter questions or curated flashcards are added.</p></div>';
+ }
+ const card=selectedFlashcard(lesson);
+ const dueCount=cards.filter(flashcardDue).length;
+ return '<div class="flashcard-study">'+
+  '<div class="flashcard-study-top"><div><span>FLASHCARDS</span><strong>'+cards.length+' cards · '+dueCount+' due now</strong></div><small>'+safe(flashcardReviewLabel(card))+'</small></div>'+
+  '<button type="button" class="study-flashcard" data-flashcard-reveal="'+safe(card.id)+'" aria-expanded="false">'+
+   '<span class="flashcard-side flashcard-front"><small>FRONT</small><strong>'+safe(card.front)+'</strong><em>Tap to reveal</em></span>'+
+   '<span class="flashcard-side flashcard-back" hidden><small>BACK</small><strong>'+safe(card.back)+'</strong></span>'+
+  '</button>'+
+  '<div class="flashcard-ratings" data-flashcard-ratings hidden>'+
+   '<button type="button" data-flashcard-rate="again" data-flashcard-id="'+safe(card.id)+'">😕 Again<small>Tomorrow</small></button>'+
+   '<button type="button" data-flashcard-rate="good" data-flashcard-id="'+safe(card.id)+'">🙂 Good<small>3+ days</small></button>'+
+   '<button type="button" data-flashcard-rate="easy" data-flashcard-id="'+safe(card.id)+'">😎 Easy<small>7+ days</small></button>'+
+  '</div>'+
+ '</div>';
+}
+function renderReviseSection(lesson){
+ const mistakes=activeMistakesForGrade(lesson.grade).filter(m=>m.lessonId===lesson.id);
+ const weak=chapterTopics(lesson).map(topic=>({topic,mastery:topicMastery(lesson,topic.key)})).filter(row=>row.mastery>0&&row.mastery<80).sort((a,b)=>a.mastery-b.mastery);
+ return '<section class="chapter-journey-section" id="chapter-step-revise" data-journey-section="revise">'+
+  journeySectionHead(5,'🔁','Revise','Flashcards, mistakes and weak topics')+
+  renderFlashcardSection(lesson)+
+  '<div class="chapter-revision-summary">'+
+   '<div><span>Wrong Answer Notebook</span><strong>'+mistakes.length+' unresolved</strong></div>'+
+   '<div><span>Weak topics</span><strong>'+weak.length+' need attention</strong></div>'+
+   '<button type="button" class="btn btn-secondary" data-open-learning-dashboard>Open My Learning Dashboard</button>'+
+  '</div>'+
+ '</section>';
+}
+function renderMasteredSection(lesson){
+ const mastery=chapterMastery(lesson);
+ const status=topicStatusInfo(mastery);
+ const mastered=mastery>=80;
+ return '<section class="chapter-journey-section chapter-mastered-section '+(mastered?'is-mastered':'')+'" id="chapter-step-mastered" data-journey-section="mastered">'+
+  journeySectionHead(6,'🏆','Mastered',mastered?'Chapter mastery achieved':'Keep retrieving, testing and revising')+
+  '<div class="chapter-mastery-summary"><div><span class="topic-mastery-badge mastery-'+status.key+'">'+status.icon+' '+mastery+'% · '+status.label+'</span><p>'+(mastered?'You have reached the mastery threshold for this chapter.':'Reach 80%+ mastery through quizzes, tests and spaced revision.')+'</p></div>'+
+  '<div class="dashboard-mastery-track"><div style="width:'+mastery+'%"></div></div></div>'+
+ '</section>';
+}
+function finishPracticeSession(){
+ if(!currentLesson)return;
+ stage('Complete');
+ const source=currentPracticeSource;
+ const label=source==='quick-practice'?'Quick Practice':source==='daily-challenge'?'Daily Challenge':source==='mystery-challenge'?'Mystery Challenge':'Practice';
+ $('lessonBody').innerHTML='<div class="celebrate practice-finish"><div class="celebrate-emoji" aria-hidden="true">✅</div><h3>'+safe(label)+' complete</h3><p>Your answers have updated mastery and Smart Revision. Keep using retrieval practice to strengthen the topic.</p></div>';
+ footer('Practice updates mastery, not chapter completion.','Back to chapter',()=>{closeLesson();renderCourses();});
 }
 function renderStudyDashboard(){
  const account=dashboardAccount(),guest=$('learningGuestView'),dashboard=$('studyDashboard');
@@ -2763,7 +3019,7 @@ function answer(choice){
  footerButton.disabled=false;
  footerButton.style.opacity='1';
  footerButton.innerHTML=last?'Finish lesson ↗':'Next question ↗';
- footerButton.onclick=()=>{if(last)completeLesson();else{currentQuestion++;showQuiz()}};
+ footerButton.onclick=()=>{if(last){if(currentPracticeSource)finishPracticeSession();else completeLesson();}else{currentQuestion++;showQuiz()}};
 }
 function completeLesson(){if(!currentLesson)return;stage('Complete');const already=state.completed.includes(currentLesson.id);recordLessonComplete(currentLesson.id);if(!already){state.completed.push(currentLesson.id);persist();renderProgress();renderCourses()}else{renderStudyDashboard()}
  $('lessonBody').innerHTML=`<div class="celebrate"><div class="celebrate-emoji" aria-hidden="true">🎉🌟</div><h3>Wonderfully done!</h3><p>You completed <strong>${safe(currentLesson.title)}</strong>! Every little lesson takes you closer to big discoveries.</p><div class="reward">⭐ ${already?'Lesson reviewed!':'+20 stars earned!'}</div></div>`;
