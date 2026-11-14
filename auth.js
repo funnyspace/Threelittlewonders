@@ -113,8 +113,8 @@ function renderAuthState(){
   if($('authUserName'))$('authUserName').textContent=account.displayName||'Student';
   if($('authUserGrade'))$('authUserGrade').textContent=gradeName(Number(account.grade));
   if(mobile)mobile.textContent='👤 '+first+' · Log out';
-  if($('learningNavLabel'))$('learningNavLabel').textContent='My Study Dashboard';
-  if($('mobileLearningNavLabel'))$('mobileLearningNavLabel').textContent='My Study Dashboard';
+  if($('learningNavLabel'))$('learningNavLabel').textContent='My Learning Dashboard';
+  if($('mobileLearningNavLabel'))$('mobileLearningNavLabel').textContent='My Learning Dashboard';
  }else{
   if(label)label.textContent='Log in';
   if(button){
