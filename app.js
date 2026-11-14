@@ -1003,6 +1003,19 @@ let testGrade=null;
 let activeTestItems=[];
 let descriptivePaperRun=0;
 let lastDescriptivePaperSignature='';
+let activeDescriptiveSections=[];
+let examCurrentIndex=0;
+let examAnswers=[];
+let examReview=new Set();
+let examTimerId=null;
+let examSecondsLeft=0;
+let examSubmitted=false;
+let lastExamWeakConcepts=[];
+const EXAM_PRESETS={
+ full:{key:'full',label:'Full Syllabus',marks:80,minutes:180,targetQuestions:40},
+ chapter:{key:'chapter',label:'Chapter Test',marks:20,minutes:30,targetQuestions:20},
+ topic:{key:'topic',label:'Topic Test',marks:10,minutes:15,targetQuestions:10}
+};
 const DIFFICULTY_LEVELS={
  foundation:{label:'Foundation',icon:'🟢',description:'Definitions, recognition and basic recall'},
  standard:{label:'Standard',icon:'🟡',description:'Application and reasoning'},
@@ -1096,10 +1109,64 @@ function renderTestSeriesClasses(){
 function testLessonsForGrade(){
  return LESSONS.filter(l=>l.grade===testGrade);
 }
+function stopExamTimer(){
+ if(examTimerId){clearInterval(examTimerId);examTimerId=null;}
+}
 function resetTestPaper(){
+ stopExamTimer();
  activeTestItems=[];
+ activeDescriptiveSections=[];
+ examCurrentIndex=0;
+ examAnswers=[];
+ examReview=new Set();
+ examSecondsLeft=0;
+ examSubmitted=false;
+ lastExamWeakConcepts=[];
  const panel=$('testPaperPanel');
  if(panel){panel.hidden=true;panel.innerHTML='';}
+}
+function currentExamPreset(){
+ const key=$('testExamPreset')?.value||'full';
+ return EXAM_PRESETS[key]||EXAM_PRESETS.full;
+}
+function setExamPresetValue(key){
+ const preset=EXAM_PRESETS[key]?key:'full';
+ const input=$('testExamPreset');
+ if(input)input.value=preset;
+ $('testExamPresetChoice')?.querySelectorAll('[data-exam-preset]').forEach(button=>{
+  button.classList.toggle('active',button.dataset.examPreset===preset);
+ });
+}
+function applyExamPresetScope(){
+ const preset=currentExamPreset();
+ const paperType=$('testPaperTypeSelect')?.value||'objective';
+ const chapter=$('testChapterSelect');
+ const topic=$('testTopicSelect');
+ if(!chapter||!topic)return;
+ if(paperType==='descriptive'){
+  chapter.disabled=false;
+  topic.disabled=!chapter.value;
+  return;
+ }
+ if(preset.key==='full'){
+  chapter.value='';
+  chapter.disabled=true;
+  topic.value='';
+  topic.disabled=true;
+ }else if(preset.key==='chapter'){
+  chapter.disabled=false;
+  topic.value='';
+  topic.disabled=true;
+ }else{
+  chapter.disabled=false;
+  topic.disabled=!chapter.value;
+ }
+}
+function selectExamPreset(key){
+ setExamPresetValue(key);
+ resetTestPaper();
+ applyExamPresetScope();
+ updateTestScopeNote();
 }
 function populateTestSubjects(){
  const select=$('testSubjectSelect');
@@ -1118,6 +1185,7 @@ function populateTestChapters(){
   '<option value="'+safe(lesson.id)+'">'+(index+1)+'. '+safe(lesson.title)+'</option>'
  ).join('');
  populateTestTopics();
+ applyExamPresetScope();
 }
 function populateTestTopics(){
  resetTestPaper();
@@ -1130,12 +1198,29 @@ function populateTestTopics(){
  }else{
   const lesson=LESSONS.find(l=>l.id===chapterId);
   const topics=lesson?chapterTopics(lesson):[];
-  select.disabled=false;
   select.innerHTML='<option value="">All topics</option>'+topics.map(t=>
    '<option value="'+safe(t.key)+'">'+safe(t.title)+'</option>'
   ).join('');
+  select.disabled=false;
  }
+ applyExamPresetScope();
  updateTestScopeNote();
+}
+function validateExamScope(){
+ const paperType=$('testPaperTypeSelect')?.value||'objective';
+ if(paperType==='descriptive')return true;
+ const preset=currentExamPreset();
+ const chapterId=$('testChapterSelect')?.value||'';
+ const topicKey=$('testTopicSelect')?.value||'';
+ if(preset.key==='chapter'&&!chapterId){
+  showToast('Choose a chapter before starting the Chapter Test.');
+  return false;
+ }
+ if(preset.key==='topic'&&(!chapterId||!topicKey)){
+  showToast('Choose both a chapter and topic before starting the Topic Test.');
+  return false;
+ }
+ return true;
 }
 function updateTestScopeNote(){
  const note=$('testScopeNote');
@@ -1149,14 +1234,18 @@ function updateTestScopeNote(){
  let scope=subject||'Subject';
  if(chapter)scope+=' · '+chapter.title;
  if(topic)scope+=' · '+topic.title;
- if(paperType==='descriptive'){
-  const pattern=testGrade===10?'Current CBSE reference: 2026-27. ':'';
-  note.textContent=pattern+'Paper scope: '+scope+'. Questions only, with competency, reasoning and case-based styles. A different question set is generated on each new start.';
- }else{
-  const difficulty=$('testDifficultySelect')?.value||'all';const label=difficulty==='all'?'Mixed difficulty':(DIFFICULTY_LEVELS[difficulty]?.label||difficulty);note.textContent='Paper scope: '+scope+' · '+label+'. Up to 10 available objective questions will be used.';
- }
  const start=$('generateTestBtn');
- if(start)start.innerHTML=(paperType==='descriptive'?'Begin Descriptive Exam':'Begin MCQ Test')+' <span aria-hidden="true">↗</span>';
+ if(paperType==='descriptive'){
+  note.textContent=(testGrade===10?'Current CBSE reference: 2026-27. ':'')+'Paper scope: '+scope+'. Finish the paper to reveal the practice marking scheme, model-answer guidance and examiner keywords.';
+  if(start)start.innerHTML='Begin Descriptive Exam <span aria-hidden="true">↗</span>';
+ }else{
+  const preset=currentExamPreset();
+  const difficulty=$('testDifficultySelect')?.value||'all';
+  const level=difficulty==='all'?'Mixed difficulty':(DIFFICULTY_LEVELS[difficulty]?.label||difficulty);
+  const cbse=(testGrade===10&&subject==='Science'&&preset.key==='full')?' CBSE Class X Science reference: 80 marks, 3 hours.':'';
+  note.textContent=preset.label+' · '+preset.marks+' marks · '+preset.minutes+' minutes · '+level+'.'+cbse+' Question count depends on the verified question bank currently available.';
+  if(start)start.innerHTML='Begin Exam <span aria-hidden="true">↗</span>';
+ }
 }
 function openTestBuilder(grade){
  testGrade=grade;
@@ -1171,6 +1260,7 @@ function openTestBuilder(grade){
  if(scope)scope.hidden=true;
  const paperType=$('testPaperTypeSelect');
  if(paperType)paperType.value='objective';
+ setExamPresetValue('full');
  const subjectSelect=$('testSubjectSelect');
  const chapterSelect=$('testChapterSelect');
  const topicSelect=$('testTopicSelect');
@@ -1185,13 +1275,18 @@ function chooseTestMode(mode){
  const modeChoice=$('testModeChoice');
  if(!paperType||!scope)return;
  paperType.value=mode==='descriptive'?'descriptive':'objective';
- const difficultyField=$('testDifficultyField');if(difficultyField)difficultyField.hidden=paperType.value==='descriptive';
+ const difficultyField=$('testDifficultyField');
+ const presetChoice=$('testExamPresetChoice');
+ if(difficultyField)difficultyField.hidden=paperType.value==='descriptive';
+ if(presetChoice)presetChoice.hidden=paperType.value==='descriptive';
  resetTestPaper();
  scope.hidden=false;
  if(modeChoice)modeChoice.querySelectorAll('[data-test-mode]').forEach(button=>{
   button.classList.toggle('selected',button.dataset.testMode===paperType.value);
  });
+ if(paperType.value==='objective')setExamPresetValue('full');
  populateTestSubjects();
+ applyExamPresetScope();
  updateTestScopeNote();
  requestAnimationFrame(()=>scope.scrollIntoView({behavior:'smooth',block:'start'}));
 }
@@ -1208,12 +1303,15 @@ function buildTestQuestionPool(){
  const chapterId=$('testChapterSelect')?.value||'';
  const topicKey=$('testTopicSelect')?.value||'';
  const difficulty=$('testDifficultySelect')?.value||'all';
+ const preset=currentExamPreset();
  let lessons=testLessonsForGrade().filter(l=>l.subject===subject);
- if(chapterId)lessons=lessons.filter(l=>l.id===chapterId);
- let items=lessons.flatMap(lesson=>validQuestionsWithMeta(lesson).map(item=>({lesson,question:item.question,index:item.index,difficulty:item.difficulty})));
+ if(preset.key!=='full'&&chapterId)lessons=lessons.filter(l=>l.id===chapterId);
+ let items=lessons.flatMap(lesson=>validQuestionsWithMeta(lesson).map(item=>({
+  lesson,question:item.question,index:item.index,difficulty:item.difficulty
+ })));
  if(difficulty!=='all')items=items.filter(item=>item.difficulty===difficulty);
  let topicFallback=false;
- if(topicKey&&chapterId){
+ if(preset.key==='topic'&&topicKey&&chapterId){
   const chapter=lessons[0];
   const topic=chapterTopics(chapter).find(t=>t.key===topicKey);
   const tagged=items.filter(item=>{
@@ -1223,9 +1321,9 @@ function buildTestQuestionPool(){
     (topic&&String(q.section||'').toLowerCase()===String(topic.title||'').toLowerCase());
   });
   if(tagged.length)items=tagged;
-  else topicFallback=true;
+  else{items=[];topicFallback=true;}
  }
- return {items:shuffledTestItems(items).slice(0,10),topicFallback,difficulty};
+ return {items:shuffledTestItems(items).slice(0,preset.targetQuestions),topicFallback,difficulty,preset};
 }
 
 function rotatePick(items,count,offset){
