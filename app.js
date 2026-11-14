@@ -27,6 +27,7 @@ function emptyStudyData(){
   topicStats:{},
   testAttempts:[],
   mistakes:[],
+  timeByDate:{},
   daily:{date:'',completedLessonIds:[],practicedTopics:[]}
  };
 }
@@ -40,6 +41,7 @@ function loadStudyData(){
    topicStats:raw&&raw.topicStats&&typeof raw.topicStats==='object'?raw.topicStats:{},
    testAttempts:Array.isArray(raw&&raw.testAttempts)?raw.testAttempts:[],
    mistakes:Array.isArray(raw&&raw.mistakes)?raw.mistakes:[],
+   timeByDate:raw&&raw.timeByDate&&typeof raw.timeByDate==='object'?raw.timeByDate:{},
    daily:raw&&raw.daily&&typeof raw.daily==='object'?{
     date:String(raw.daily.date||''),
     completedLessonIds:Array.isArray(raw.daily.completedLessonIds)?raw.daily.completedLessonIds:[],
@@ -443,12 +445,155 @@ function renderMistakeNotebook(grade){
   '</article>';
  }).join('');
 }
+function weekStartDate(date=new Date()){
+ const d=new Date(date);
+ d.setHours(0,0,0,0);
+ const day=(d.getDay()+6)%7;
+ d.setDate(d.getDate()-day);
+ return d;
+}
+function isoDayLocal(date){
+ const y=date.getFullYear(),m=String(date.getMonth()+1).padStart(2,'0'),d=String(date.getDate()).padStart(2,'0');
+ return y+'-'+m+'-'+d;
+}
+function isThisWeek(dateValue){
+ if(!dateValue)return false;
+ const time=new Date(dateValue).getTime();
+ const start=weekStartDate().getTime();
+ const end=start+7*86400000;
+ return time>=start&&time<end;
+}
+function weeklyStudySeconds(){
+ const start=weekStartDate();
+ let total=0;
+ for(let i=0;i<7;i++){
+  const d=new Date(start);d.setDate(start.getDate()+i);
+  total+=Number(studyData.timeByDate?.[isoDayLocal(d)]||0);
+ }
+ return total;
+}
+function formatStudyDuration(seconds){
+ const mins=Math.floor(Math.max(0,seconds)/60);
+ const h=Math.floor(mins/60),m=mins%60;
+ if(h&&m)return h+'h '+m+'m';
+ if(h)return h+'h';
+ return mins+'m';
+}
+function shouldTrackStudyTime(){
+ if(document.hidden||!dashboardAccount())return false;
+ const hash=window.location.hash||'#home';
+ return ['#explore','#test-series','#my-learning'].includes(hash);
+}
+function trackStudyTimeTick(){
+ if(!shouldTrackStudyTime())return;
+ const key=isoDayLocal(new Date());
+ studyData.timeByDate[key]=Number(studyData.timeByDate[key]||0)+30;
+ saveStudyData();
+}
+function startStudyTimeTracking(){
+ setInterval(trackStudyTimeTick,30000);
+}
+function subjectMasteryRows(grade){
+ const map=new Map();
+ gradeTopicRows(grade).forEach(row=>{
+  if(!map.has(row.lesson.subject))map.set(row.lesson.subject,[]);
+  map.get(row.lesson.subject).push(row.mastery);
+ });
+ return [...map.entries()].map(([subject,values])=>({
+  subject,
+  mastery:values.length?Math.round(values.reduce((a,b)=>a+b,0)/values.length):0
+ })).sort((a,b)=>b.mastery-a.mastery||a.subject.localeCompare(b.subject));
+}
+function weeklyTopicsStudied(grade){
+ const seen=new Set();
+ Object.entries(studyData.topicStats||{}).forEach(([key,stat])=>{
+  if(!stat?.lastStudied||!isThisWeek(stat.lastStudied))return;
+  const lessonId=key.split('::')[0];
+  const lesson=LESSONS.find(l=>l.id===lessonId);
+  if(lesson&&lesson.grade===grade)seen.add(key);
+ });
+ return seen.size;
+}
+function weeklyTestsCompleted(grade){
+ return studyData.testAttempts.filter(test=>Number(test.grade)===grade&&isThisWeek(test.date)).length;
+}
+function recentTestForGrade(grade){
+ return [...studyData.testAttempts].reverse().find(test=>Number(test.grade)===grade)||null;
+}
+function renderParentDashboard(account,rows,revise){
+ if(!account)return;
+ const grade=Number(account.grade);
+ const started=rows.filter(row=>row.mastery>0);
+ const strongest=[...started].sort((a,b)=>b.mastery-a.mastery)[0]||null;
+ const needsHelp=[...started].sort((a,b)=>a.mastery-b.mastery)[0]||null;
+ const subjects=subjectMasteryRows(grade);
+ const first=String(account.displayName||'Student').trim()||'Student';
+ const title=$('parentStudentTitle');if(title)title.textContent=first+' · '+gradeName(grade);
+ const study=$('parentStudyTime');if(study)study.textContent=formatStudyDuration(weeklyStudySeconds());
+ const topics=$('parentTopicsStudied');if(topics)topics.textContent=weeklyTopicsStudied(grade);
+ const mastered=$('parentMastered');if(mastered)mastered.textContent=rows.filter(row=>row.mastery>=80).length;
+ const revision=$('parentNeedsRevision');if(revision)revision.textContent=revise.length;
+ const subjectHost=$('parentSubjectMastery');
+ if(subjectHost){
+  subjectHost.innerHTML=subjects.length?subjects.map(row=>
+   '<div class="parent-subject-row"><span>'+safe(row.subject)+'</span><div><i style="width:'+row.mastery+'%"></i></div><strong>'+row.mastery+'%</strong></div>'
+  ).join(''):'<p class="dashboard-empty">Subject mastery will appear after practice begins.</p>';
+ }
+ const strong=$('parentStrongest');if(strong)strong.textContent=strongest?strongest.topic.title+' · '+strongest.mastery+'%':'Not enough data yet';
+ const help=$('parentNeedsHelp');if(help)help.textContent=needsHelp?needsHelp.topic.title+' · '+needsHelp.mastery+'%':'Not enough data yet';
+ const tests=$('parentTestsCompleted');if(tests)tests.textContent=weeklyTestsCompleted(grade);
+}
+function renderHomeLearningDashboard(){
+ const account=dashboardAccount();
+ const host=$('homeLearningDashboard');
+ if(!host)return;
+ if(!account){host.hidden=true;return;}
+ host.hidden=false;
+ const grade=Number(account.grade);
+ const rows=gradeTopicRows(grade);
+ const started=rows.filter(row=>row.mastery>0);
+ const weak=[...started].sort((a,b)=>a.mastery-b.mastery)[0]||null;
+ const revise=revisionCandidates(grade);
+ const gradeLessons=LESSONS.filter(l=>l.grade===grade);
+ const last=gradeLessons.find(l=>l.id===studyData.lastLessonId);
+ const next=last||gradeLessons[0]||null;
+ const first=String(account.displayName||'Student').trim().split(/\s+/)[0]||'Student';
+ const name=$('homeStudentName');if(name)name.textContent=first;
+ const cls=$('homeStudentClass');if(cls)cls.textContent=gradeName(grade);
+ const rev=$('homeReviseCount');if(rev)rev.textContent=revise.length+' topic'+(revise.length===1?'':'s')+' due';
+ const goal=$('homeGoalText');if(goal){
+  normaliseStudyDay();
+  const today=studyData.daily.practicedTopics.filter(key=>rows.some(row=>topicStatKey(row.lesson.id,row.topic.key)===key)).length;
+  goal.textContent=Math.min(today,3)+' of 3 topics';
+ }
+ if(next){
+  const topics=chapterTopics(next);
+  const selected=topics.find(t=>t.key===studyData.lastSubtopicKey)||topics[0]||{key:'overview',title:next.title};
+  const title=$('homeContinueTitle');if(title)title.textContent=next.subject+' → '+next.title;
+  const meta=$('homeContinueMeta');if(meta)meta.textContent=selected.title+' · '+topicMastery(next,selected.key)+'% mastered';
+  const button=$('homeContinueBtn');if(button){button.dataset.dashboardLesson=next.id;button.dataset.dashboardTopic=selected.key;}
+ }
+ const weakTitle=$('homeWeakTopic');if(weakTitle)weakTitle.textContent=weak?weak.topic.title:'Keep practising';
+ const weakMeta=$('homeWeakMeta');if(weakMeta)weakMeta.textContent=weak?weak.lesson.subject+' · '+weak.mastery+'% mastery':'Your weak topics will appear here';
+ const recent=recentTestForGrade(grade);
+ const score=$('homeRecentScore');
+ const meta=$('homeRecentMeta');
+ if(recent){
+  const accuracy=Number.isFinite(Number(recent.accuracy))?Number(recent.accuracy):Math.round((Number(recent.score)||0)/Math.max(1,Number(recent.total)||1)*100);
+  if(score)score.textContent=accuracy+'%';
+  if(meta)meta.textContent=(recent.subject||'Test')+' · '+(recent.preset==='mcq'?'MCQ Exam':'Recent test');
+ }else{
+  if(score)score.textContent='No test yet';
+  if(meta)meta.textContent='Take your first test';
+ }
+}
 function renderStudyDashboard(){
  const account=dashboardAccount(),guest=$('learningGuestView'),dashboard=$('studyDashboard');
  if(!guest||!dashboard)return;
  if(!account){
   guest.hidden=false;
   dashboard.hidden=true;
+  renderHomeLearningDashboard();
   return;
  }
  guest.hidden=true;
@@ -507,6 +652,8 @@ function renderStudyDashboard(){
  renderDashboardTopicRows($('dashboardStrongTopics'),strong,'Your strongest topics will appear as your mastery grows.');
  renderRevisionPlan(grade);
  renderMistakeNotebook(grade);
+ renderParentDashboard(account,rows,revise);
+ renderHomeLearningDashboard();
 }
 function openDashboardLesson(id,topicKey=''){
  const lesson=LESSONS.find(l=>l.id===id);
@@ -2420,6 +2567,7 @@ function installEvents(){
   if(e.target.closest('[data-print-descriptive]')){window.print();return;}
   const review=e.target.closest('[data-review-test-lesson]');if(review)openDashboardLesson(review.dataset.reviewTestLesson,review.dataset.reviewTestTopic||'');
  });
+ $('homeContinueBtn')?.addEventListener('click',e=>{const id=e.currentTarget.dataset.dashboardLesson;if(id)openDashboardLesson(id,e.currentTarget.dataset.dashboardTopic||'');});
  $('dashboardContinueBtn')?.addEventListener('click',e=>{const id=e.currentTarget.dataset.dashboardLesson;if(id)openDashboardLesson(id,e.currentTarget.dataset.dashboardTopic||'');});
  $('dashboardWeakTopics')?.addEventListener('click',e=>{const button=e.target.closest('[data-dashboard-lesson]');if(button)openDashboardLesson(button.dataset.dashboardLesson,button.dataset.dashboardTopic||'');});
  $('dashboardStrongTopics')?.addEventListener('click',e=>{const button=e.target.closest('[data-dashboard-lesson]');if(button)openDashboardLesson(button.dataset.dashboardLesson,button.dataset.dashboardTopic||'');});
@@ -2458,6 +2606,8 @@ function installEvents(){
    if(lesson&&topic)openTopicVideo(lesson,topic);
   }
  });
+ window.addEventListener('hashchange',renderHomeLearningDashboard);
+ document.addEventListener('visibilitychange',()=>{if(!document.hidden)renderHomeLearningDashboard();});
  $('clearFiltersBtn').addEventListener('click',()=>{query='';$('searchInput').value='';renderCourses()});
  $('continueBtn').addEventListener('click',continueLearning);
  $('closeLesson').addEventListener('click',closeLesson);
@@ -2473,6 +2623,7 @@ Promise.resolve(window.TLW_DRIVE_READY).catch(()=>false).finally(()=>{
  renderAll();
  renderTestSeriesClasses();
  renderStudyDashboard();
+ startStudyTimeTracking();
  installEvents();
 });
 })();
