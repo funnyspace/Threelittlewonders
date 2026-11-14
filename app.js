@@ -2372,16 +2372,39 @@ function installEvents(){
  $('testClassGrid')?.addEventListener('click',e=>{const button=e.target.closest('[data-test-grade]');if(button)openTestBuilder(Number(button.dataset.testGrade));});
  $('testChangeClassBtn')?.addEventListener('click',()=>{resetTestPaper();const scope=$('testScopeControls');if(scope)scope.hidden=true;$('testBuilder').hidden=true;$('testClassGrid')?.scrollIntoView({behavior:'smooth',block:'start'});});
  $('testModeChoice')?.addEventListener('click',e=>{const button=e.target.closest('[data-test-mode]');if(button)chooseTestMode(button.dataset.testMode);});
+ $('testExamPresetChoice')?.addEventListener('click',e=>{const button=e.target.closest('[data-exam-preset]');if(button)selectExamPreset(button.dataset.examPreset);});
  $('testSubjectSelect')?.addEventListener('change',populateTestChapters);
  $('testChapterSelect')?.addEventListener('change',populateTestTopics);
- $('testTopicSelect')?.addEventListener('change',()=>{resetTestPaper();updateTestScopeNote();});
+ $('testTopicSelect')?.addEventListener('change',()=>{resetTestPaper();applyExamPresetScope();updateTestScopeNote();});
  $('testDifficultySelect')?.addEventListener('change',()=>{resetTestPaper();updateTestScopeNote();});
  $('generateTestBtn')?.addEventListener('click',()=>{if(($('testPaperTypeSelect')?.value||'objective')==='descriptive')renderDescriptivePaper();else renderTestPaper();});
+ $('testPaperPanel')?.addEventListener('change',e=>{
+  if(e.target.matches('input[name="exam-answer"]')){
+   examAnswers[examCurrentIndex]=Number(e.target.value);
+   updateExamLiveStatus();
+  }
+ });
  $('testPaperPanel')?.addEventListener('submit',e=>{if(e.target.id==='testPaperForm'){e.preventDefault();submitTestPaper();}});
  $('testPaperPanel')?.addEventListener('click',e=>{
-  if(e.target.closest('[data-retry-test]'))renderTestPaper();
-  if(e.target.closest('[data-new-descriptive]'))renderDescriptivePaper();
-  if(e.target.closest('[data-print-descriptive]'))window.print();
+  const nav=e.target.closest('[data-exam-nav]');
+  if(nav){examCurrentIndex=Number(nav.dataset.examNav);renderExamQuestion();return;}
+  if(e.target.closest('[data-exam-prev]')){examCurrentIndex=Math.max(0,examCurrentIndex-1);renderExamQuestion();return;}
+  if(e.target.closest('[data-exam-next]')){
+   if(examCurrentIndex>=activeTestItems.length-1)submitExamPaper(false);
+   else{examCurrentIndex++;renderExamQuestion();}
+   return;
+  }
+  if(e.target.closest('[data-exam-review]')){
+   if(examReview.has(examCurrentIndex))examReview.delete(examCurrentIndex);else examReview.add(examCurrentIndex);
+   renderExamQuestion();
+   return;
+  }
+  if(e.target.closest('[data-exam-submit]')){submitExamPaper(false);return;}
+  if(e.target.closest('[data-generate-exam-revision]')){generateExamRevisionPlan();return;}
+  if(e.target.closest('[data-finish-descriptive]')){finishDescriptivePaper();return;}
+  if(e.target.closest('[data-retry-test]')){renderTestPaper();return;}
+  if(e.target.closest('[data-new-descriptive]')){renderDescriptivePaper();return;}
+  if(e.target.closest('[data-print-descriptive]')){window.print();return;}
   const review=e.target.closest('[data-review-test-lesson]');if(review)openDashboardLesson(review.dataset.reviewTestLesson,review.dataset.reviewTestTopic||'');
  });
  $('dashboardContinueBtn')?.addEventListener('click',e=>{const id=e.currentTarget.dataset.dashboardLesson;if(id)openDashboardLesson(id,e.currentTarget.dataset.dashboardTopic||'');});
