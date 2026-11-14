@@ -15,7 +15,7 @@ const GRADE_GROUPS=[
  {key:'secondary',label:'Secondary',range:'Classes 9–10',icon:'🎓',grades:[9,10]}
 ];
 function load(){try{const v=JSON.parse(localStorage.getItem(STORE_KEY)||localStorage.getItem(LEGACY_STORE_KEY)||'{}');return {grade:Number.isInteger(v.grade)&&GRADE_LEVELS.includes(v.grade)?v.grade:3,completed:Array.isArray(v.completed)?[...new Set(v.completed.filter(x=>typeof x==='string'))]:[]}}catch{return {grade:3,completed:[]}}}
-let state=load(),subject='',query='',classChoicesOpen=true,currentTopicId='',currentSubtopicKey='',currentLesson=null,currentQuestion=0,questionAnswered=false,currentQuizDifficulty='all',currentQuizQuestions=[],currentMistakeId='',returnFocus=null,toastTimer;
+let state=load(),subject='',query='',classChoicesOpen=true,currentTopicId='',currentSubtopicKey='',currentLesson=null,currentQuestion=0,questionAnswered=false,currentQuizDifficulty='all',currentQuizQuestions=[],currentMistakeId='',currentPracticeSource='',returnFocus=null,toastTimer;
 function persist(){
  try{localStorage.setItem(STORE_KEY,JSON.stringify(state))}catch{showToast('Progress cannot be saved in this browser.')}
  queueCloudLearningSync();
@@ -32,7 +32,7 @@ function emptyStudyData(){
   mistakes:[],
   badges:[],
   timeByDate:{},
-  daily:{date:'',completedLessonIds:[],practicedTopics:[]}
+  daily:{date:'',completedLessonIds:[],practicedTopics:[],dailyChallengeDone:false,mysteryChallengeDone:false}
  };
 }
 function loadStudyData(){
@@ -50,7 +50,9 @@ function loadStudyData(){
    daily:raw&&raw.daily&&typeof raw.daily==='object'?{
     date:String(raw.daily.date||''),
     completedLessonIds:Array.isArray(raw.daily.completedLessonIds)?raw.daily.completedLessonIds:[],
-    practicedTopics:Array.isArray(raw.daily.practicedTopics)?raw.daily.practicedTopics:[]
+    practicedTopics:Array.isArray(raw.daily.practicedTopics)?raw.daily.practicedTopics:[],
+    dailyChallengeDone:!!raw.daily.dailyChallengeDone,
+    mysteryChallengeDone:!!raw.daily.mysteryChallengeDone
    }:base.daily
   };
  }catch{return emptyStudyData()}
@@ -98,7 +100,9 @@ function normaliseCloudStudyData(raw){
   daily:value.daily&&typeof value.daily==='object'?{
    date:String(value.daily.date||''),
    completedLessonIds:Array.isArray(value.daily.completedLessonIds)?value.daily.completedLessonIds:[],
-   practicedTopics:Array.isArray(value.daily.practicedTopics)?value.daily.practicedTopics:[]
+   practicedTopics:Array.isArray(value.daily.practicedTopics)?value.daily.practicedTopics:[],
+   dailyChallengeDone:!!value.daily.dailyChallengeDone,
+   mysteryChallengeDone:!!value.daily.mysteryChallengeDone
   }:base.daily
  };
 }
@@ -146,7 +150,7 @@ function resetCloudHydration(){
 function todayKey(){return new Date().toISOString().slice(0,10)}
 function normaliseStudyDay(){
  const today=todayKey();
- if(studyData.daily.date!==today)studyData.daily={date:today,completedLessonIds:[],practicedTopics:[]};
+ if(studyData.daily.date!==today)studyData.daily={date:today,completedLessonIds:[],practicedTopics:[],dailyChallengeDone:false,mysteryChallengeDone:false};
  if(!Array.isArray(studyData.daily.practicedTopics))studyData.daily.practicedTopics=[];
 }
 function saveStudyData(){
