@@ -1223,6 +1223,17 @@ function openDashboardLesson(id,topicKey=''){
  renderAll();
  requestAnimationFrame(()=>$('lessonResultsSection')?.scrollIntoView({behavior:'smooth',block:'start'}));
 }
+const CLASS10_ENGLISH_CHAPTERS=[
+ 'A Letter to God',
+ 'Nelson Mandela: Long Walk to Freedom',
+ 'Two Stories about Flying',
+ 'From the Diary of Anne Frank',
+ 'Glimpses of India',
+ 'Mijbil the Otter',
+ 'Madam Rides the Bus',
+ 'The Sermon at Benares',
+ 'The Proposal'
+];
 const CLASS10_MATHS_CHAPTERS=[
  'Real Numbers',
  'Polynomials',
@@ -2743,6 +2754,23 @@ function renderCourses(){
  $('selectedSubjectTitle').textContent=subject;
  $('selectedSubjectPill').innerHTML=`<span aria-hidden="true">${allSubjects?'✦':subjectIcon(subject)}</span><strong>${safe(subject)}</strong> · ${gradeName(state.grade)}`;
  let lessons=LESSONS.filter(l=>l.grade===state.grade&&(allSubjects||l.subject===subject)&&(!query||[l.title,l.subject,l.description,l.concept].some(t=>t.toLowerCase().includes(query))));
+ if(state.grade===10&&subject==='English'){
+  const existingEnglish=new Map(LESSONS.filter(l=>l.grade===10&&l.subject==='English').map(l=>[String(l.title||'').toLowerCase(),l]));
+  lessons=CLASS10_ENGLISH_CHAPTERS.map((chapter,i)=>{
+   const existing=existingEnglish.get(chapter.toLowerCase());
+   return existing||{
+    id:'10-english-first-flight-ch'+String(i+1).padStart(2,'0'),
+    grade:10,
+    subject:'English',
+    title:chapter,
+    description:'NCERT First Flight · Class 10 English · Chapter '+(i+1),
+    concept:'Chapter '+(i+1)+': '+chapter,
+    sourceChapter:i+1,
+    minutes:20,
+    questions:[]
+   };
+  }).filter(l=>!query||[l.title,l.subject,l.description,l.concept].some(t=>String(t||'').toLowerCase().includes(query)));
+ }
  if(state.grade===10&&subject==='Maths'){
   const existingMaths=new Map(LESSONS.filter(l=>l.grade===10&&l.subject==='Maths').map(l=>[String(l.title||'').toLowerCase(),l]));
   lessons=CLASS10_MATHS_CHAPTERS.map((chapter,i)=>{
