@@ -337,6 +337,36 @@ window.TLW_CLASS10_SOCIAL_SCIENCE_SUBSUBJECTS=[
 });
 
 [
+  "Power-sharing",
+  "Federalism",
+  "Gender, Religion and Caste",
+  "Political Parties",
+  "Outcomes of Democracy"
+].forEach((title,index)=>{
+  const chapter=index+1;
+  window.TLW_LESSONS.push({
+    id:'10-social-science-political-science-ch'+String(chapter).padStart(2,'0'),
+    grade:10,
+    subject:'Social Science',
+    subSubject:'political-science',
+    bookTitle:'Democratic Politics – II',
+    discipline:'Political Science',
+    title,
+    description:'NCERT Democratic Politics – II · Political Science · Chapter '+chapter,
+    emoji:'🗳️',
+    concept:'Chapter '+chapter+': '+title,
+    example:'',
+    tip:'',
+    minutes:20,
+    sourceChapter:chapter,
+    sourcePdf:'jess'+String(400+chapter)+'.pdf',
+    chapterStartPage:1,
+    originalPdfTitle:'NCERT Democratic Politics – II - Political Science - Chapter '+chapter+': '+title,
+    questions:[]
+  });
+});
+
+[
   "Resources and Development",
   "Forest and Wildlife Resources",
   "Water Resources",
