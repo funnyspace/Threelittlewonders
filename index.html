@@ -39,11 +39,13 @@
   <script src="curriculum.js" defer></script>
   <script src="school-curriculum.js" defer></script>
   <script src="secondary-curriculum.js" defer></script>  <script src="pdf-source-map.js?v=20261109-global-pdf-speech-v1" defer></script>
-  <script src="app.js?v=20261114-home-parent-dashboard-v1" defer></script>
+  <script src="cloud-config.js?v=20261114-cloud-v1" defer></script>
+  <script src="cloud-sync.js?v=20261114-cloud-v1" defer></script>
+  <script src="app.js?v=20261114-cloud-v1" defer></script>
   <script src="curriculum-ui.js?v=20261030-hide-all-roadmaps" defer></script>
   <script src="contact-form.js" defer></script>
   <script src="site-navigation.js?v=20261113-home-test-modes-v1" defer></script>
-  <script src="auth.js?v=20261114-learning-dashboard-v1" defer></script>
+  <script src="auth.js?v=20261114-cloud-v1" defer></script>
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to content</a>
@@ -65,7 +67,7 @@
       <div class="nav-auth" id="navAuth">
         <button type="button" class="nav-auth-button" id="authButton" aria-haspopup="dialog"><span aria-hidden="true">👤</span><span id="authButtonLabel">Log in</span></button>
         <div class="auth-user-menu" id="authUserMenu" hidden>
-          <div class="auth-user-summary"><strong id="authUserName">Student</strong><small id="authUserGrade">Class</small></div>
+          <div class="auth-user-summary"><strong id="authUserName">Student</strong><small id="authUserGrade">Class</small><small id="authSyncStatus">Local only</small></div>
           <a href="#my-learning" id="authMyLearningLink">My learning</a>
           <button type="button" id="authLogoutButton">Log out</button>
         </div>
@@ -430,7 +432,7 @@
     </section>
     <section class="info-page section-padding" id="privacy" aria-labelledby="privacyTitle" hidden>
       <div class="container info-page-inner"><span class="kicker">✦ YOUR INFORMATION</span><h2 id="privacyTitle">Privacy Policy</h2>
-        <p>Learning progress and activity practice are saved locally in your browser. An optional student login can also be created in this browser using a student display name, class, parent or guardian email and password verification data. These local accounts are not synced to our own database or across devices. Clearing browser storage may remove both the local account and progress.</p>
+        <p>Learning progress and activity practice are always cached locally in your browser. The site also includes an optional cloud account architecture using Firebase Authentication and Cloud Firestore. When cloud mode is enabled, the student display name, class, parent or guardian login email, learning progress, mastery, test attempts, mistakes, revision schedule, study time and related dashboard data can be stored in the authenticated user's private cloud document so the same account can continue across devices. Password authentication is handled by Firebase Authentication rather than stored by ThreeLittleWonders. When cloud mode is disabled, the existing browser-local account remains in use.</p>
         <p>The contact form prepares a message in your email application. It does not send or store your enquiry on this website. Any email you choose to send is handled by your email provider and the receiving mailbox.</p>
         <p>This site is hosted on GitHub Pages, which may process technical request information to deliver the site. Please provide only a parent or guardian’s details when contacting us, and avoid sharing children’s private information.</p>
         <p>For questions, email <a href="mailto:hello@threelittlewonders.com">hello@threelittlewonders.com</a>.</p>
@@ -440,7 +442,7 @@
       <div class="container info-page-inner"><span class="kicker">✦ USING OUR WEBSITE</span><h2 id="termsTitle">Terms &amp; Conditions</h2>
         <p>ThreeLittleWonders provides introductory educational resources for general learning and practice. Topics and examples may differ from a child’s school or board curriculum and should be checked against official school materials.</p>
         <p>Adult guidance is recommended for younger learners, practical activities and use of external websites. We may revise or add educational content as the website develops.</p>
-        <p>The website currently has no online payment or direct messaging service. The optional student login is a browser-local profile, not a cloud account, and does not currently sync between devices. Contact us for questions or corrections using the Contact page.</p>
+        <p>The website currently has no online payment or direct messaging service. Student login can operate in browser-local mode or, when cloud configuration is enabled, through Firebase Authentication with Cloud Firestore synchronization. Cloud access is restricted by authenticated-user security rules so each account can access only its own user data. Contact us for questions or corrections using the Contact page.</p>
       </div>
     </section>
     <section class="info-page section-padding" id="child-safety" aria-labelledby="safetyTitle" hidden>
@@ -505,7 +507,7 @@
           <button class="btn btn-primary auth-submit" type="submit">Create account</button>
           <button class="auth-switch-link" type="button" data-auth-open-login>Already have an account? Log in</button>
         </form>
-        <div class="auth-local-note"><span aria-hidden="true">🔒</span><p><strong>Browser-only account.</strong> This login is stored on this device and browser. It does not sync across devices yet. Passwords are not stored as plain text.</p></div>
+        <div class="auth-local-note"><span aria-hidden="true">🔒</span><p id="authStorageNotice"><strong>Browser-only account.</strong> This login is stored on this device and browser. Cloud sync is not configured yet. Passwords are not stored as plain text.</p></div>
       </div>
     </section>
   </div>
