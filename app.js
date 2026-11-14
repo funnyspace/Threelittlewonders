@@ -4,6 +4,7 @@ const LESSONS=window.TLW_LESSONS||[];
 const SUBJECTS=window.TLW_SUBJECTS||{};
 const STORE_KEY='Threelittlewonders-progress-v1';
 const LEGACY_STORE_KEY='threeelittlewonders-progress-v1';
+const STUDY_STORE_KEY='Threelittlewonders-study-dashboard-v1';
 const $=id=>document.getElementById(id);
 const safe=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const GRADE_LEVELS=[-2,-1,0,...Array.from({length:10},(_,i)=>i+1)];
@@ -18,6 +19,80 @@ let state=load(),subject='',query='',classChoicesOpen=true,currentTopicId='',cur
 function persist(){try{localStorage.setItem(STORE_KEY,JSON.stringify(state))}catch{showToast('Progress cannot be saved in this browser.')}}
 const gradeName=g=>g===-2?'Nursery':g===-1?'LKG':g===0?'UKG':`Class ${g}`;
 const subjectIcon=s=>SUBJECTS[s]?.icon||'📚';
+function emptyStudyData(){return {lastLessonId:'',lastSubtopicKey:'',lessonStats:{},testAttempts:[],daily:{date:'',completedLessonIds:[]}}}
+function loadStudyData(){
+ try{
+  const raw=JSON.parse(localStorage.getItem(STUDY_STORE_KEY)||'{}');
+  const base=emptyStudyData();
+  return {...base,...raw,lessonStats:raw&&raw.lessonStats&&typeof raw.lessonStats==='object'?raw.lessonStats:{},testAttempts:Array.isArray(raw&&raw.testAttempts)?raw.testAttempts:[],daily:raw&&raw.daily&&typeof raw.daily==='object'?raw.daily:base.daily};
+ }catch{return emptyStudyData()}
+}
+let studyData=loadStudyData();
+function todayKey(){return new Date().toISOString().slice(0,10)}
+function normaliseStudyDay(){const today=todayKey();if(studyData.daily.date!==today)studyData.daily={date:today,completedLessonIds:[]}}
+function saveStudyData(){normaliseStudyDay();try{localStorage.setItem(STUDY_STORE_KEY,JSON.stringify(studyData))}catch{}}
+function lessonStudyStat(id){if(!studyData.lessonStats[id])studyData.lessonStats[id]={correct:0,wrong:0,attempts:0,lastStudied:'',completedAt:''};return studyData.lessonStats[id]}
+function touchStudyLesson(lessonId,subtopicKey=''){if(!lessonId)return;studyData.lastLessonId=lessonId;if(subtopicKey)studyData.lastSubtopicKey=subtopicKey;const stat=lessonStudyStat(lessonId);stat.lastStudied=new Date().toISOString();saveStudyData()}
+function recordQuizChoice(lessonId,isCorrect){if(!lessonId)return;const stat=lessonStudyStat(lessonId);stat.attempts=(stat.attempts||0)+1;if(isCorrect)stat.correct=(stat.correct||0)+1;else stat.wrong=(stat.wrong||0)+1;stat.lastStudied=new Date().toISOString();studyData.lastLessonId=lessonId;saveStudyData()}
+function recordLessonComplete(lessonId){if(!lessonId)return;normaliseStudyDay();const stat=lessonStudyStat(lessonId);stat.completedAt=new Date().toISOString();stat.lastStudied=stat.completedAt;studyData.lastLessonId=lessonId;if(!studyData.daily.completedLessonIds.includes(lessonId))studyData.daily.completedLessonIds.push(lessonId);saveStudyData()}
+function lessonMastery(lesson){
+ if(!lesson)return 0;
+ const stat=studyData.lessonStats[lesson.id]||{};
+ const attempts=Number(stat.attempts)||0,correct=Number(stat.correct)||0,wrong=Number(stat.wrong)||0;
+ const completed=state.completed.includes(lesson.id);
+ if(!attempts&&!completed)return 0;
+ const accuracy=attempts?correct/Math.max(1,correct+wrong):0;
+ let score=Math.round(accuracy*60+(completed?30:0));
+ if(stat.lastStudied){const ageDays=(Date.now()-new Date(stat.lastStudied).getTime())/86400000;score+=ageDays<=7?10:ageDays<=30?5:0;}
+ return Math.max(0,Math.min(100,score));
+}
+function studyGreeting(){const hour=new Date().getHours();return hour<12?'Good morning':hour<17?'Good afternoon':'Good evening'}
+function dashboardTopicName(lesson){const topics=chapterTopics(lesson);const key=lesson.id===studyData.lastLessonId?studyData.lastSubtopicKey:'';const match=topics.find(t=>t.key===key);return (match&&match.title)||((topics[0]&&topics[0].title)||lesson.title)}
+function revisionCandidates(grade){
+ const now=Date.now();
+ return LESSONS.filter(l=>l.grade===grade).filter(l=>{const stat=studyData.lessonStats[l.id];if(!stat||!stat.lastStudied)return false;const mastery=lessonMastery(l);const age=(now-new Date(stat.lastStudied).getTime())/86400000;return (mastery>0&&mastery<70&&age>=1)||(mastery>=70&&age>=7)}).sort((a,b)=>lessonMastery(a)-lessonMastery(b));
+}
+function dashboardAccount(){try{const session=JSON.parse(localStorage.getItem('Threelittlewonders-local-session-v1')||'null');const accounts=JSON.parse(localStorage.getItem('Threelittlewonders-local-accounts-v1')||'{}');if(!session||!session.email)return null;return accounts[String(session.email).toLowerCase()]||null}catch{return null}}
+function renderDashboardTopicRows(host,rows,emptyText){
+ if(!host)return;
+ if(!rows.length){host.innerHTML='<p class="dashboard-empty">'+safe(emptyText)+'</p>';return;}
+ host.innerHTML=rows.map(row=>'<button type="button" class="dashboard-topic-row" data-dashboard-lesson="'+safe(row.lesson.id)+'"><span><strong>'+safe(dashboardTopicName(row.lesson))+'</strong><small>'+safe(row.lesson.subject)+' · '+safe(row.lesson.title)+'</small></span><b>'+row.mastery+'%</b></button>').join('');
+}
+function renderStudyDashboard(){
+ const account=dashboardAccount(),guest=$('learningGuestView'),dashboard=$('studyDashboard');
+ if(!guest||!dashboard)return;
+ if(!account){guest.hidden=false;dashboard.hidden=true;return;}
+ guest.hidden=true;dashboard.hidden=false;normaliseStudyDay();
+ const grade=Number(account.grade),gradeLessons=LESSONS.filter(l=>l.grade===grade),completed=gradeLessons.filter(l=>state.completed.includes(l.id));
+ const stars=state.completed.filter(id=>LESSONS.some(l=>l.id===id)).length*20;
+ const last=gradeLessons.find(l=>l.id===studyData.lastLessonId);
+ const next=last||gradeLessons.find(l=>!state.completed.includes(l.id))||gradeLessons[0]||null;
+ const ranked=gradeLessons.map(lesson=>({lesson,mastery:lessonMastery(lesson)})).filter(x=>x.mastery>0);
+ const weak=[...ranked].filter(x=>x.mastery<70).sort((a,b)=>a.mastery-b.mastery).slice(0,2);
+ const strong=[...ranked].sort((a,b)=>b.mastery-a.mastery).slice(0,2);
+ const revise=revisionCandidates(grade);
+ const first=String(account.displayName||'Student').trim().split(/\s+/)[0]||'Student';
+ $('dashboardGreeting').textContent=studyGreeting();$('dashboardStudentName').textContent=first;$('dashboardClassName').textContent=gradeName(grade);
+ $('dashboardStars').textContent=stars;$('dashboardCompleted').textContent=completed.length;$('dashboardReviseCount').textContent=revise.length;
+ const todayDone=studyData.daily.completedLessonIds.filter(id=>gradeLessons.some(l=>l.id===id)).length;
+ $('dashboardGoalProgress').textContent=Math.min(todayDone,3)+' of 3 topics completed today';$('dashboardGoalFill').style.width=Math.min(100,Math.round(todayDone/3*100))+'%';
+ if(next){
+  const mastery=lessonMastery(next),topic=dashboardTopicName(next);
+  $('dashboardContinueTitle').textContent=next.subject+' → '+next.title;$('dashboardContinuePath').textContent=topic;
+  $('dashboardContinueMastery').textContent=mastery+'% mastered';$('dashboardContinueFill').style.width=mastery+'%';
+  $('dashboardContinueBtn').dataset.dashboardLesson=next.id;$('dashboardUpcomingTest').textContent=next.subject+' Chapter Test';$('dashboardUpcomingTestMeta').textContent=next.title;
+ }else{
+  $('dashboardContinueTitle').textContent='Choose a class to begin';$('dashboardContinuePath').textContent='Your next lesson will appear here.';$('dashboardContinueMastery').textContent='0% mastered';$('dashboardContinueFill').style.width='0%';delete $('dashboardContinueBtn').dataset.dashboardLesson;
+  $('dashboardUpcomingTest').textContent='Chapter Test';$('dashboardUpcomingTestMeta').textContent='Practise when you are ready.';
+ }
+ renderDashboardTopicRows($('dashboardWeakTopics'),weak,'Complete a few quizzes to identify topics that need more practice.');
+ renderDashboardTopicRows($('dashboardStrongTopics'),strong,'Your strongest topics will appear after you complete quizzes.');
+}
+function openDashboardLesson(id){
+ const lesson=LESSONS.find(l=>l.id===id);if(!lesson)return;
+ state.grade=lesson.grade;persist();classChoicesOpen=false;subject=lesson.subject;currentTopicId=lesson.id;currentSubtopicKey=lesson.id===studyData.lastLessonId?studyData.lastSubtopicKey:'';
+ window.location.hash='#explore';renderAll();requestAnimationFrame(()=>$('lessonResultsSection')?.scrollIntoView({behavior:'smooth',block:'start'}));
+}
 const CLASS10_SCIENCE_CHAPTERS=[
  'Chemical Reactions and Equations',
  'Acids, Bases and Salts',
@@ -1089,6 +1164,16 @@ function submitTestPaper(){
  document.querySelectorAll('#testPaperForm input').forEach(input=>input.disabled=true);
  const submit=document.querySelector('#testPaperForm button[type="submit"]');
  if(submit)submit.disabled=true;
+ activeTestItems.forEach((item,i)=>{
+  const checked=document.querySelector('input[name="test-q-'+i+'"]:checked');
+  if(!checked)return;
+  const selected=Number(checked.value),stat=lessonStudyStat(item.lesson.id);
+  stat.attempts=(stat.attempts||0)+1;
+  if(selected===item.question.answer)stat.correct=(stat.correct||0)+1;else stat.wrong=(stat.wrong||0)+1;
+  stat.lastStudied=new Date().toISOString();
+ });
+ studyData.testAttempts.push({date:new Date().toISOString(),grade:testGrade,subject:$('testSubjectSelect')?.value||'',score:score,total:activeTestItems.length});
+ studyData.testAttempts=studyData.testAttempts.slice(-50);saveStudyData();renderStudyDashboard();
  const result=$('testResult');
  if(result){
   const percent=Math.round(score/activeTestItems.length*100);
@@ -1228,6 +1313,7 @@ function renderProgress(){
  $('progressPercent').textContent=pct+'%';
  $('progressFill').style.width=pct+'%';
  $('progressSubtitle').textContent=pct===100?'You finished every starter lesson in '+gradeName(state.grade)+'! 🎉':`${doneGrade} of ${gradeLessons.length} ${gradeName(state.grade)} lessons completed`;
+ renderStudyDashboard();
 }
 function renderAll(){
  renderGradeSelectors();
@@ -1239,7 +1325,7 @@ function renderAll(){
  const learningNote=document.querySelector('.curriculum-note');if(learningNote)learningNote.hidden=classChoicesOpen;
  if(classChoicesOpen){$('lessonResultsSection').hidden=true;}
 }
-function openLesson(id){const lesson=LESSONS.find(l=>l.id===id);if(!lesson)return;stopReadAloud();currentLesson=lesson;currentQuestion=0;questionAnswered=false;returnFocus=document.activeElement;$('lessonModal').hidden=false;document.body.classList.add('modal-open');$('lessonTitle').textContent=lesson.title;$('modalSubjectIcon').textContent=subjectIcon(lesson.subject);$('modalMeta').textContent=`${gradeName(lesson.grade).toUpperCase()} · ${lesson.subject.toUpperCase()} · QUIZ FROM THIS TOPIC`;
+function openLesson(id){const lesson=LESSONS.find(l=>l.id===id);if(!lesson)return;touchStudyLesson(lesson.id,currentSubtopicKey);stopReadAloud();currentLesson=lesson;currentQuestion=0;questionAnswered=false;returnFocus=document.activeElement;$('lessonModal').hidden=false;document.body.classList.add('modal-open');$('lessonTitle').textContent=lesson.title;$('modalSubjectIcon').textContent=subjectIcon(lesson.subject);$('modalMeta').textContent=`${gradeName(lesson.grade).toUpperCase()} · ${lesson.subject.toUpperCase()} · QUIZ FROM THIS TOPIC`;
  showQuiz();$('closeLesson').focus();}
 function stage(which){['Learn','Quiz','Complete'].forEach(s=>{const x=$('stage'+s);x.classList.toggle('active',s===which);x.classList.toggle('done',({Learn:0,Quiz:1,Complete:2}[s]||0)<({Learn:0,Quiz:1,Complete:2}[which]||0))})}
 function footer(left,button,action){const e=$('lessonFooter');e.innerHTML=`<span class="modal-helper">${safe(left)}</span><button class="btn btn-primary" id="modalAction">${safe(button)} <span aria-hidden="true">↗</span></button>`; $('modalAction').addEventListener('click',action)}
@@ -1274,13 +1360,13 @@ function showQuiz(){if(!currentLesson)return;stage('Quiz');questionAnswered=fals
  $('modalAction').style.opacity='.5';}
 function answer(choice){if(!currentLesson||questionAnswered)return;const q=currentLesson.questions[currentQuestion];
  const buttons=[...$('lessonBody').querySelectorAll('[data-answer]')];
- if(choice!==q.answer){buttons[choice].classList.add('incorrect');$('quizFeedback').innerHTML='<div class="feedback retry">Not quite! Give it another try. You can do it! 💛</div>';return}
- questionAnswered=true;buttons.forEach((b,i)=>{b.disabled=true;if(i===q.answer)b.classList.add('correct')});
+ if(choice!==q.answer){recordQuizChoice(currentLesson.id,false);buttons[choice].classList.add('incorrect');$('quizFeedback').innerHTML='<div class="feedback retry">Not quite! Give it another try. You can do it! 💛</div>';return}
+ recordQuizChoice(currentLesson.id,true);questionAnswered=true;buttons.forEach((b,i)=>{b.disabled=true;if(i===q.answer)b.classList.add('correct')});
  $('quizFeedback').innerHTML='<div class="feedback good">That’s right! Amazing thinking! 🌟</div>';
  const last=currentQuestion===currentLesson.questions.length-1;
  const footerButton=$('modalAction');footerButton.disabled=false;footerButton.style.opacity='1';footerButton.innerHTML=last?'Finish lesson ↗':'Next question ↗';footerButton.onclick=()=>{if(last)completeLesson();else{currentQuestion++;showQuiz()}};
 }
-function completeLesson(){if(!currentLesson)return;stage('Complete');const already=state.completed.includes(currentLesson.id);if(!already){state.completed.push(currentLesson.id);persist();renderProgress();renderCourses()}
+function completeLesson(){if(!currentLesson)return;stage('Complete');const already=state.completed.includes(currentLesson.id);recordLessonComplete(currentLesson.id);if(!already){state.completed.push(currentLesson.id);persist();renderProgress();renderCourses()}else{renderStudyDashboard()}
  $('lessonBody').innerHTML=`<div class="celebrate"><div class="celebrate-emoji" aria-hidden="true">🎉🌟</div><h3>Wonderfully done!</h3><p>You completed <strong>${safe(currentLesson.title)}</strong>! Every little lesson takes you closer to big discoveries.</p><div class="reward">⭐ ${already?'Lesson reviewed!':'+20 stars earned!'}</div></div>`;
  footer('Keep that curious mind shining!','Explore more',()=>{closeLesson();window.location.hash='#explore';});
 }
@@ -1341,7 +1427,7 @@ function installEvents(){
  $('gradeShortcuts').addEventListener('click',e=>{const gradeBtn=e.target.closest('[data-grade]');if(gradeBtn){setGrade(Number(gradeBtn.dataset.grade));return;}const changeBtn=e.target.closest('[data-change-class]');if(changeBtn){classChoicesOpen=true;subject='';query='';currentTopicId='';$('searchInput').value='';renderAll();requestAnimationFrame(()=>$('gradeShortcuts')?.scrollIntoView({behavior:'smooth',block:'start'}));}});
  $('subjectFilters').addEventListener('click',e=>{const btn=e.target.closest('[data-subject]');if(btn){stopReadAloud();subject=btn.dataset.subject;query='';currentTopicId='';currentSubtopicKey='';$('searchInput').value='';renderSubjectFilters();renderCourses();requestAnimationFrame(()=>$('lessonResultsSection')?.scrollIntoView({behavior:'smooth',block:'start'}))}});
  $('searchInput').addEventListener('input',e=>{query=e.target.value.trim().toLowerCase();renderCourses()});
- $('courseGrid').addEventListener('click',e=>{const video=e.target.closest('[data-topic-video]');if(video){const lesson=LESSONS.find(l=>l.id===currentTopicId);const topic=lesson?chapterTopics(lesson).find(t=>t.key===video.dataset.topicVideo):null;if(lesson&&topic)openTopicVideo(lesson,topic);return;}const sprite=e.target.closest('[data-pdf-sprite]');if(sprite){openPdfFigureSprite(sprite);return;}const figure=e.target.closest('[data-pdf-image]');if(figure){openPdfFigure(figure.dataset.pdfImage,figure.dataset.pdfCaption);return;}const topic=e.target.closest('[data-topic-id]');if(topic){stopReadAloud();currentTopicId=topic.dataset.topicId;currentSubtopicKey='';renderCourses();return;}const subtopic=e.target.closest('[data-subtopic-key]');if(subtopic){stopReadAloud();currentSubtopicKey=subtopic.dataset.subtopicKey;if(subtopic.dataset.pageUnverified==='true')showToast('This topic is listed, but its PDF page has not been verified yet. No page number was guessed.');renderCourses();return;}const aloud=e.target.closest('[data-read-aloud]');if(aloud){readAloudLesson(aloud.dataset.readAloud,aloud);return;}const quiz=e.target.closest('[data-start-quiz]');if(quiz)openLesson(quiz.dataset.startQuiz);});
+ $('courseGrid').addEventListener('click',e=>{const video=e.target.closest('[data-topic-video]');if(video){const lesson=LESSONS.find(l=>l.id===currentTopicId);const topic=lesson?chapterTopics(lesson).find(t=>t.key===video.dataset.topicVideo):null;if(lesson&&topic)openTopicVideo(lesson,topic);return;}const sprite=e.target.closest('[data-pdf-sprite]');if(sprite){openPdfFigureSprite(sprite);return;}const figure=e.target.closest('[data-pdf-image]');if(figure){openPdfFigure(figure.dataset.pdfImage,figure.dataset.pdfCaption);return;}const topic=e.target.closest('[data-topic-id]');if(topic){stopReadAloud();currentTopicId=topic.dataset.topicId;currentSubtopicKey='';touchStudyLesson(currentTopicId);renderCourses();return;}const subtopic=e.target.closest('[data-subtopic-key]');if(subtopic){stopReadAloud();currentSubtopicKey=subtopic.dataset.subtopicKey;touchStudyLesson(currentTopicId,currentSubtopicKey);if(subtopic.dataset.pageUnverified==='true')showToast('This topic is listed, but its PDF page has not been verified yet. No page number was guessed.');renderCourses();return;}const aloud=e.target.closest('[data-read-aloud]');if(aloud){readAloudLesson(aloud.dataset.readAloud,aloud);return;}const quiz=e.target.closest('[data-start-quiz]');if(quiz)openLesson(quiz.dataset.startQuiz);});
  $('testClassGrid')?.addEventListener('click',e=>{const button=e.target.closest('[data-test-grade]');if(button)openTestBuilder(Number(button.dataset.testGrade));});
  $('testChangeClassBtn')?.addEventListener('click',()=>{resetTestPaper();const scope=$('testScopeControls');if(scope)scope.hidden=true;$('testBuilder').hidden=true;$('testClassGrid')?.scrollIntoView({behavior:'smooth',block:'start'});});
  $('testModeChoice')?.addEventListener('click',e=>{const button=e.target.closest('[data-test-mode]');if(button)chooseTestMode(button.dataset.testMode);});
@@ -1355,6 +1441,11 @@ function installEvents(){
   if(e.target.closest('[data-new-descriptive]'))renderDescriptivePaper();
   if(e.target.closest('[data-print-descriptive]'))window.print();
  });
+ $('dashboardContinueBtn')?.addEventListener('click',e=>{const id=e.currentTarget.dataset.dashboardLesson;if(id)openDashboardLesson(id);});
+ $('dashboardWeakTopics')?.addEventListener('click',e=>{const button=e.target.closest('[data-dashboard-lesson]');if(button)openDashboardLesson(button.dataset.dashboardLesson);});
+ $('dashboardStrongTopics')?.addEventListener('click',e=>{const button=e.target.closest('[data-dashboard-lesson]');if(button)openDashboardLesson(button.dataset.dashboardLesson);});
+ $('dashboardReviseBtn')?.addEventListener('click',()=>{const account=dashboardAccount();if(!account)return;const due=revisionCandidates(Number(account.grade));const lesson=due[0];if(lesson)openDashboardLesson(lesson.id);else showToast('No topics are due for revision yet. Keep learning!');});
+ window.addEventListener('tlw-auth-change',renderStudyDashboard);
  $('clearFiltersBtn').addEventListener('click',()=>{query='';$('searchInput').value='';renderCourses()});
  $('continueBtn').addEventListener('click',continueLearning);
  $('closeLesson').addEventListener('click',closeLesson);
@@ -1369,6 +1460,7 @@ $('currentYear').textContent=new Date().getFullYear();
 Promise.resolve(window.TLW_DRIVE_READY).catch(()=>false).finally(()=>{
  renderAll();
  renderTestSeriesClasses();
+ renderStudyDashboard();
  installEvents();
 });
 })();
