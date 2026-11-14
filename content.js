@@ -387,8 +387,8 @@ add(10,'Social Science','Federalism in India','Understand different levels of go
   });
 });
 
-/* Hindi subject placeholders for Classes 3–10. Detailed NCERT topics/content can be added class-wise later. */
-for (let grade=3; grade<=10; grade++) {
+/* Hindi subject placeholders for Classes 3–9. Detailed NCERT topics/content can be added class-wise later. */
+for (let grade=3; grade<=9; grade++) {
   window.TLW_LESSONS.push({
     id:grade+'-hindi-starter',
     grade,
@@ -403,3 +403,83 @@ for (let grade=3; grade<=10; grade++) {
     questions:[]
   });
 }
+
+/* Class 10 Hindi: NCERT क्षितिज भाग 2 chapter list, Reprint 2026-27. */
+[
+  {
+    "title": "सूरदास के पद",
+    "author": "सूरदास",
+    "detail": "ऊधौ, तुम हौ अति बड़भागी · मन की मन ही माँझ रही · हमारे हरि हारिल की लकरी · हरि हैं राजनीति पढ़ि आए"
+  },
+  {
+    "title": "राम-लक्ष्मण-परशुराम संवाद",
+    "author": "तुलसीदास",
+    "detail": "काव्य खंड"
+  },
+  {
+    "title": "आत्मकथ्य",
+    "author": "जयशंकर प्रसाद",
+    "detail": "काव्य खंड"
+  },
+  {
+    "title": "उत्साह और अट नहीं रही है",
+    "author": "सूर्यकांत त्रिपाठी 'निराला'",
+    "detail": "काव्य खंड"
+  },
+  {
+    "title": "यह दंतुरित मुस्कान और फसल",
+    "author": "नागार्जुन",
+    "detail": "काव्य खंड"
+  },
+  {
+    "title": "संगतकार",
+    "author": "मंगलेश डबराल",
+    "detail": "काव्य खंड"
+  },
+  {
+    "title": "नेताजी का चश्मा",
+    "author": "स्वयं प्रकाश",
+    "detail": "गद्य खंड"
+  },
+  {
+    "title": "बालगोबिन भगत",
+    "author": "रामवृक्ष बेनीपुरी",
+    "detail": "गद्य खंड"
+  },
+  {
+    "title": "लखनवी अंदाज़",
+    "author": "यशपाल",
+    "detail": "गद्य खंड"
+  },
+  {
+    "title": "एक कहानी यह भी",
+    "author": "मन्नू भंडारी",
+    "detail": "गद्य खंड"
+  },
+  {
+    "title": "नौबतखाने में इबादत",
+    "author": "यतीन्द्र मिश्र",
+    "detail": "गद्य खंड"
+  },
+  {
+    "title": "संस्कृति",
+    "author": "भदंत आनंद कौसल्यायन",
+    "detail": "गद्य खंड"
+  }
+].forEach((item,index)=>{
+  const chapter=index+1;
+  window.TLW_LESSONS.push({
+    id:'10-hindi-kshitij-ch'+String(chapter).padStart(2,'0'),
+    grade:10,
+    subject:'Hindi',
+    title:item.title,
+    description:'NCERT क्षितिज भाग 2 · अध्याय '+chapter+' · '+item.author+' · '+item.detail,
+    emoji:'📕',
+    concept:'अध्याय '+chapter+': '+item.title,
+    example:'',
+    tip:'',
+    minutes:20,
+    sourceChapter:chapter,
+    questions:[]
+  });
+});
