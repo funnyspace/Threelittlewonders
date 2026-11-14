@@ -3,6 +3,29 @@
 
 const lessons=window.TLW_LESSONS||[];
 
+const CLASS10_HISTORY_PDFS=[
+  [1,'The Rise of Nationalism in Europe','jess301.pdf'],
+  [2,'Nationalism in India','jess302.pdf'],
+  [3,'The Making of a Global World','jess303.pdf'],
+  [4,'The Age of Industrialisation','jess304.pdf'],
+  [5,'Print Culture and the Modern World','jess305.pdf']
+];
+
+CLASS10_HISTORY_PDFS.forEach(([chapter,title,pdf])=>{
+  const lesson=lessons.find(item=>
+    item&&
+    item.grade===10&&
+    item.subject==='Social Science'&&
+    item.subSubject==='history'&&
+    String(item.title||'').trim().toLowerCase()===title.toLowerCase()
+  );
+  if(!lesson)return;
+  lesson.sourceChapter=chapter;
+  lesson.sourcePdf=pdf;
+  lesson.chapterStartPage=1;
+  lesson.originalPdfTitle='NCERT India and the Contemporary World – II - History - Chapter '+chapter+': '+title;
+});
+
 const CLASS10_GEOGRAPHY_PDFS=[
   [1,'Resources and Development','jess101.pdf'],
   [2,'Forest and Wildlife Resources','jess102.pdf'],
@@ -218,6 +241,7 @@ lessons.forEach(lesson=>{
 window.TLW_CLASS10_MATHS_PDFS=CLASS10_MATHS_PDFS;
 window.TLW_CLASS10_ENGLISH_PDFS=CLASS10_ENGLISH_PDFS;
 window.TLW_CLASS10_HINDI_PDFS=CLASS10_HINDI_PDFS;
+window.TLW_CLASS10_HISTORY_PDFS=CLASS10_HISTORY_PDFS;
 window.TLW_CLASS10_GEOGRAPHY_PDFS=CLASS10_GEOGRAPHY_PDFS;
 window.TLW_CLASS10_HPE_PDFS=CLASS10_HPE_PDFS;
 })();
