@@ -2798,19 +2798,20 @@ function renderCourses(){
     <div class="topic-content-top topic-content-top-simple ${posterLesson?'poster-topic-heading':''}">
      <div><span class="chapter-kicker">CHAPTER</span><h3 class="${posterLesson?'visually-hidden':''}">${safe(selected.title)}</h3></div>
     </div>
+    ${renderChapterJourney(selected)}
     ${renderChapterTopicNavigator(selected)}
-    ${renderScienceConceptMap(selected)}
-    ${renderDifficultySelector(selected)}
-    ${renderOriginalPdfPanel(selected)}
-    ${topicStudyContent}
+    <section class="chapter-journey-section" id="chapter-step-learn" data-journey-section="learn">
+     ${journeySectionHead(1,'📖','Learn',selected.sourcePdf?'Original NCERT PDF':'Lesson content')}
+     ${renderOriginalPdfPanel(selected)}
+     ${!selected.sourcePdf?topicStudyContent:''}
+    </section>
+    ${renderUnderstandSection(selected)}
+    ${selected.sourcePdf?topicStudyContent:''}
+    ${renderQuickPracticeSection(selected)}
+    ${renderChapterTestSection(selected)}
+    ${renderReviseSection(selected)}
+    ${renderMasteredSection(selected)}
     ${richNote}
-    <div class="topic-content-actions">
-     <span class="topic-read-status">${(()=>{const m=chapterMastery(selected),s=topicStatusInfo(m);return s.icon+' Chapter mastery: '+m+'% · '+s.label})()}</span>
-     <div class="topic-action-buttons">
-      <button type="button" class="btn btn-secondary read-aloud-btn" data-read-aloud="${safe(selected.id)}">🔊 Read Aloud</button>
-      
-     </div>
-    </div>
    </article>
   </div>`;
  if(posterLesson){
@@ -3082,7 +3083,22 @@ function installEvents(){
  $('gradeShortcuts').addEventListener('click',e=>{const gradeBtn=e.target.closest('[data-grade]');if(gradeBtn){setGrade(Number(gradeBtn.dataset.grade));return;}const changeBtn=e.target.closest('[data-change-class]');if(changeBtn){classChoicesOpen=true;subject='';query='';currentTopicId='';$('searchInput').value='';renderAll();requestAnimationFrame(()=>$('gradeShortcuts')?.scrollIntoView({behavior:'smooth',block:'start'}));}});
  $('subjectFilters').addEventListener('click',e=>{const btn=e.target.closest('[data-subject]');if(btn){stopReadAloud();subject=btn.dataset.subject;query='';currentTopicId='';currentSubtopicKey='';$('searchInput').value='';renderSubjectFilters();renderCourses();requestAnimationFrame(()=>$('lessonResultsSection')?.scrollIntoView({behavior:'smooth',block:'start'}))}});
  $('searchInput').addEventListener('input',e=>{query=e.target.value.trim().toLowerCase();renderCourses()});
- $('courseGrid').addEventListener('click',e=>{const concept=e.target.closest('[data-concept-topic]');if(concept){stopReadAloud();currentSubtopicKey=concept.dataset.conceptTopic;touchStudyLesson(currentTopicId,currentSubtopicKey);renderCourses();requestAnimationFrame(()=>$('courseGrid')?.querySelector('.chapter-topics-block')?.scrollIntoView({behavior:'smooth',block:'start'}));return;}const video=e.target.closest('[data-topic-video]');if(video){const lesson=LESSONS.find(l=>l.id===currentTopicId);const topic=lesson?chapterTopics(lesson).find(t=>t.key===video.dataset.topicVideo):null;if(lesson&&topic)openTopicVideo(lesson,topic);return;}const sprite=e.target.closest('[data-pdf-sprite]');if(sprite){openPdfFigureSprite(sprite);return;}const figure=e.target.closest('[data-pdf-image]');if(figure){openPdfFigure(figure.dataset.pdfImage,figure.dataset.pdfCaption);return;}const topic=e.target.closest('[data-topic-id]');if(topic){stopReadAloud();currentTopicId=topic.dataset.topicId;currentSubtopicKey='';touchStudyLesson(currentTopicId);renderCourses();return;}const subtopic=e.target.closest('[data-subtopic-key]');if(subtopic){stopReadAloud();currentSubtopicKey=subtopic.dataset.subtopicKey;touchStudyLesson(currentTopicId,currentSubtopicKey);if(subtopic.dataset.pageUnverified==='true')showToast('This topic is listed, but its PDF page has not been verified yet. No page number was guessed.');renderCourses();return;}const aloud=e.target.closest('[data-read-aloud]');if(aloud){readAloudLesson(aloud.dataset.readAloud,aloud);return;}const quiz=e.target.closest('[data-start-quiz]');if(quiz)openLesson(quiz.dataset.startQuiz,quiz.dataset.quizDifficulty||'all');});
+ $('courseGrid').addEventListener('click',e=>{
+ const step=e.target.closest('[data-chapter-step]');
+ if(step){$('courseGrid')?.querySelector('[data-journey-section="'+step.dataset.chapterStep+'"]')?.scrollIntoView({behavior:'smooth',block:'start'});return;}
+ const quick=e.target.closest('[data-quick-practice]');
+ if(quick){const lesson=LESSONS.find(l=>l.id===quick.dataset.quickPractice);if(lesson)openQuickPractice(lesson);return;}
+ const chapterTest=e.target.closest('[data-chapter-test]');
+ if(chapterTest){const lesson=LESSONS.find(l=>l.id===currentTopicId);if(lesson)openChapterTestFromLesson(lesson,chapterTest.dataset.chapterTest);return;}
+ const understandVideo=e.target.closest('[data-understand-video]');
+ if(understandVideo){const lesson=LESSONS.find(l=>l.id===currentTopicId);const topics=lesson?chapterTopics(lesson):[];const topic=topics.find(t=>t.key===currentSubtopicKey)||topics[0];if(lesson&&topic)openTopicVideo(lesson,topic);return;}
+ const reveal=e.target.closest('[data-flashcard-reveal]');
+ if(reveal){reveal.querySelector('.flashcard-front')?.setAttribute('hidden','');reveal.querySelector('.flashcard-back')?.removeAttribute('hidden');reveal.setAttribute('aria-expanded','true');reveal.parentElement?.querySelector('[data-flashcard-ratings]')?.removeAttribute('hidden');return;}
+ const rating=e.target.closest('[data-flashcard-rate]');
+ if(rating){const lesson=LESSONS.find(l=>l.id===currentTopicId);const card=lesson?flashcardsForLesson(lesson).find(c=>c.id===rating.dataset.flashcardId):null;if(lesson&&card)rateFlashcard(lesson,card,rating.dataset.flashcardRate);return;}
+ const dashboardLink=e.target.closest('[data-open-learning-dashboard]');
+ if(dashboardLink){window.location.hash='#my-learning';return;}
+ const concept=e.target.closest('[data-concept-topic]');if(concept){stopReadAloud();currentSubtopicKey=concept.dataset.conceptTopic;touchStudyLesson(currentTopicId,currentSubtopicKey);renderCourses();requestAnimationFrame(()=>$('courseGrid')?.querySelector('.chapter-topics-block')?.scrollIntoView({behavior:'smooth',block:'start'}));return;}const video=e.target.closest('[data-topic-video]');if(video){const lesson=LESSONS.find(l=>l.id===currentTopicId);const topic=lesson?chapterTopics(lesson).find(t=>t.key===video.dataset.topicVideo):null;if(lesson&&topic)openTopicVideo(lesson,topic);return;}const sprite=e.target.closest('[data-pdf-sprite]');if(sprite){openPdfFigureSprite(sprite);return;}const figure=e.target.closest('[data-pdf-image]');if(figure){openPdfFigure(figure.dataset.pdfImage,figure.dataset.pdfCaption);return;}const topic=e.target.closest('[data-topic-id]');if(topic){stopReadAloud();currentTopicId=topic.dataset.topicId;currentSubtopicKey='';currentFlashcardId='';touchStudyLesson(currentTopicId);renderCourses();return;}const subtopic=e.target.closest('[data-subtopic-key]');if(subtopic){stopReadAloud();currentSubtopicKey=subtopic.dataset.subtopicKey;touchStudyLesson(currentTopicId,currentSubtopicKey);if(subtopic.dataset.pageUnverified==='true')showToast('This topic is listed, but its PDF page has not been verified yet. No page number was guessed.');renderCourses();return;}const aloud=e.target.closest('[data-read-aloud]');if(aloud){readAloudLesson(aloud.dataset.readAloud,aloud);return;}const quiz=e.target.closest('[data-start-quiz]');if(quiz)openLesson(quiz.dataset.startQuiz,quiz.dataset.quizDifficulty||'all');});
  $('testClassGrid')?.addEventListener('click',e=>{const button=e.target.closest('[data-test-grade]');if(button)openTestBuilder(Number(button.dataset.testGrade));});
  $('testChangeClassBtn')?.addEventListener('click',()=>{resetTestPaper();const scope=$('testScopeControls');if(scope)scope.hidden=true;$('testBuilder').hidden=true;$('testClassGrid')?.scrollIntoView({behavior:'smooth',block:'start'});});
  $('testModeChoice')?.addEventListener('click',e=>{const button=e.target.closest('[data-test-mode]');if(button)chooseTestMode(button.dataset.testMode);});
