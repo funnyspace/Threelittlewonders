@@ -7,7 +7,7 @@
   <meta name="description" content="Threelittlewonders makes learning delightful with bite-sized lessons, fun quizzes and learning paths from Nursery through Class 10." />
   <title>Threelittlewonders | Little lessons, big wonders</title>
   <link rel="icon" href="favicon.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="styles.css?v=20261114-home-parent-dashboard-v1" />
+  <link rel="stylesheet" href="styles.css?v=20261114-concept-fun-v1" />
   <script src="content.js?v=20261103-class10-maths-14ch" defer></script>
   <script src="class1-english-mridang-content.js?v=20261105-ncert-v1" defer></script>
   <script src="class1-maths-joyful-content.js?v=20261106-ncert-v1" defer></script>
@@ -41,7 +41,7 @@
   <script src="secondary-curriculum.js" defer></script>  <script src="pdf-source-map.js?v=20261109-global-pdf-speech-v1" defer></script>
   <script src="cloud-config.js?v=20261114-cloud-v1" defer></script>
   <script src="cloud-sync.js?v=20261114-cloud-v1" defer></script>
-  <script src="app.js?v=20261114-cloud-v1" defer></script>
+  <script src="app.js?v=20261114-concept-fun-v1" defer></script>
   <script src="curriculum-ui.js?v=20261030-hide-all-roadmaps" defer></script>
   <script src="contact-form.js" defer></script>
   <script src="site-navigation.js?v=20261113-home-test-modes-v1" defer></script>
@@ -265,6 +265,44 @@
         </header>
 
         <div class="study-dashboard-grid">
+          <article class="dashboard-card learning-momentum-card">
+            <div class="learning-momentum-head">
+              <div><span class="dashboard-card-kicker">LEARNING MOMENTUM</span><h3>Small wins, steady progress</h3></div>
+              <span class="momentum-note">No rankings · no noisy rewards</span>
+            </div>
+            <div class="learning-momentum-grid">
+              <section class="momentum-block">
+                <span class="momentum-icon" aria-hidden="true">🔥</span>
+                <small>LEARNING STREAK</small>
+                <strong id="learningStreakCount">0 days</strong>
+                <p id="learningStreakMessage">Study for 5 minutes today to begin your streak.</p>
+              </section>
+              <section class="momentum-block">
+                <span class="momentum-icon" aria-hidden="true">📅</span>
+                <small>WEEKLY GOAL</small>
+                <strong id="weeklyGoalText">0 / 100 min</strong>
+                <div class="weekly-goal-track"><div id="weeklyGoalFill"></div></div>
+              </section>
+              <section class="momentum-block challenge-block">
+                <span class="momentum-icon" aria-hidden="true">☀️</span>
+                <small>DAILY CHALLENGE</small>
+                <strong id="dailyChallengeTitle">A quick question for today</strong>
+                <p id="dailyChallengeMeta">Complete one question from your class.</p>
+                <button type="button" class="momentum-action" id="dailyChallengeBtn">Start challenge →</button>
+              </section>
+              <section class="momentum-block challenge-block mystery-block">
+                <span class="momentum-icon" aria-hidden="true">❓</span>
+                <small>MYSTERY CHALLENGE</small>
+                <strong id="mysteryChallengeTitle">One challenge question is waiting</strong>
+                <p id="mysteryChallengeMeta">Topic stays hidden until you open it.</p>
+                <button type="button" class="momentum-action" id="mysteryChallengeBtn">Reveal & try →</button>
+              </section>
+            </div>
+            <div class="badge-shelf">
+              <div class="badge-shelf-head"><span>BADGES EARNED THROUGH MASTERY</span><strong id="badgeCount">0</strong></div>
+              <div class="badge-list" id="dashboardBadges"><p class="dashboard-empty">Master topics to earn calm, progress-based badges.</p></div>
+            </div>
+          </article>
           <article class="dashboard-card dashboard-continue">
             <div class="dashboard-card-icon" aria-hidden="true">📚</div>
             <div class="dashboard-card-copy">
