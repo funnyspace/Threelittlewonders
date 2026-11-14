@@ -15,7 +15,7 @@ const GRADE_GROUPS=[
  {key:'secondary',label:'Secondary',range:'Classes 9–10',icon:'🎓',grades:[9,10]}
 ];
 function load(){try{const v=JSON.parse(localStorage.getItem(STORE_KEY)||localStorage.getItem(LEGACY_STORE_KEY)||'{}');return {grade:Number.isInteger(v.grade)&&GRADE_LEVELS.includes(v.grade)?v.grade:3,completed:Array.isArray(v.completed)?[...new Set(v.completed.filter(x=>typeof x==='string'))]:[]}}catch{return {grade:3,completed:[]}}}
-let state=load(),subject='',query='',classChoicesOpen=true,currentTopicId='',currentSubtopicKey='',currentLesson=null,currentQuestion=0,questionAnswered=false,currentQuizDifficulty='all',currentQuizQuestions=[],currentMistakeId='',currentPracticeSource='',currentFlashcardId='',returnFocus=null,toastTimer;
+let state=load(),subject='',query='',classChoicesOpen=true,currentTopicId='',currentSubtopicKey='',currentSubSubject='',currentLesson=null,currentQuestion=0,questionAnswered=false,currentQuizDifficulty='all',currentQuizQuestions=[],currentMistakeId='',currentPracticeSource='',currentFlashcardId='',returnFocus=null,toastTimer;
 function persist(){
  try{localStorage.setItem(STORE_KEY,JSON.stringify(state))}catch{showToast('Progress cannot be saved in this browser.')}
  queueCloudLearningSync();
@@ -2754,6 +2754,33 @@ function submitExamPaper(autoSubmitted=false){
 function submitTestPaper(){submitExamPaper(false);}
 
 
+function renderClass10SocialScienceSubSubjects(){
+ const all=Array.isArray(window.TLW_CLASS10_SOCIAL_SCIENCE_SUBSUBJECTS)?window.TLW_CLASS10_SOCIAL_SCIENCE_SUBSUBJECTS:[];
+ const items=all.filter(item=>!query||[item.title,item.discipline].some(value=>String(value||'').toLowerCase().includes(query)));
+ if(!currentSubSubject||!items.some(item=>item.key===currentSubSubject))currentSubSubject=items[0]?.key||'';
+ const selected=items.find(item=>item.key===currentSubSubject)||items[0]||null;
+ $('emptyState').hidden=!!items.length;
+ if(!items.length){
+  $('courseGrid').innerHTML='';
+  return;
+ }
+ $('courseGrid').innerHTML=
+  '<section class="social-subject-browser">'+
+   '<div class="social-subject-intro"><span>CLASS 10 SOCIAL SCIENCE</span><h3>Choose a sub-subject</h3><p>Social Science is organised into four NCERT books. Select one to view its chapters.</p></div>'+
+   '<div class="social-subject-grid">'+items.map(item=>
+    '<button type="button" class="social-subject-card '+(item.key===selected.key?'active':'')+'" data-social-subject="'+safe(item.key)+'" aria-pressed="'+(item.key===selected.key)+'">'+
+     '<span class="social-subject-icon" aria-hidden="true">'+item.icon+'</span>'+
+     '<span class="social-subject-copy"><small>'+safe(item.discipline)+'</small><strong>'+safe(item.title)+'</strong></span>'+
+     '<span class="social-subject-arrow" aria-hidden="true">→</span>'+
+    '</button>'
+   ).join('')+'</div>'+
+   '<article class="social-subject-detail">'+
+    '<div><span>'+safe(selected.discipline.toUpperCase())+'</span><h3>'+safe(selected.title)+'</h3></div>'+
+    '<p>Chapter names and original PDFs can be added under this sub-subject without mixing them with the other Social Science books.</p>'+
+    '<div class="social-subject-empty">Chapter list will appear here.</div>'+
+   '</article>'+
+  '</section>';
+}
 function renderCourses(){
  const lessonSection=$('lessonResultsSection');
  if(!subject){
@@ -2767,6 +2794,11 @@ function renderCourses(){
  const allSubjects=subject==='All Subjects';
  $('selectedSubjectTitle').textContent=subject;
  $('selectedSubjectPill').innerHTML=`<span aria-hidden="true">${allSubjects?'✦':subjectIcon(subject)}</span><strong>${safe(subject)}</strong> · ${gradeName(state.grade)}`;
+ if(state.grade===10&&subject==='Social Science'){
+  currentTopicId='';
+  renderClass10SocialScienceSubSubjects();
+  return;
+ }
  let lessons=LESSONS.filter(l=>l.grade===state.grade&&(allSubjects||l.subject===subject)&&(!query||[l.title,l.subject,l.description,l.concept].some(t=>t.toLowerCase().includes(query))));
  if(state.grade===10&&subject==='Hindi'){
   const existingHindi=new Map(LESSONS.filter(l=>l.grade===10&&l.subject==='Hindi').map(l=>[String(l.title||'').toLowerCase(),l]));
@@ -3181,7 +3213,7 @@ function installEvents(){
  $('gradeShortcuts').addEventListener('click',e=>{const gradeBtn=e.target.closest('[data-grade]');if(gradeBtn){setGrade(Number(gradeBtn.dataset.grade));return;}const changeBtn=e.target.closest('[data-change-class]');if(changeBtn){classChoicesOpen=true;subject='';query='';currentTopicId='';$('searchInput').value='';renderAll();requestAnimationFrame(()=>$('gradeShortcuts')?.scrollIntoView({behavior:'smooth',block:'start'}));}});
  $('subjectFilters').addEventListener('click',e=>{const btn=e.target.closest('[data-subject]');if(btn){stopReadAloud();subject=btn.dataset.subject;query='';currentTopicId='';currentSubtopicKey='';$('searchInput').value='';renderSubjectFilters();renderCourses();requestAnimationFrame(()=>$('lessonResultsSection')?.scrollIntoView({behavior:'smooth',block:'start'}))}});
  $('searchInput').addEventListener('input',e=>{query=e.target.value.trim().toLowerCase();renderCourses()});
- $('courseGrid').addEventListener('click',e=>{
+ $('courseGrid').addEventListener('click',e=>{const socialSub=e.target.closest('[data-social-subject]');if(socialSub){currentSubSubject=socialSub.dataset.socialSubject||'';renderCourses();return;}
  const step=e.target.closest('[data-chapter-step]');
  if(step){$('courseGrid')?.querySelector('[data-journey-section="'+step.dataset.chapterStep+'"]')?.scrollIntoView({behavior:'smooth',block:'start'});return;}
  const quick=e.target.closest('[data-quick-practice]');
