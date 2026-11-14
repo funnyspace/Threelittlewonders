@@ -1556,7 +1556,7 @@ function renderGradeSelectors(){
 }
 function renderSubjectFilters(){
  const subjects=[...new Set(LESSONS.filter(x=>x.grade===state.grade).map(x=>x.subject))];
- const preferredOrder={English:0,Hindi:1,Sanskrit:2,Urdu:3,Maths:4,Science:5,EVS:6,'Social Science':7,Computer:8,'General Knowledge':9};
+ const preferredOrder={English:0,Hindi:1,Sanskrit:2,Urdu:3,Maths:4,Science:5,EVS:6,'Social Science':7,'Health and Physical Education':8,Computer:9,'General Knowledge':10};
  subjects.sort((a,b)=>(preferredOrder[a]??99)-(preferredOrder[b]??99)||a.localeCompare(b));
  const choices=['All Subjects',...subjects];
  $('subjectGradeName').textContent=gradeName(state.grade);
