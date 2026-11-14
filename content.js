@@ -307,6 +307,36 @@ window.TLW_CLASS10_SOCIAL_SCIENCE_SUBSUBJECTS=[
 ];
 
 [
+  "The Rise of Nationalism in Europe",
+  "Nationalism in India",
+  "The Making of a Global World",
+  "The Age of Industrialisation",
+  "Print Culture and the Modern World"
+].forEach((title,index)=>{
+  const chapter=index+1;
+  window.TLW_LESSONS.push({
+    id:'10-social-science-history-ch'+String(chapter).padStart(2,'0'),
+    grade:10,
+    subject:'Social Science',
+    subSubject:'history',
+    bookTitle:'India and the Contemporary World – II',
+    discipline:'History',
+    title,
+    description:'NCERT India and the Contemporary World – II · History · Chapter '+chapter,
+    emoji:'🏺',
+    concept:'Chapter '+chapter+': '+title,
+    example:'',
+    tip:'',
+    minutes:20,
+    sourceChapter:chapter,
+    sourcePdf:'jess'+String(300+chapter)+'.pdf',
+    chapterStartPage:1,
+    originalPdfTitle:'NCERT India and the Contemporary World – II - History - Chapter '+chapter+': '+title,
+    questions:[]
+  });
+});
+
+[
   "Resources and Development",
   "Forest and Wildlife Resources",
   "Water Resources",
