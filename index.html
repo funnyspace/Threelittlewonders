@@ -7,7 +7,7 @@
   <meta name="description" content="Threelittlewonders makes learning delightful with bite-sized lessons, fun quizzes and learning paths from Nursery through Class 10." />
   <title>Threelittlewonders | Little lessons, big wonders</title>
   <link rel="icon" href="favicon.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="styles.css?v=20261114-exam-mode-v2" />
+  <link rel="stylesheet" href="styles.css?v=20261114-home-parent-dashboard-v1" />
   <script src="content.js?v=20261103-class10-maths-14ch" defer></script>
   <script src="class1-english-mridang-content.js?v=20261105-ncert-v1" defer></script>
   <script src="class1-maths-joyful-content.js?v=20261106-ncert-v1" defer></script>
@@ -39,7 +39,7 @@
   <script src="curriculum.js" defer></script>
   <script src="school-curriculum.js" defer></script>
   <script src="secondary-curriculum.js" defer></script>  <script src="pdf-source-map.js?v=20261109-global-pdf-speech-v1" defer></script>
-  <script src="app.js?v=20261114-descriptive-presets-v1" defer></script>
+  <script src="app.js?v=20261114-home-parent-dashboard-v1" defer></script>
   <script src="curriculum-ui.js?v=20261030-hide-all-roadmaps" defer></script>
   <script src="contact-form.js" defer></script>
   <script src="site-navigation.js?v=20261113-home-test-modes-v1" defer></script>
@@ -97,6 +97,32 @@
             <div class="little-character"><div class="character-hair"></div><div class="character-face"><i class="eye"></i><i class="eye"></i><span class="smile"></span></div><div class="character-body"></div></div>
           </div>
           <div class="art-caption"><span>💡</span><span>Learn something<br><strong>amazing today!</strong></span></div>
+        </div>
+      </div>
+      <div class="container home-learning-dashboard" id="homeLearningDashboard" hidden>
+        <div class="home-learning-head">
+          <div><span>MY LEARNING TODAY</span><h2>Welcome back, <strong id="homeStudentName">Student</strong> <span aria-hidden="true">👋</span></h2><p id="homeStudentClass">Class</p></div>
+          <a class="home-dashboard-link" href="#my-learning">Open My Learning Dashboard →</a>
+        </div>
+        <div class="home-learning-grid">
+          <button type="button" class="home-smart-card home-smart-continue" id="homeContinueBtn">
+            <span aria-hidden="true">📚</span><small>CONTINUE LEARNING</small><strong id="homeContinueTitle">Choose a lesson</strong><em id="homeContinueMeta">Start your learning journey</em>
+          </button>
+          <a class="home-smart-card" href="#my-learning">
+            <span aria-hidden="true">🔁</span><small>REVISE TODAY</small><strong id="homeReviseCount">0 topics due</strong><em>Smart spaced revision</em>
+          </a>
+          <a class="home-smart-card" href="#test-series">
+            <span aria-hidden="true">📝</span><small>TAKE A QUICK TEST</small><strong>Practice now</strong><em>MCQ or descriptive</em>
+          </a>
+          <a class="home-smart-card" href="#my-learning">
+            <span aria-hidden="true">⏱️</span><small>TODAY'S GOAL</small><strong id="homeGoalText">0 of 3 topics</strong><em>20 minutes · 3 topics</em>
+          </a>
+          <a class="home-smart-card" href="#my-learning">
+            <span aria-hidden="true">🎯</span><small>WEAK TOPICS</small><strong id="homeWeakTopic">Keep practising</strong><em id="homeWeakMeta">Your weak topics will appear here</em>
+          </a>
+          <a class="home-smart-card" href="#test-series">
+            <span aria-hidden="true">📊</span><small>RECENT SCORE</small><strong id="homeRecentScore">No test yet</strong><em id="homeRecentMeta">Take your first test</em>
+          </a>
         </div>
       </div>
       <div class="container hero-footer"><div><span>🎒</span> Nursery to Class 10</div><div><span>🧩</span> Bite-sized learning</div><div><span>🏆</span> Fun quizzes & rewards</div><div><span>🌱</span> Progress at your pace</div></div>
@@ -298,6 +324,30 @@
             </div>
             <p class="mistakes-intro">Incorrect MCQs are saved automatically so you can review and retry them later.</p>
             <div class="mistake-notebook-list" id="dashboardMistakes"></div>
+          </article>
+
+          <article class="dashboard-card parent-dashboard-card" id="parentDashboard">
+            <div class="parent-dashboard-head">
+              <div><span class="dashboard-card-kicker">PARENT DASHBOARD</span><h3 id="parentStudentTitle">Student · Class</h3><p>Simple progress snapshot. No ranking against other children.</p></div>
+              <span aria-hidden="true">👨‍👩‍👧</span>
+            </div>
+            <div class="parent-summary-grid">
+              <div><span>Study time this week</span><strong id="parentStudyTime">0m</strong></div>
+              <div><span>Topics studied</span><strong id="parentTopicsStudied">0</strong></div>
+              <div><span>Mastered</span><strong id="parentMastered">0</strong></div>
+              <div><span>Needs revision</span><strong id="parentNeedsRevision">0</strong></div>
+            </div>
+            <div class="parent-dashboard-lower">
+              <section>
+                <h4>Subject mastery</h4>
+                <div class="parent-subject-list" id="parentSubjectMastery"></div>
+              </section>
+              <section class="parent-insights">
+                <div><span>🏆 Strongest</span><strong id="parentStrongest">Not enough data yet</strong></div>
+                <div><span>🎯 Needs help</span><strong id="parentNeedsHelp">Not enough data yet</strong></div>
+                <div><span>📝 Tests completed</span><strong id="parentTestsCompleted">0</strong></div>
+              </section>
+            </div>
           </article>
         </div>
       </div>
