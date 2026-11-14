@@ -7,7 +7,7 @@
   <meta name="description" content="Threelittlewonders makes learning delightful with bite-sized lessons, fun quizzes and learning paths from Nursery through Class 10." />
   <title>Threelittlewonders | Little lessons, big wonders</title>
   <link rel="icon" href="favicon.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="styles.css?v=20261114-mastery-feedback-v1" />
+  <link rel="stylesheet" href="styles.css?v=20261114-smart-revision-v1" />
   <script src="content.js?v=20261103-class10-maths-14ch" defer></script>
   <script src="class1-english-mridang-content.js?v=20261105-ncert-v1" defer></script>
   <script src="class1-maths-joyful-content.js?v=20261106-ncert-v1" defer></script>
@@ -39,7 +39,7 @@
   <script src="curriculum.js" defer></script>
   <script src="school-curriculum.js" defer></script>
   <script src="secondary-curriculum.js" defer></script>  <script src="pdf-source-map.js?v=20261109-global-pdf-speech-v1" defer></script>
-  <script src="app.js?v=20261114-mastery-feedback-v1" defer></script>
+  <script src="app.js?v=20261114-smart-revision-v1" defer></script>
   <script src="curriculum-ui.js?v=20261030-hide-all-roadmaps" defer></script>
   <script src="contact-form.js" defer></script>
   <script src="site-navigation.js?v=20261113-home-test-modes-v1" defer></script>
@@ -268,6 +268,24 @@
             <h3 id="dashboardUpcomingTest">Chapter Test</h3>
             <p id="dashboardUpcomingTestMeta">Practise when you are ready.</p>
             <a class="btn btn-secondary" href="#test-series">Open Test Series</a>
+          </article>
+
+          <article class="dashboard-card dashboard-revision-plan">
+            <div class="dashboard-card-title-row">
+              <div><span class="dashboard-card-kicker">SMART REVISION</span><h3>Your revision plan</h3></div>
+              <span aria-hidden="true">🧠</span>
+            </div>
+            <p class="revision-sequence">Today → Tomorrow → 3 days → 7 days → 14 days → 30 days</p>
+            <div class="revision-plan-list" id="dashboardRevisionPlan"></div>
+          </article>
+
+          <article class="dashboard-card dashboard-mistakes">
+            <div class="dashboard-card-title-row">
+              <div><span class="dashboard-card-kicker">WRONG ANSWER NOTEBOOK</span><h3>My Mistakes</h3></div>
+              <span class="mistake-count"><strong id="dashboardMistakeCount">0</strong> unresolved</span>
+            </div>
+            <p class="mistakes-intro">Incorrect MCQs are saved automatically so you can review and retry them later.</p>
+            <div class="mistake-notebook-list" id="dashboardMistakes"></div>
           </article>
         </div>
       </div>
