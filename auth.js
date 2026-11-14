@@ -117,11 +117,13 @@ function friendlyCloudError(error){
 }
 function updateStorageNotice(){
  const note=$('authStorageNotice');
- if(!note)return;
+ const sync=$('authSyncStatus');
  if(cloudEnabled()){
-  note.innerHTML='<strong>Cloud account enabled.</strong> Your profile and learning progress can sync across supported devices after login.';
+  if(note)note.innerHTML='<strong>Cloud account enabled.</strong> Your profile and learning progress can sync across supported devices after login.';
+  if(sync)sync.textContent='☁ Cloud sync enabled';
  }else{
-  note.innerHTML='<strong>Browser-only account.</strong> This login is stored on this device and browser. Cloud sync is not configured yet. Passwords are not stored as plain text.';
+  if(note)note.innerHTML='<strong>Browser-only account.</strong> This login is stored on this device and browser. Cloud sync is not configured yet. Passwords are not stored as plain text.';
+  if(sync)sync.textContent='Device-only account';
  }
 }
 function applyCloudProfile(profile){
