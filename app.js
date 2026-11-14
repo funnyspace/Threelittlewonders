@@ -15,83 +15,303 @@ const GRADE_GROUPS=[
  {key:'secondary',label:'Secondary',range:'Classes 9–10',icon:'🎓',grades:[9,10]}
 ];
 function load(){try{const v=JSON.parse(localStorage.getItem(STORE_KEY)||localStorage.getItem(LEGACY_STORE_KEY)||'{}');return {grade:Number.isInteger(v.grade)&&GRADE_LEVELS.includes(v.grade)?v.grade:3,completed:Array.isArray(v.completed)?[...new Set(v.completed.filter(x=>typeof x==='string'))]:[]}}catch{return {grade:3,completed:[]}}}
-let state=load(),subject='',query='',classChoicesOpen=true,currentTopicId='',currentSubtopicKey='',currentLesson=null,currentQuestion=0,questionAnswered=false,returnFocus=null,toastTimer;
+let state=load(),subject='',query='',classChoicesOpen=true,currentTopicId='',currentSubtopicKey='',currentLesson=null,currentQuestion=0,questionAnswered=false,currentQuizDifficulty='all',currentQuizQuestions=[],returnFocus=null,toastTimer;
 function persist(){try{localStorage.setItem(STORE_KEY,JSON.stringify(state))}catch{showToast('Progress cannot be saved in this browser.')}}
 const gradeName=g=>g===-2?'Nursery':g===-1?'LKG':g===0?'UKG':`Class ${g}`;
 const subjectIcon=s=>SUBJECTS[s]?.icon||'📚';
-function emptyStudyData(){return {lastLessonId:'',lastSubtopicKey:'',lessonStats:{},testAttempts:[],daily:{date:'',completedLessonIds:[]}}}
+function emptyStudyData(){
+ return {
+  lastLessonId:'',
+  lastSubtopicKey:'',
+  lessonStats:{},
+  topicStats:{},
+  testAttempts:[],
+  daily:{date:'',completedLessonIds:[],practicedTopics:[]}
+ };
+}
 function loadStudyData(){
  try{
   const raw=JSON.parse(localStorage.getItem(STUDY_STORE_KEY)||'{}');
   const base=emptyStudyData();
-  return {...base,...raw,lessonStats:raw&&raw.lessonStats&&typeof raw.lessonStats==='object'?raw.lessonStats:{},testAttempts:Array.isArray(raw&&raw.testAttempts)?raw.testAttempts:[],daily:raw&&raw.daily&&typeof raw.daily==='object'?raw.daily:base.daily};
+  return {
+   ...base,...raw,
+   lessonStats:raw&&raw.lessonStats&&typeof raw.lessonStats==='object'?raw.lessonStats:{},
+   topicStats:raw&&raw.topicStats&&typeof raw.topicStats==='object'?raw.topicStats:{},
+   testAttempts:Array.isArray(raw&&raw.testAttempts)?raw.testAttempts:[],
+   daily:raw&&raw.daily&&typeof raw.daily==='object'?{
+    date:String(raw.daily.date||''),
+    completedLessonIds:Array.isArray(raw.daily.completedLessonIds)?raw.daily.completedLessonIds:[],
+    practicedTopics:Array.isArray(raw.daily.practicedTopics)?raw.daily.practicedTopics:[]
+   }:base.daily
+  };
  }catch{return emptyStudyData()}
 }
 let studyData=loadStudyData();
 function todayKey(){return new Date().toISOString().slice(0,10)}
-function normaliseStudyDay(){const today=todayKey();if(studyData.daily.date!==today)studyData.daily={date:today,completedLessonIds:[]}}
-function saveStudyData(){normaliseStudyDay();try{localStorage.setItem(STUDY_STORE_KEY,JSON.stringify(studyData))}catch{}}
-function lessonStudyStat(id){if(!studyData.lessonStats[id])studyData.lessonStats[id]={correct:0,wrong:0,attempts:0,lastStudied:'',completedAt:''};return studyData.lessonStats[id]}
-function touchStudyLesson(lessonId,subtopicKey=''){if(!lessonId)return;studyData.lastLessonId=lessonId;if(subtopicKey)studyData.lastSubtopicKey=subtopicKey;const stat=lessonStudyStat(lessonId);stat.lastStudied=new Date().toISOString();saveStudyData()}
-function recordQuizChoice(lessonId,isCorrect){if(!lessonId)return;const stat=lessonStudyStat(lessonId);stat.attempts=(stat.attempts||0)+1;if(isCorrect)stat.correct=(stat.correct||0)+1;else stat.wrong=(stat.wrong||0)+1;stat.lastStudied=new Date().toISOString();studyData.lastLessonId=lessonId;saveStudyData()}
-function recordLessonComplete(lessonId){if(!lessonId)return;normaliseStudyDay();const stat=lessonStudyStat(lessonId);stat.completedAt=new Date().toISOString();stat.lastStudied=stat.completedAt;studyData.lastLessonId=lessonId;if(!studyData.daily.completedLessonIds.includes(lessonId))studyData.daily.completedLessonIds.push(lessonId);saveStudyData()}
-function lessonMastery(lesson){
+function normaliseStudyDay(){
+ const today=todayKey();
+ if(studyData.daily.date!==today)studyData.daily={date:today,completedLessonIds:[],practicedTopics:[]};
+ if(!Array.isArray(studyData.daily.practicedTopics))studyData.daily.practicedTopics=[];
+}
+function saveStudyData(){
+ normaliseStudyDay();
+ try{localStorage.setItem(STUDY_STORE_KEY,JSON.stringify(studyData))}catch{}
+}
+function lessonStudyStat(id){
+ if(!studyData.lessonStats[id])studyData.lessonStats[id]={correct:0,wrong:0,attempts:0,lastStudied:'',completedAt:''};
+ return studyData.lessonStats[id];
+}
+function topicStatKey(lessonId,topicKey='overview'){return lessonId+'::'+(topicKey||'overview')}
+function topicStudyStat(lessonId,topicKey='overview'){
+ const key=topicStatKey(lessonId,topicKey);
+ if(!studyData.topicStats[key]){
+  studyData.topicStats[key]={
+   quizCorrect:0,quizWrong:0,
+   revisionCorrect:0,revisionWrong:0,
+   testCorrect:0,testWrong:0,
+   lastStudied:'',lastAttemptAt:''
+  };
+ }
+ return studyData.topicStats[key];
+}
+function markPracticedTopic(lessonId,topicKey='overview'){
+ normaliseStudyDay();
+ const key=topicStatKey(lessonId,topicKey);
+ if(!studyData.daily.practicedTopics.includes(key))studyData.daily.practicedTopics.push(key);
+}
+function touchStudyLesson(lessonId,subtopicKey=''){
+ if(!lessonId)return;
+ studyData.lastLessonId=lessonId;
+ if(subtopicKey)studyData.lastSubtopicKey=subtopicKey;
+ const stat=lessonStudyStat(lessonId);
+ stat.lastStudied=new Date().toISOString();
+ if(subtopicKey){
+  const topic=topicStudyStat(lessonId,subtopicKey);
+  topic.lastStudied=stat.lastStudied;
+ }
+ saveStudyData();
+}
+function recordQuizChoice(lessonId,isCorrect,topicKey='overview'){
+ if(!lessonId)return;
+ const now=new Date().toISOString();
+ const lessonStat=lessonStudyStat(lessonId);
+ lessonStat.attempts=(lessonStat.attempts||0)+1;
+ if(isCorrect)lessonStat.correct=(lessonStat.correct||0)+1;
+ else lessonStat.wrong=(lessonStat.wrong||0)+1;
+ lessonStat.lastStudied=now;
+ studyData.lastLessonId=lessonId;
+ if(topicKey&&topicKey!=='overview')studyData.lastSubtopicKey=topicKey;
+
+ const topicStat=topicStudyStat(lessonId,topicKey||'overview');
+ const priorAttempt=topicStat.lastAttemptAt?new Date(topicStat.lastAttemptAt).getTime():0;
+ const revision=priorAttempt>0&&(Date.now()-priorAttempt)>=18*60*60*1000;
+ if(isCorrect)topicStat.quizCorrect=(topicStat.quizCorrect||0)+1;
+ else topicStat.quizWrong=(topicStat.quizWrong||0)+1;
+ if(revision){
+  if(isCorrect)topicStat.revisionCorrect=(topicStat.revisionCorrect||0)+1;
+  else topicStat.revisionWrong=(topicStat.revisionWrong||0)+1;
+ }
+ topicStat.lastAttemptAt=now;
+ topicStat.lastStudied=now;
+ markPracticedTopic(lessonId,topicKey||'overview');
+ saveStudyData();
+}
+function recordTopicTestChoice(lessonId,topicKey,isCorrect){
+ if(!lessonId)return;
+ const key=topicKey||'overview';
+ const stat=topicStudyStat(lessonId,key);
+ if(isCorrect)stat.testCorrect=(stat.testCorrect||0)+1;
+ else stat.testWrong=(stat.testWrong||0)+1;
+ stat.lastStudied=new Date().toISOString();
+ markPracticedTopic(lessonId,key);
+
+ const lessonStat=lessonStudyStat(lessonId);
+ lessonStat.attempts=(lessonStat.attempts||0)+1;
+ if(isCorrect)lessonStat.correct=(lessonStat.correct||0)+1;
+ else lessonStat.wrong=(lessonStat.wrong||0)+1;
+ lessonStat.lastStudied=stat.lastStudied;
+ saveStudyData();
+}
+function recordLessonComplete(lessonId){
+ if(!lessonId)return;
+ normaliseStudyDay();
+ const stat=lessonStudyStat(lessonId);
+ stat.completedAt=new Date().toISOString();
+ stat.lastStudied=stat.completedAt;
+ studyData.lastLessonId=lessonId;
+ if(!studyData.daily.completedLessonIds.includes(lessonId))studyData.daily.completedLessonIds.push(lessonId);
+ saveStudyData();
+}
+function recencyScore(dateValue){
+ if(!dateValue)return 0;
+ const ageDays=(Date.now()-new Date(dateValue).getTime())/86400000;
+ if(ageDays<=2)return 10;
+ if(ageDays<=7)return 7;
+ if(ageDays<=30)return 3;
+ return 0;
+}
+function topicMastery(lesson,topicKey='overview'){
  if(!lesson)return 0;
- const stat=studyData.lessonStats[lesson.id]||{};
- const attempts=Number(stat.attempts)||0,correct=Number(stat.correct)||0,wrong=Number(stat.wrong)||0;
- const completed=state.completed.includes(lesson.id);
- if(!attempts&&!completed)return 0;
- const accuracy=attempts?correct/Math.max(1,correct+wrong):0;
- let score=Math.round(accuracy*60+(completed?30:0));
- if(stat.lastStudied){const ageDays=(Date.now()-new Date(stat.lastStudied).getTime())/86400000;score+=ageDays<=7?10:ageDays<=30?5:0;}
+ const stat=studyData.topicStats[topicStatKey(lesson.id,topicKey)]||{};
+ const quizTotal=(stat.quizCorrect||0)+(stat.quizWrong||0);
+ const revisionTotal=(stat.revisionCorrect||0)+(stat.revisionWrong||0);
+ const testTotal=(stat.testCorrect||0)+(stat.testWrong||0);
+ if(!quizTotal&&!revisionTotal&&!testTotal)return 0;
+ const quizAccuracy=quizTotal?(stat.quizCorrect||0)/quizTotal:0;
+ const revisionAccuracy=revisionTotal?(stat.revisionCorrect||0)/revisionTotal:0;
+ const testAccuracy=testTotal?(stat.testCorrect||0)/testTotal:0;
+ const score=Math.round(
+  quizAccuracy*45+
+  revisionAccuracy*20+
+  testAccuracy*25+
+  recencyScore(stat.lastStudied)
+ );
  return Math.max(0,Math.min(100,score));
 }
-function studyGreeting(){const hour=new Date().getHours();return hour<12?'Good morning':hour<17?'Good afternoon':'Good evening'}
-function dashboardTopicName(lesson){const topics=chapterTopics(lesson);const key=lesson.id===studyData.lastLessonId?studyData.lastSubtopicKey:'';const match=topics.find(t=>t.key===key);return (match&&match.title)||((topics[0]&&topics[0].title)||lesson.title)}
+function topicStatusInfo(score){
+ if(score>=80)return {key:'mastered',label:'Mastered',icon:'🟢'};
+ if(score>=50)return {key:'learning',label:'Learning',icon:'🟡'};
+ return {key:'needs-work',label:'Needs work',icon:'🔴'};
+}
+function chapterMastery(lesson){
+ const topics=chapterTopics(lesson);
+ if(!topics.length)return topicMastery(lesson,'overview');
+ const values=topics.map(topic=>topicMastery(lesson,topic.key));
+ return values.length?Math.round(values.reduce((a,b)=>a+b,0)/values.length):0;
+}
+function lessonMastery(lesson){return chapterMastery(lesson)}
+function gradeTopicRows(grade){
+ const rows=[];
+ LESSONS.filter(l=>l.grade===grade).forEach(lesson=>{
+  const topics=chapterTopics(lesson);
+  if(topics.length){
+   topics.forEach(topic=>rows.push({lesson,topic,mastery:topicMastery(lesson,topic.key)}));
+  }else{
+   rows.push({lesson,topic:{key:'overview',title:lesson.title},mastery:topicMastery(lesson,'overview')});
+  }
+ });
+ return rows;
+}
+function gradeMasteryAverage(grade){
+ const rows=gradeTopicRows(grade);
+ return rows.length?Math.round(rows.reduce((sum,row)=>sum+row.mastery,0)/rows.length):0;
+}
+function studyGreeting(){
+ const hour=new Date().getHours();
+ return hour<12?'Good morning':hour<17?'Good afternoon':'Good evening';
+}
+function dashboardTopicName(lesson){
+ const topics=chapterTopics(lesson);
+ const key=lesson.id===studyData.lastLessonId?studyData.lastSubtopicKey:'';
+ const match=topics.find(t=>t.key===key);
+ return (match&&match.title)||((topics[0]&&topics[0].title)||lesson.title);
+}
 function revisionCandidates(grade){
  const now=Date.now();
- return LESSONS.filter(l=>l.grade===grade).filter(l=>{const stat=studyData.lessonStats[l.id];if(!stat||!stat.lastStudied)return false;const mastery=lessonMastery(l);const age=(now-new Date(stat.lastStudied).getTime())/86400000;return (mastery>0&&mastery<70&&age>=1)||(mastery>=70&&age>=7)}).sort((a,b)=>lessonMastery(a)-lessonMastery(b));
+ return gradeTopicRows(grade).filter(row=>{
+  const stat=studyData.topicStats[topicStatKey(row.lesson.id,row.topic.key)];
+  if(!stat||!stat.lastStudied)return false;
+  const age=(now-new Date(stat.lastStudied).getTime())/86400000;
+  return (row.mastery>0&&row.mastery<80&&age>=1)||(row.mastery>=80&&age>=7);
+ }).sort((a,b)=>a.mastery-b.mastery);
 }
-function dashboardAccount(){try{const session=JSON.parse(localStorage.getItem('Threelittlewonders-local-session-v1')||'null');const accounts=JSON.parse(localStorage.getItem('Threelittlewonders-local-accounts-v1')||'{}');if(!session||!session.email)return null;return accounts[String(session.email).toLowerCase()]||null}catch{return null}}
+function dashboardAccount(){
+ try{
+  const session=JSON.parse(localStorage.getItem('Threelittlewonders-local-session-v1')||'null');
+  const accounts=JSON.parse(localStorage.getItem('Threelittlewonders-local-accounts-v1')||'{}');
+  if(!session||!session.email)return null;
+  return accounts[String(session.email).toLowerCase()]||null;
+ }catch{return null}
+}
 function renderDashboardTopicRows(host,rows,emptyText){
  if(!host)return;
- if(!rows.length){host.innerHTML='<p class="dashboard-empty">'+safe(emptyText)+'</p>';return;}
- host.innerHTML=rows.map(row=>'<button type="button" class="dashboard-topic-row" data-dashboard-lesson="'+safe(row.lesson.id)+'"><span><strong>'+safe(dashboardTopicName(row.lesson))+'</strong><small>'+safe(row.lesson.subject)+' · '+safe(row.lesson.title)+'</small></span><b>'+row.mastery+'%</b></button>').join('');
+ if(!rows.length){
+  host.innerHTML='<p class="dashboard-empty">'+safe(emptyText)+'</p>';
+  return;
+ }
+ host.innerHTML=rows.map(row=>{
+  const status=topicStatusInfo(row.mastery);
+  return '<button type="button" class="dashboard-topic-row" data-dashboard-lesson="'+safe(row.lesson.id)+'" data-dashboard-topic="'+safe(row.topic.key)+'">'+
+   '<span><strong>'+safe(row.topic.title)+'</strong><small>'+safe(row.lesson.subject)+' · '+safe(row.lesson.title)+'</small></span>'+
+   '<b class="mastery-mini mastery-'+status.key+'">'+status.icon+' '+row.mastery+'%</b>'+
+  '</button>';
+ }).join('');
 }
 function renderStudyDashboard(){
  const account=dashboardAccount(),guest=$('learningGuestView'),dashboard=$('studyDashboard');
  if(!guest||!dashboard)return;
- if(!account){guest.hidden=false;dashboard.hidden=true;return;}
- guest.hidden=true;dashboard.hidden=false;normaliseStudyDay();
- const grade=Number(account.grade),gradeLessons=LESSONS.filter(l=>l.grade===grade),completed=gradeLessons.filter(l=>state.completed.includes(l.id));
- const stars=state.completed.filter(id=>LESSONS.some(l=>l.id===id)).length*20;
- const last=gradeLessons.find(l=>l.id===studyData.lastLessonId);
- const next=last||gradeLessons.find(l=>!state.completed.includes(l.id))||gradeLessons[0]||null;
- const ranked=gradeLessons.map(lesson=>({lesson,mastery:lessonMastery(lesson)})).filter(x=>x.mastery>0);
- const weak=[...ranked].filter(x=>x.mastery<70).sort((a,b)=>a.mastery-b.mastery).slice(0,2);
- const strong=[...ranked].sort((a,b)=>b.mastery-a.mastery).slice(0,2);
- const revise=revisionCandidates(grade);
- const first=String(account.displayName||'Student').trim().split(/\s+/)[0]||'Student';
- $('dashboardGreeting').textContent=studyGreeting();$('dashboardStudentName').textContent=first;$('dashboardClassName').textContent=gradeName(grade);
- $('dashboardStars').textContent=stars;$('dashboardCompleted').textContent=completed.length;$('dashboardReviseCount').textContent=revise.length;
- const todayDone=studyData.daily.completedLessonIds.filter(id=>gradeLessons.some(l=>l.id===id)).length;
- $('dashboardGoalProgress').textContent=Math.min(todayDone,3)+' of 3 topics completed today';$('dashboardGoalFill').style.width=Math.min(100,Math.round(todayDone/3*100))+'%';
- if(next){
-  const mastery=lessonMastery(next),topic=dashboardTopicName(next);
-  $('dashboardContinueTitle').textContent=next.subject+' → '+next.title;$('dashboardContinuePath').textContent=topic;
-  $('dashboardContinueMastery').textContent=mastery+'% mastered';$('dashboardContinueFill').style.width=mastery+'%';
-  $('dashboardContinueBtn').dataset.dashboardLesson=next.id;$('dashboardUpcomingTest').textContent=next.subject+' Chapter Test';$('dashboardUpcomingTestMeta').textContent=next.title;
- }else{
-  $('dashboardContinueTitle').textContent='Choose a class to begin';$('dashboardContinuePath').textContent='Your next lesson will appear here.';$('dashboardContinueMastery').textContent='0% mastered';$('dashboardContinueFill').style.width='0%';delete $('dashboardContinueBtn').dataset.dashboardLesson;
-  $('dashboardUpcomingTest').textContent='Chapter Test';$('dashboardUpcomingTestMeta').textContent='Practise when you are ready.';
+ if(!account){
+  guest.hidden=false;
+  dashboard.hidden=true;
+  return;
  }
- renderDashboardTopicRows($('dashboardWeakTopics'),weak,'Complete a few quizzes to identify topics that need more practice.');
- renderDashboardTopicRows($('dashboardStrongTopics'),strong,'Your strongest topics will appear after you complete quizzes.');
+ guest.hidden=true;
+ dashboard.hidden=false;
+ normaliseStudyDay();
+
+ const grade=Number(account.grade);
+ const rows=gradeTopicRows(grade);
+ const started=rows.filter(row=>row.mastery>0);
+ const weak=[...started].filter(row=>row.mastery<80).sort((a,b)=>a.mastery-b.mastery).slice(0,3);
+ const strong=[...started].filter(row=>row.mastery>=50).sort((a,b)=>b.mastery-a.mastery).slice(0,3);
+ const revise=revisionCandidates(grade);
+ const mastered=rows.filter(row=>row.mastery>=80).length;
+ const average=gradeMasteryAverage(grade);
+ const gradeLessons=LESSONS.filter(l=>l.grade===grade);
+ const last=gradeLessons.find(l=>l.id===studyData.lastLessonId);
+ const next=last||gradeLessons[0]||null;
+ const first=String(account.displayName||'Student').trim().split(/\s+/)[0]||'Student';
+
+ $('dashboardGreeting').textContent=studyGreeting();
+ $('dashboardStudentName').textContent=first;
+ $('dashboardClassName').textContent=gradeName(grade);
+ const avgEl=$('dashboardAverageMastery');
+ if(avgEl)avgEl.textContent=average+'%';
+ const masteredEl=$('dashboardMasteredTopics');
+ if(masteredEl)masteredEl.textContent=mastered;
+ $('dashboardReviseCount').textContent=revise.length;
+
+ const todayDone=studyData.daily.practicedTopics.filter(key=>rows.some(row=>topicStatKey(row.lesson.id,row.topic.key)===key)).length;
+ $('dashboardGoalProgress').textContent=Math.min(todayDone,3)+' of 3 topics practised today';
+ $('dashboardGoalFill').style.width=Math.min(100,Math.round(todayDone/3*100))+'%';
+
+ if(next){
+  const topics=chapterTopics(next);
+  const selectedTopic=topics.find(t=>t.key===studyData.lastSubtopicKey)||topics[0]||{key:'overview',title:next.title};
+  const mastery=topicMastery(next,selectedTopic.key);
+  $('dashboardContinueTitle').textContent=next.subject+' → '+next.title;
+  $('dashboardContinuePath').textContent=selectedTopic.title;
+  $('dashboardContinueMastery').textContent=mastery+'% mastered';
+  $('dashboardContinueFill').style.width=mastery+'%';
+  $('dashboardContinueBtn').dataset.dashboardLesson=next.id;
+  $('dashboardContinueBtn').dataset.dashboardTopic=selectedTopic.key;
+  $('dashboardUpcomingTest').textContent=next.subject+' Chapter Test';
+  $('dashboardUpcomingTestMeta').textContent=next.title;
+ }else{
+  $('dashboardContinueTitle').textContent='Choose a class to begin';
+  $('dashboardContinuePath').textContent='Your next lesson will appear here.';
+  $('dashboardContinueMastery').textContent='0% mastered';
+  $('dashboardContinueFill').style.width='0%';
+  delete $('dashboardContinueBtn').dataset.dashboardLesson;
+  delete $('dashboardContinueBtn').dataset.dashboardTopic;
+  $('dashboardUpcomingTest').textContent='Chapter Test';
+  $('dashboardUpcomingTestMeta').textContent='Practise when you are ready.';
+ }
+ renderDashboardTopicRows($('dashboardWeakTopics'),weak,'Complete quizzes and tests to identify topics that need more practice.');
+ renderDashboardTopicRows($('dashboardStrongTopics'),strong,'Your strongest topics will appear as your mastery grows.');
 }
-function openDashboardLesson(id){
- const lesson=LESSONS.find(l=>l.id===id);if(!lesson)return;
- state.grade=lesson.grade;persist();classChoicesOpen=false;subject=lesson.subject;currentTopicId=lesson.id;currentSubtopicKey=lesson.id===studyData.lastLessonId?studyData.lastSubtopicKey:'';
- window.location.hash='#explore';renderAll();requestAnimationFrame(()=>$('lessonResultsSection')?.scrollIntoView({behavior:'smooth',block:'start'}));
+function openDashboardLesson(id,topicKey=''){
+ const lesson=LESSONS.find(l=>l.id===id);
+ if(!lesson)return;
+ state.grade=lesson.grade;
+ persist();
+ classChoicesOpen=false;
+ subject=lesson.subject;
+ currentTopicId=lesson.id;
+ currentSubtopicKey=topicKey||'';
+ window.location.hash='#explore';
+ renderAll();
+ requestAnimationFrame(()=>$('lessonResultsSection')?.scrollIntoView({behavior:'smooth',block:'start'}));
 }
 const CLASS10_SCIENCE_CHAPTERS=[
  'Chemical Reactions and Equations',
@@ -490,16 +710,20 @@ function renderChapterTopicNavigator(lesson){
  const topics=chapterTopics(lesson);
  if(!topics.length)return '';
  const active=topics.find(t=>t.key===currentSubtopicKey)||null;
- return '<section class="chapter-topics-block"><div class="chapter-topics-heading"><span>TOPICS IN THIS CHAPTER</span><strong>'+topics.length+'</strong></div><div class="chapter-topic-buttons">'+topics.map((t,i)=>
-  '<article class="chapter-topic-card '+(active&&active.key===t.key?'active':'')+'">'+
+ return '<section class="chapter-topics-block"><div class="chapter-topics-heading"><span>TOPICS IN THIS CHAPTER</span><strong>'+topics.length+'</strong></div><div class="chapter-topic-buttons">'+topics.map((t,i)=>{
+  const mastery=topicMastery(lesson,t.key);
+  const status=topicStatusInfo(mastery);
+  return '<article class="chapter-topic-card '+(active&&active.key===t.key?'active':'')+'">'+
    '<button type="button" class="chapter-topic-button" data-subtopic-key="'+safe(t.key)+'" '+(t.page===null?'data-page-unverified="true"':'data-pdf-page="'+t.page+'"')+'><span>'+(i+1)+'</span><strong>'+safe(t.title)+'</strong></button>'+
    '<div class="chapter-topic-meta">'+
-    (t.page!==null?'<small>PDF p. '+t.page+'</small>':'<small>Page verification pending</small>')+
+    '<span class="topic-page-status">'+(t.page!==null?'PDF p. '+t.page:'Page verification pending')+'</span>'+
+    '<span class="topic-mastery-badge mastery-'+status.key+'">'+status.icon+' '+mastery+'% · '+status.label+'</span>'+
     '<button type="button" class="topic-video-button" data-topic-video="'+safe(t.key)+'">▶ Watch Video</button>'+
    '</div>'+
-  '</article>'
- ).join('')+'</div></section>';
+  '</article>';
+ }).join('')+'</div></section>';
 }
+
 const originalPdfCache=new Map();
 function pdfBarcodeMasks(filename,pageNumber){
  const map=window.TLW_PDF_BARCODE_MASKS||{};
@@ -587,6 +811,79 @@ let testGrade=null;
 let activeTestItems=[];
 let descriptivePaperRun=0;
 let lastDescriptivePaperSignature='';
+const DIFFICULTY_LEVELS={
+ foundation:{label:'Foundation',icon:'🟢',description:'Definitions, recognition and basic recall'},
+ standard:{label:'Standard',icon:'🟡',description:'Application and reasoning'},
+ challenge:{label:'Challenge',icon:'🔴',description:'Competency, HOTS and case-based thinking'}
+};
+function normaliseDifficulty(value){
+ const key=String(value||'').toLowerCase();
+ return DIFFICULTY_LEVELS[key]?key:'';
+}
+function questionDifficulty(question,index=0,lesson=null){
+ const explicit=normaliseDifficulty(question&&question.difficulty);
+ if(explicit)return explicit;
+ const text=String(question&&question.text||'').toLowerCase();
+ if(/\b(case|assertion|reason|analyse|analyze|evaluate|justify|predict|infer|conclude|what would happen|why would|higher order)\b/.test(text))return 'challenge';
+ if(/^(what|which|who|where|when|name|identify|define|choose|select|how many|what colour|what comes)\b/.test(text.trim()))return 'foundation';
+ if(/\b(explain|compare|apply|calculate|solve|why|how|relationship|difference|correct statement)\b/.test(text))return 'standard';
+ return index%3===0?'foundation':index%3===1?'standard':'challenge';
+}
+function validQuestionsWithMeta(lesson){
+ return validLessonQuestions(lesson).map((question,index)=>({question,index,difficulty:questionDifficulty(question,index,lesson)}));
+}
+function lessonDifficultyCounts(lesson){
+ const counts={foundation:0,standard:0,challenge:0};
+ validQuestionsWithMeta(lesson).forEach(item=>counts[item.difficulty]++);
+ return counts;
+}
+function quizQuestionsForLesson(lesson,difficulty='all'){
+ const items=validQuestionsWithMeta(lesson);
+ if(difficulty==='all')return items;
+ return items.filter(item=>item.difficulty===difficulty);
+}
+function explanationKeywords(question){
+ const correct=Array.isArray(question&&question.options)&&Number.isInteger(question.answer)?question.options[question.answer]:'';
+ const stop=new Set(['what','which','when','where','who','whose','why','how','does','do','did','is','are','was','were','the','this','that','these','those','with','from','into','about','after','before','under','over','and','for','has','have','had','can','could','would','should','your','their','there','than','then','only','most','best','correct','answer']);
+ return (String(question&&question.text||'')+' '+String(correct||'')).toLowerCase().match(/[a-z0-9]+/g)?.filter(word=>word.length>=4&&!stop.has(word))||[];
+}
+function cleanConceptSentences(lesson){
+ const raw=String(lesson&&lesson.concept||'')
+  .replace(/#{1,6}\s*/g,'')
+  .replace(/\b(ACTIVITY|QUESTION|FIGURE|KNOW|EQ):/g,' ')
+  .replace(/[•*-]\s+/g,' ');
+ return raw.split(/(?<=[.!?])\s+|\n+/).map(s=>s.trim()).filter(s=>s.length>=24&&s.length<=320);
+}
+function questionExplanation(lesson,question){
+ if(question&&typeof question.explanation==='string'&&question.explanation.trim())return question.explanation.trim();
+ const correct=Array.isArray(question&&question.options)&&Number.isInteger(question.answer)?String(question.options[question.answer]||''):'';
+ const keywords=explanationKeywords(question);
+ const sentences=cleanConceptSentences(lesson);
+ let best='',bestScore=0;
+ sentences.forEach(sentence=>{
+  const lower=sentence.toLowerCase();
+  let score=0;
+  keywords.forEach(word=>{if(lower.includes(word))score+=1});
+  if(correct&&lower.includes(correct.toLowerCase()))score+=3;
+  if(score>bestScore){bestScore=score;best=sentence}
+ });
+ if(bestScore>0)return best;
+ if(lesson&&lesson.example)return String(lesson.example);
+ return 'The correct answer is '+correct+'. Review the concept in '+String(lesson&&lesson.title||'this lesson')+' and connect the answer to the definition, rule or example given there.';
+}
+function renderDifficultySelector(lesson){
+ const counts=lessonDifficultyCounts(lesson);
+ const total=counts.foundation+counts.standard+counts.challenge;
+ return '<section class="chapter-difficulty-block">'+
+  '<div class="chapter-difficulty-heading"><div><span>PRACTICE BY DIFFICULTY</span><strong>Choose your level</strong></div><small>'+total+' MCQs</small></div>'+
+  '<div class="chapter-difficulty-grid">'+Object.entries(DIFFICULTY_LEVELS).map(([key,meta])=>
+   '<button type="button" class="difficulty-card difficulty-'+key+'" data-quiz-difficulty="'+key+'" data-start-quiz="'+safe(lesson.id)+'" '+(counts[key]?'':'disabled')+'>'+
+    '<span class="difficulty-icon">'+meta.icon+'</span><span><strong>'+meta.label+'</strong><small>'+meta.description+'</small></span><b>'+counts[key]+'</b>'+
+   '</button>'
+  ).join('')+'</div>'+
+  (!total?'<p class="difficulty-empty">Difficulty-based MCQs will appear here when this chapter question bank is added.</p>':'')+
+ '</section>';
+}
 function validLessonQuestions(lesson){
  return (Array.isArray(lesson&&lesson.questions)?lesson.questions:[]).filter(q=>
   q&&typeof q.text==='string'&&Array.isArray(q.options)&&q.options.length>=2&&Number.isInteger(q.answer)&&q.answer>=0&&q.answer<q.options.length
@@ -664,7 +961,7 @@ function updateTestScopeNote(){
   const pattern=testGrade===10?'Current CBSE reference: 2026-27. ':'';
   note.textContent=pattern+'Paper scope: '+scope+'. Questions only, with competency, reasoning and case-based styles. A different question set is generated on each new start.';
  }else{
-  note.textContent='Paper scope: '+scope+'. Up to 10 available objective questions will be used.';
+  const difficulty=$('testDifficultySelect')?.value||'all';const label=difficulty==='all'?'Mixed difficulty':(DIFFICULTY_LEVELS[difficulty]?.label||difficulty);note.textContent='Paper scope: '+scope+' · '+label+'. Up to 10 available objective questions will be used.';
  }
  const start=$('generateTestBtn');
  if(start)start.innerHTML=(paperType==='descriptive'?'Begin Descriptive Exam':'Begin MCQ Test')+' <span aria-hidden="true">↗</span>';
@@ -696,6 +993,7 @@ function chooseTestMode(mode){
  const modeChoice=$('testModeChoice');
  if(!paperType||!scope)return;
  paperType.value=mode==='descriptive'?'descriptive':'objective';
+ const difficultyField=$('testDifficultyField');if(difficultyField)difficultyField.hidden=paperType.value==='descriptive';
  resetTestPaper();
  scope.hidden=false;
  if(modeChoice)modeChoice.querySelectorAll('[data-test-mode]').forEach(button=>{
@@ -717,9 +1015,11 @@ function buildTestQuestionPool(){
  const subject=$('testSubjectSelect')?.value||'';
  const chapterId=$('testChapterSelect')?.value||'';
  const topicKey=$('testTopicSelect')?.value||'';
+ const difficulty=$('testDifficultySelect')?.value||'all';
  let lessons=testLessonsForGrade().filter(l=>l.subject===subject);
  if(chapterId)lessons=lessons.filter(l=>l.id===chapterId);
- let items=lessons.flatMap(lesson=>validLessonQuestions(lesson).map((question,index)=>({lesson,question,index})));
+ let items=lessons.flatMap(lesson=>validQuestionsWithMeta(lesson).map(item=>({lesson,question:item.question,index:item.index,difficulty:item.difficulty})));
+ if(difficulty!=='all')items=items.filter(item=>item.difficulty===difficulty);
  let topicFallback=false;
  if(topicKey&&chapterId){
   const chapter=lessons[0];
@@ -733,7 +1033,7 @@ function buildTestQuestionPool(){
   if(tagged.length)items=tagged;
   else topicFallback=true;
  }
- return {items:shuffledTestItems(items).slice(0,10),topicFallback};
+ return {items:shuffledTestItems(items).slice(0,10),topicFallback,difficulty};
 }
 
 function rotatePick(items,count,offset){
@@ -1115,7 +1415,7 @@ function renderDescriptivePaper(){
 function renderTestPaper(){
  const panel=$('testPaperPanel');
  if(!panel)return;
- const {items,topicFallback}=buildTestQuestionPool();
+ const {items,topicFallback,difficulty}=buildTestQuestionPool();
  activeTestItems=items;
  const subject=$('testSubjectSelect')?.value||'';
  const chapterId=$('testChapterSelect')?.value||'';
@@ -1130,7 +1430,7 @@ function renderTestPaper(){
  }
  const fallbackNote=topicFallback?'<p class="test-paper-note">This topic does not yet have separately tagged questions, so the paper uses the available questions from its chapter.</p>':'';
  panel.hidden=false;
- panel.innerHTML='<div class="test-paper-head"><div><span>TEST PAPER</span><h3>'+safe(scope)+'</h3><p>'+items.length+' questions · 1 mark each</p></div><strong>'+items.length+' marks</strong></div>'+
+ const difficultyLabel=difficulty==='all'?'Mixed difficulty':(DIFFICULTY_LEVELS[difficulty]?.icon+' '+DIFFICULTY_LEVELS[difficulty]?.label);panel.innerHTML='<div class="test-paper-head"><div><span>TEST PAPER · '+safe(difficultyLabel)+'</span><h3>'+safe(scope)+'</h3><p>'+items.length+' questions · 1 mark each</p></div><strong>'+items.length+' marks</strong></div>'+
   fallbackNote+
   '<form id="testPaperForm" class="test-paper-form">'+items.map((item,i)=>
    '<fieldset class="test-question-card" data-test-question="'+i+'"><legend><span>'+(i+1)+'</span>'+safe(item.question.text)+'</legend>'+
@@ -1145,35 +1445,41 @@ function renderTestPaper(){
 function submitTestPaper(){
  if(!activeTestItems.length)return;
  let score=0,answered=0;
+ const selectedTopicKey=$('testTopicSelect')?.value||'';
  activeTestItems.forEach((item,i)=>{
   const checked=document.querySelector('input[name="test-q-'+i+'"]:checked');
   const card=document.querySelector('[data-test-question="'+i+'"]');
   const feedback=document.querySelector('[data-test-feedback="'+i+'"]');
+  let selected=null,correct=false;
   if(checked){
    answered++;
-   const selected=Number(checked.value);
-   if(selected===item.question.answer){score++;card?.classList.add('test-correct');}
+   selected=Number(checked.value);
+   correct=selected===item.question.answer;
+   if(correct){score++;card?.classList.add('test-correct');}
    else card?.classList.add('test-wrong');
+   const topicKey=selectedTopicKey||item.question.topicKey||item.question.section||'overview';
+   recordTopicTestChoice(item.lesson.id,topicKey,correct);
   }else{
    card?.classList.add('test-unanswered');
   }
   if(feedback){
-   feedback.textContent='Correct answer: '+String.fromCharCode(65+item.question.answer)+'. '+item.question.options[item.question.answer];
+   const correctText=String.fromCharCode(65+item.question.answer)+'. '+item.question.options[item.question.answer];
+   const explanation=questionExplanation(item.lesson,item.question);
+   feedback.innerHTML='<div class="test-explanation">'+
+    '<strong>'+(checked?(correct?'✅ Correct':'❌ Incorrect'):'⚪ Unanswered')+'</strong>'+
+    '<p><b>Correct answer:</b> '+safe(correctText)+'</p>'+
+    '<p><b>Why?</b> '+safe(explanation)+'</p>'+
+    '<button type="button" data-review-test-lesson="'+safe(item.lesson.id)+'" data-review-test-topic="'+safe(selectedTopicKey||item.question.topicKey||'')+'">📖 Review concept</button>'+
+   '</div>';
   }
  });
  document.querySelectorAll('#testPaperForm input').forEach(input=>input.disabled=true);
  const submit=document.querySelector('#testPaperForm button[type="submit"]');
  if(submit)submit.disabled=true;
- activeTestItems.forEach((item,i)=>{
-  const checked=document.querySelector('input[name="test-q-'+i+'"]:checked');
-  if(!checked)return;
-  const selected=Number(checked.value),stat=lessonStudyStat(item.lesson.id);
-  stat.attempts=(stat.attempts||0)+1;
-  if(selected===item.question.answer)stat.correct=(stat.correct||0)+1;else stat.wrong=(stat.wrong||0)+1;
-  stat.lastStudied=new Date().toISOString();
- });
  studyData.testAttempts.push({date:new Date().toISOString(),grade:testGrade,subject:$('testSubjectSelect')?.value||'',score:score,total:activeTestItems.length});
- studyData.testAttempts=studyData.testAttempts.slice(-50);saveStudyData();renderStudyDashboard();
+ studyData.testAttempts=studyData.testAttempts.slice(-50);
+ saveStudyData();
+ renderStudyDashboard();
  const result=$('testResult');
  if(result){
   const percent=Math.round(score/activeTestItems.length*100);
@@ -1182,6 +1488,7 @@ function submitTestPaper(){
   result.scrollIntoView({behavior:'smooth',block:'center'});
  }
 }
+
 
 function renderCourses(){
  const lessonSection=$('lessonResultsSection');
@@ -1266,7 +1573,7 @@ function renderCourses(){
      ${lessons.map((l,i)=>`<button type="button" class="topic-list-item ${l.id===selected.id?'active':''}" data-topic-id="${safe(l.id)}" aria-pressed="${l.id===selected.id}">
        <span class="topic-list-number">${i+1}</span>
        <span class="topic-list-copy">${allSubjects?'<small>'+safe(l.subject)+'</small>':''}<strong>${safe(l.title)}</strong></span>
-       ${state.completed.includes(l.id)?'<span class="topic-list-done" title="Completed">✓</span>':''}
+       ${(()=>{const m=chapterMastery(l),s=topicStatusInfo(m);return '<span class="topic-list-mastery mastery-'+s.key+'" title="'+s.label+'">'+m+'%</span>'})()}
       </button>`).join('')}
     </div>
    </aside>
@@ -1275,14 +1582,15 @@ function renderCourses(){
      <div><span class="chapter-kicker">CHAPTER</span><h3 class="${posterLesson?'visually-hidden':''}">${safe(selected.title)}</h3></div>
     </div>
     ${renderChapterTopicNavigator(selected)}
+    ${renderDifficultySelector(selected)}
     ${renderOriginalPdfPanel(selected)}
     ${topicStudyContent}
     ${richNote}
     <div class="topic-content-actions">
-     <span class="topic-read-status">${done?'✓ Quiz completed':(selected.sourcePdf?'Original PDF is the authoritative chapter content.':(Array.isArray(selected.questions)&&selected.questions.length?'Quiz questions are based on the lesson material.':'Chapter topic added. Detailed content will be imported from Google Drive.'))}</span>
+     <span class="topic-read-status">${(()=>{const m=chapterMastery(selected),s=topicStatusInfo(m);return s.icon+' Chapter mastery: '+m+'% · '+s.label})()}</span>
      <div class="topic-action-buttons">
       <button type="button" class="btn btn-secondary read-aloud-btn" data-read-aloud="${safe(selected.id)}">🔊 Read Aloud</button>
-      ${Array.isArray(selected.questions)&&selected.questions.length?'<button type="button" class="btn btn-primary topic-quiz-btn" data-start-quiz="'+safe(selected.id)+'">🧩 Quiz Test</button>':''}
+      
      </div>
     </div>
    </article>
@@ -1307,7 +1615,7 @@ function renderProgress(){
  const validCompleted=state.completed.filter(id=>LESSONS.some(l=>l.id===id));
  const pct=gradeLessons.length?Math.round(doneGrade/gradeLessons.length*100):0;
  const stars=validCompleted.length*20;
- $('navStars').textContent=stars;
+ const account=dashboardAccount();$('navStars').textContent=account?(gradeMasteryAverage(Number(account.grade))+'%'):stars;
  $('totalStars').textContent=stars;
  $('completedCount').textContent=validCompleted.length;
  $('progressPercent').textContent=pct+'%';
@@ -1325,10 +1633,39 @@ function renderAll(){
  const learningNote=document.querySelector('.curriculum-note');if(learningNote)learningNote.hidden=classChoicesOpen;
  if(classChoicesOpen){$('lessonResultsSection').hidden=true;}
 }
-function openLesson(id){const lesson=LESSONS.find(l=>l.id===id);if(!lesson)return;touchStudyLesson(lesson.id,currentSubtopicKey);stopReadAloud();currentLesson=lesson;currentQuestion=0;questionAnswered=false;returnFocus=document.activeElement;$('lessonModal').hidden=false;document.body.classList.add('modal-open');$('lessonTitle').textContent=lesson.title;$('modalSubjectIcon').textContent=subjectIcon(lesson.subject);$('modalMeta').textContent=`${gradeName(lesson.grade).toUpperCase()} · ${lesson.subject.toUpperCase()} · QUIZ FROM THIS TOPIC`;
- showQuiz();$('closeLesson').focus();}
-function stage(which){['Learn','Quiz','Complete'].forEach(s=>{const x=$('stage'+s);x.classList.toggle('active',s===which);x.classList.toggle('done',({Learn:0,Quiz:1,Complete:2}[s]||0)<({Learn:0,Quiz:1,Complete:2}[which]||0))})}
-function footer(left,button,action){const e=$('lessonFooter');e.innerHTML=`<span class="modal-helper">${safe(left)}</span><button class="btn btn-primary" id="modalAction">${safe(button)} <span aria-hidden="true">↗</span></button>`; $('modalAction').addEventListener('click',action)}
+function openLesson(id,difficulty='all'){
+ const lesson=LESSONS.find(l=>l.id===id);
+ if(!lesson)return;
+ touchStudyLesson(lesson.id,currentSubtopicKey);
+ stopReadAloud();
+ currentLesson=lesson;
+ currentQuizDifficulty=normaliseDifficulty(difficulty)||'all';
+ currentQuizQuestions=quizQuestionsForLesson(lesson,currentQuizDifficulty);
+ if(!currentQuizQuestions.length)currentQuizQuestions=quizQuestionsForLesson(lesson,'all');
+ currentQuestion=0;
+ questionAnswered=false;
+ returnFocus=document.activeElement;
+ $('lessonModal').hidden=false;
+ document.body.classList.add('modal-open');
+ $('lessonTitle').textContent=lesson.title;
+ $('modalSubjectIcon').textContent=subjectIcon(lesson.subject);
+ const level=currentQuizDifficulty==='all'?'Mixed practice':DIFFICULTY_LEVELS[currentQuizDifficulty].label;
+ $('modalMeta').textContent=gradeName(lesson.grade).toUpperCase()+' · '+lesson.subject.toUpperCase()+' · '+level.toUpperCase();
+ showQuiz();
+ $('closeLesson').focus();
+}
+function stage(which){
+ ['Learn','Quiz','Complete'].forEach(s=>{
+  const x=$('stage'+s);
+  x.classList.toggle('active',s===which);
+  x.classList.toggle('done',({Learn:0,Quiz:1,Complete:2}[s]||0)<({Learn:0,Quiz:1,Complete:2}[which]||0));
+ });
+}
+function footer(left,button,action){
+ const e=$('lessonFooter');
+ e.innerHTML='<span class="modal-helper">'+safe(left)+'</span><button class="btn btn-primary" id="modalAction">'+safe(button)+' <span aria-hidden="true">↗</span></button>';
+ $('modalAction').addEventListener('click',action);
+}
 function renderRichLesson(l){
  const blocks=[];
  if(Array.isArray(l.activities)&&l.activities.length){
@@ -1348,23 +1685,106 @@ function renderRichLesson(l){
  }
  return blocks.join('');
 }
-function showLearn(){if(!currentLesson)return;stage('Learn');const l=currentLesson;
+function showLearn(){
+ if(!currentLesson)return;
+ stage('Learn');
+ const l=currentLesson;
  const rich=renderRichLesson(l);
- $('lessonBody').innerHTML=`<div class="concept-label">🌱 LET'S UNDERSTAND</div><h3>${safe(l.title)}</h3><p class="explain-text">${safe(l.concept)}</p><div class="example-card"><strong>💡 Here's an easy example</strong><p>${safe(l.example)}</p></div><div class="tip-card"><span>🌟</span><span><strong>Little challenge:</strong> ${safe(l.tip)}</span></div>${rich}`;
- footer('Step 1 of 3 · Read and discover','Try a quiz',()=>{currentQuestion=0;showQuiz()});}
-function showQuiz(){if(!currentLesson)return;stage('Quiz');questionAnswered=false;const q=currentLesson.questions[currentQuestion];
- $('lessonBody').innerHTML=`<div class="quiz-number">🧩 QUICK QUIZ · QUESTION ${currentQuestion+1} OF ${currentLesson.questions.length}</div><h3>${safe(q.text)}</h3><p class="explain-text">Answer using what you just studied in this topic.</p><div class="answer-grid">${q.options.map((op,i)=>`<button class="answer-option" data-answer="${i}">${String.fromCharCode(65+i)}. ${safe(op)}</button>`).join('')}</div><div id="quizFeedback" aria-live="polite"></div>`;
+ $('lessonBody').innerHTML='<div class="concept-label">🌱 LET\'S UNDERSTAND</div><h3>'+safe(l.title)+'</h3><p class="explain-text">'+safe(l.concept)+'</p><div class="example-card"><strong>💡 Here\'s an easy example</strong><p>'+safe(l.example)+'</p></div><div class="tip-card"><span>🌟</span><span><strong>Little challenge:</strong> '+safe(l.tip)+'</span></div>'+rich;
+ footer('Step 1 of 3 · Read and discover','Try a quiz',()=>{currentQuestion=0;showQuiz()});
+}
+function currentQuizItem(){
+ return currentQuizQuestions[currentQuestion]||null;
+}
+function showQuiz(){
+ if(!currentLesson)return;
+ stage('Quiz');
+ questionAnswered=false;
+ const item=currentQuizItem();
+ if(!item){
+  $('lessonBody').innerHTML='<div class="feedback retry">No MCQs are available for this difficulty yet.</div>';
+  footer('Choose another difficulty from the chapter page.','Close',closeLesson);
+  return;
+ }
+ const q=item.question;
+ const meta=DIFFICULTY_LEVELS[item.difficulty]||{label:'Practice',icon:'🧩'};
+ $('lessonBody').innerHTML='<div class="quiz-number">'+meta.icon+' '+safe(meta.label.toUpperCase())+' · QUESTION '+(currentQuestion+1)+' OF '+currentQuizQuestions.length+'</div>'+
+  '<h3>'+safe(q.text)+'</h3>'+
+  '<p class="explain-text">Choose the best answer. After you answer, you will see why it is correct.</p>'+
+  '<div class="answer-grid">'+q.options.map((op,i)=>'<button class="answer-option" data-answer="'+i+'">'+String.fromCharCode(65+i)+'. '+safe(op)+'</button>').join('')+'</div>'+
+  '<div id="quizFeedback" aria-live="polite"></div>';
  $('lessonBody').querySelectorAll('[data-answer]').forEach(btn=>btn.addEventListener('click',()=>answer(Number(btn.dataset.answer))));
- footer('Take your time. You’ve got this!','Next question',()=>{});
+ footer('Think first, then check the explanation.','Next question',()=>{});
  $('modalAction').disabled=true;
- $('modalAction').style.opacity='.5';}
-function answer(choice){if(!currentLesson||questionAnswered)return;const q=currentLesson.questions[currentQuestion];
+ $('modalAction').style.opacity='.5';
+}
+function reviewCurrentQuizConcept(){
+ if(!currentLesson)return;
+ const lesson=currentLesson;
+ const topicKey=currentSubtopicKey;
+ closeLesson();
+ state.grade=lesson.grade;
+ persist();
+ classChoicesOpen=false;
+ subject=lesson.subject;
+ currentTopicId=lesson.id;
+ currentSubtopicKey=topicKey;
+ window.location.hash='#explore';
+ renderAll();
+ requestAnimationFrame(()=>$('lessonResultsSection')?.scrollIntoView({behavior:'smooth',block:'start'}));
+}
+function watchCurrentQuizVideo(){
+ if(!currentLesson)return;
+ const topics=chapterTopics(currentLesson);
+ const topic=topics.find(t=>t.key===currentSubtopicKey)||topics[0];
+ if(topic)openTopicVideo(currentLesson,topic);
+}
+function trySimilarQuizQuestion(){
+ if(!currentQuizQuestions.length)return;
+ currentQuestion=(currentQuestion+1)%currentQuizQuestions.length;
+ showQuiz();
+}
+function bindQuizFeedbackActions(){
+ $('quizFeedback')?.querySelector('[data-feedback-review]')?.addEventListener('click',reviewCurrentQuizConcept);
+ $('quizFeedback')?.querySelector('[data-feedback-video]')?.addEventListener('click',watchCurrentQuizVideo);
+ $('quizFeedback')?.querySelector('[data-feedback-similar]')?.addEventListener('click',trySimilarQuizQuestion);
+}
+function answer(choice){
+ if(!currentLesson||questionAnswered)return;
+ const item=currentQuizItem();
+ if(!item)return;
+ const q=item.question;
  const buttons=[...$('lessonBody').querySelectorAll('[data-answer]')];
- if(choice!==q.answer){recordQuizChoice(currentLesson.id,false);buttons[choice].classList.add('incorrect');$('quizFeedback').innerHTML='<div class="feedback retry">Not quite! Give it another try. You can do it! 💛</div>';return}
- recordQuizChoice(currentLesson.id,true);questionAnswered=true;buttons.forEach((b,i)=>{b.disabled=true;if(i===q.answer)b.classList.add('correct')});
- $('quizFeedback').innerHTML='<div class="feedback good">That’s right! Amazing thinking! 🌟</div>';
- const last=currentQuestion===currentLesson.questions.length-1;
- const footerButton=$('modalAction');footerButton.disabled=false;footerButton.style.opacity='1';footerButton.innerHTML=last?'Finish lesson ↗':'Next question ↗';footerButton.onclick=()=>{if(last)completeLesson();else{currentQuestion++;showQuiz()}};
+ const correct=choice===q.answer;
+ questionAnswered=true;
+ recordQuizChoice(currentLesson.id,correct,currentSubtopicKey||'overview');
+
+ buttons.forEach((b,i)=>{
+  b.disabled=true;
+  if(i===q.answer)b.classList.add('correct');
+  else if(i===choice)b.classList.add('incorrect');
+ });
+ const correctText=String.fromCharCode(65+q.answer)+'. '+q.options[q.answer];
+ const explanation=questionExplanation(currentLesson,q);
+ $('quizFeedback').innerHTML=
+  '<div class="mcq-explanation '+(correct?'mcq-correct':'mcq-wrong')+'">'+
+   '<strong class="mcq-result">'+(correct?'✅ Correct':'❌ Incorrect')+'</strong>'+
+   '<p><b>Correct answer:</b> '+safe(correctText)+'</p>'+
+   '<div class="mcq-why"><b>Why?</b><p>'+safe(explanation)+'</p></div>'+
+   '<div class="mcq-feedback-actions">'+
+    '<button type="button" data-feedback-review>📖 Review concept</button>'+
+    '<button type="button" data-feedback-video>▶ Watch video</button>'+
+    '<button type="button" data-feedback-similar>🔁 Try similar question</button>'+
+   '</div>'+
+  '</div>';
+ bindQuizFeedbackActions();
+
+ const last=currentQuestion===currentQuizQuestions.length-1;
+ const footerButton=$('modalAction');
+ footerButton.disabled=false;
+ footerButton.style.opacity='1';
+ footerButton.innerHTML=last?'Finish lesson ↗':'Next question ↗';
+ footerButton.onclick=()=>{if(last)completeLesson();else{currentQuestion++;showQuiz()}};
 }
 function completeLesson(){if(!currentLesson)return;stage('Complete');const already=state.completed.includes(currentLesson.id);recordLessonComplete(currentLesson.id);if(!already){state.completed.push(currentLesson.id);persist();renderProgress();renderCourses()}else{renderStudyDashboard()}
  $('lessonBody').innerHTML=`<div class="celebrate"><div class="celebrate-emoji" aria-hidden="true">🎉🌟</div><h3>Wonderfully done!</h3><p>You completed <strong>${safe(currentLesson.title)}</strong>! Every little lesson takes you closer to big discoveries.</p><div class="reward">⭐ ${already?'Lesson reviewed!':'+20 stars earned!'}</div></div>`;
@@ -1427,24 +1847,26 @@ function installEvents(){
  $('gradeShortcuts').addEventListener('click',e=>{const gradeBtn=e.target.closest('[data-grade]');if(gradeBtn){setGrade(Number(gradeBtn.dataset.grade));return;}const changeBtn=e.target.closest('[data-change-class]');if(changeBtn){classChoicesOpen=true;subject='';query='';currentTopicId='';$('searchInput').value='';renderAll();requestAnimationFrame(()=>$('gradeShortcuts')?.scrollIntoView({behavior:'smooth',block:'start'}));}});
  $('subjectFilters').addEventListener('click',e=>{const btn=e.target.closest('[data-subject]');if(btn){stopReadAloud();subject=btn.dataset.subject;query='';currentTopicId='';currentSubtopicKey='';$('searchInput').value='';renderSubjectFilters();renderCourses();requestAnimationFrame(()=>$('lessonResultsSection')?.scrollIntoView({behavior:'smooth',block:'start'}))}});
  $('searchInput').addEventListener('input',e=>{query=e.target.value.trim().toLowerCase();renderCourses()});
- $('courseGrid').addEventListener('click',e=>{const video=e.target.closest('[data-topic-video]');if(video){const lesson=LESSONS.find(l=>l.id===currentTopicId);const topic=lesson?chapterTopics(lesson).find(t=>t.key===video.dataset.topicVideo):null;if(lesson&&topic)openTopicVideo(lesson,topic);return;}const sprite=e.target.closest('[data-pdf-sprite]');if(sprite){openPdfFigureSprite(sprite);return;}const figure=e.target.closest('[data-pdf-image]');if(figure){openPdfFigure(figure.dataset.pdfImage,figure.dataset.pdfCaption);return;}const topic=e.target.closest('[data-topic-id]');if(topic){stopReadAloud();currentTopicId=topic.dataset.topicId;currentSubtopicKey='';touchStudyLesson(currentTopicId);renderCourses();return;}const subtopic=e.target.closest('[data-subtopic-key]');if(subtopic){stopReadAloud();currentSubtopicKey=subtopic.dataset.subtopicKey;touchStudyLesson(currentTopicId,currentSubtopicKey);if(subtopic.dataset.pageUnverified==='true')showToast('This topic is listed, but its PDF page has not been verified yet. No page number was guessed.');renderCourses();return;}const aloud=e.target.closest('[data-read-aloud]');if(aloud){readAloudLesson(aloud.dataset.readAloud,aloud);return;}const quiz=e.target.closest('[data-start-quiz]');if(quiz)openLesson(quiz.dataset.startQuiz);});
+ $('courseGrid').addEventListener('click',e=>{const video=e.target.closest('[data-topic-video]');if(video){const lesson=LESSONS.find(l=>l.id===currentTopicId);const topic=lesson?chapterTopics(lesson).find(t=>t.key===video.dataset.topicVideo):null;if(lesson&&topic)openTopicVideo(lesson,topic);return;}const sprite=e.target.closest('[data-pdf-sprite]');if(sprite){openPdfFigureSprite(sprite);return;}const figure=e.target.closest('[data-pdf-image]');if(figure){openPdfFigure(figure.dataset.pdfImage,figure.dataset.pdfCaption);return;}const topic=e.target.closest('[data-topic-id]');if(topic){stopReadAloud();currentTopicId=topic.dataset.topicId;currentSubtopicKey='';touchStudyLesson(currentTopicId);renderCourses();return;}const subtopic=e.target.closest('[data-subtopic-key]');if(subtopic){stopReadAloud();currentSubtopicKey=subtopic.dataset.subtopicKey;touchStudyLesson(currentTopicId,currentSubtopicKey);if(subtopic.dataset.pageUnverified==='true')showToast('This topic is listed, but its PDF page has not been verified yet. No page number was guessed.');renderCourses();return;}const aloud=e.target.closest('[data-read-aloud]');if(aloud){readAloudLesson(aloud.dataset.readAloud,aloud);return;}const quiz=e.target.closest('[data-start-quiz]');if(quiz)openLesson(quiz.dataset.startQuiz,quiz.dataset.quizDifficulty||'all');});
  $('testClassGrid')?.addEventListener('click',e=>{const button=e.target.closest('[data-test-grade]');if(button)openTestBuilder(Number(button.dataset.testGrade));});
  $('testChangeClassBtn')?.addEventListener('click',()=>{resetTestPaper();const scope=$('testScopeControls');if(scope)scope.hidden=true;$('testBuilder').hidden=true;$('testClassGrid')?.scrollIntoView({behavior:'smooth',block:'start'});});
  $('testModeChoice')?.addEventListener('click',e=>{const button=e.target.closest('[data-test-mode]');if(button)chooseTestMode(button.dataset.testMode);});
  $('testSubjectSelect')?.addEventListener('change',populateTestChapters);
  $('testChapterSelect')?.addEventListener('change',populateTestTopics);
  $('testTopicSelect')?.addEventListener('change',()=>{resetTestPaper();updateTestScopeNote();});
+ $('testDifficultySelect')?.addEventListener('change',()=>{resetTestPaper();updateTestScopeNote();});
  $('generateTestBtn')?.addEventListener('click',()=>{if(($('testPaperTypeSelect')?.value||'objective')==='descriptive')renderDescriptivePaper();else renderTestPaper();});
  $('testPaperPanel')?.addEventListener('submit',e=>{if(e.target.id==='testPaperForm'){e.preventDefault();submitTestPaper();}});
  $('testPaperPanel')?.addEventListener('click',e=>{
   if(e.target.closest('[data-retry-test]'))renderTestPaper();
   if(e.target.closest('[data-new-descriptive]'))renderDescriptivePaper();
   if(e.target.closest('[data-print-descriptive]'))window.print();
+  const review=e.target.closest('[data-review-test-lesson]');if(review)openDashboardLesson(review.dataset.reviewTestLesson,review.dataset.reviewTestTopic||'');
  });
- $('dashboardContinueBtn')?.addEventListener('click',e=>{const id=e.currentTarget.dataset.dashboardLesson;if(id)openDashboardLesson(id);});
- $('dashboardWeakTopics')?.addEventListener('click',e=>{const button=e.target.closest('[data-dashboard-lesson]');if(button)openDashboardLesson(button.dataset.dashboardLesson);});
- $('dashboardStrongTopics')?.addEventListener('click',e=>{const button=e.target.closest('[data-dashboard-lesson]');if(button)openDashboardLesson(button.dataset.dashboardLesson);});
- $('dashboardReviseBtn')?.addEventListener('click',()=>{const account=dashboardAccount();if(!account)return;const due=revisionCandidates(Number(account.grade));const lesson=due[0];if(lesson)openDashboardLesson(lesson.id);else showToast('No topics are due for revision yet. Keep learning!');});
+ $('dashboardContinueBtn')?.addEventListener('click',e=>{const id=e.currentTarget.dataset.dashboardLesson;if(id)openDashboardLesson(id,e.currentTarget.dataset.dashboardTopic||'');});
+ $('dashboardWeakTopics')?.addEventListener('click',e=>{const button=e.target.closest('[data-dashboard-lesson]');if(button)openDashboardLesson(button.dataset.dashboardLesson,button.dataset.dashboardTopic||'');});
+ $('dashboardStrongTopics')?.addEventListener('click',e=>{const button=e.target.closest('[data-dashboard-lesson]');if(button)openDashboardLesson(button.dataset.dashboardLesson,button.dataset.dashboardTopic||'');});
+ $('dashboardReviseBtn')?.addEventListener('click',()=>{const account=dashboardAccount();if(!account)return;const due=revisionCandidates(Number(account.grade));const row=due[0];if(row)openDashboardLesson(row.lesson.id,row.topic.key);else showToast('No topics are due for revision yet. Keep learning!');});
  window.addEventListener('tlw-auth-change',renderStudyDashboard);
  $('clearFiltersBtn').addEventListener('click',()=>{query='';$('searchInput').value='';renderCourses()});
  $('continueBtn').addEventListener('click',continueLearning);
