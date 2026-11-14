@@ -1789,7 +1789,7 @@
 .exam-preset-card strong{font-size:17px;color:#24533b}
 .exam-preset-card small{font-size:9px;color:#7c8981}
 .exam-mode-shell{border:1px solid #dfe6e0;border-radius:17px;background:#fff;overflow:hidden}
-.exam-live-bar{position:sticky;top:0;z-index:8;display:grid;grid-template-columns:1.2fr repeat(4,auto);align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid #e5eae5;background:#f8fbf8}
+.exam-live-bar{position:sticky;top:0;z-index:8;display:grid;grid-template-columns:1.2fr repeat(5,auto);align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid #e5eae5;background:#f8fbf8}
 .exam-live-bar .exam-progress-label strong{display:block;color:#294f3a;font-size:12px}
 .exam-live-bar .exam-progress-label small{color:#829087;font-size:8px}
 .exam-stat{display:grid;gap:1px;min-width:80px;padding:7px 9px;border-radius:10px;background:#fff;border:1px solid #e3e9e4;text-align:center}
