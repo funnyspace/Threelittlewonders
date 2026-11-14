@@ -7,7 +7,7 @@
   <meta name="description" content="Threelittlewonders makes learning delightful with bite-sized lessons, fun quizzes and learning paths from Nursery through Class 10." />
   <title>Threelittlewonders | Little lessons, big wonders</title>
   <link rel="icon" href="favicon.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="styles.css?v=20261114-smart-revision-v1" />
+  <link rel="stylesheet" href="styles.css?v=20261114-exam-mode-v1" />
   <script src="content.js?v=20261103-class10-maths-14ch" defer></script>
   <script src="class1-english-mridang-content.js?v=20261105-ncert-v1" defer></script>
   <script src="class1-maths-joyful-content.js?v=20261106-ncert-v1" defer></script>
@@ -39,7 +39,7 @@
   <script src="curriculum.js" defer></script>
   <script src="school-curriculum.js" defer></script>
   <script src="secondary-curriculum.js" defer></script>  <script src="pdf-source-map.js?v=20261109-global-pdf-speech-v1" defer></script>
-  <script src="app.js?v=20261114-smart-revision-v1" defer></script>
+  <script src="app.js?v=20261114-exam-mode-v1" defer></script>
   <script src="curriculum-ui.js?v=20261030-hide-all-roadmaps" defer></script>
   <script src="contact-form.js" defer></script>
   <script src="site-navigation.js?v=20261113-home-test-modes-v1" defer></script>
@@ -164,17 +164,29 @@
           <div class="test-mode-choice" id="testModeChoice" aria-label="Choose exam type">
             <article class="test-mode-card">
               <div class="test-mode-icon" aria-hidden="true">✅</div>
-              <div class="test-mode-copy"><span>QUICK PRACTICE</span><h4>MCQ Test</h4><p>Multiple-choice questions based on the selected subject, chapter and topic.</p></div>
-              <button type="button" class="btn btn-primary" data-test-mode="objective">Start MCQ</button>
+              <div class="test-mode-copy"><span>REAL EXAM MODE</span><h4>MCQ Exam</h4><p>Timed exam with question navigation, mark for review, performance analysis and revision planning.</p></div>
+              <button type="button" class="btn btn-primary" data-test-mode="objective">Start Exam Mode</button>
             </article>
             <article class="test-mode-card">
               <div class="test-mode-icon" aria-hidden="true">📝</div>
-              <div class="test-mode-copy"><span>CBSE-STYLE PRACTICE</span><h4>Descriptive Exam</h4><p>Question-only descriptive paper using the latest supported CBSE pattern.</p></div>
+              <div class="test-mode-copy"><span>CBSE-STYLE PRACTICE</span><h4>Descriptive Exam</h4><p>Question-only descriptive paper with post-exam marking scheme, model-answer guidance and examiner keywords.</p></div>
               <button type="button" class="btn btn-primary" data-test-mode="descriptive">Start Descriptive</button>
             </article>
           </div>
           <select id="testPaperTypeSelect" hidden aria-hidden="true"><option value="objective">Objective Quiz</option><option value="descriptive">CBSE-style Descriptive</option></select>
           <div id="testScopeControls" hidden>
+            <div class="exam-preset-choice" id="testExamPresetChoice" aria-label="Choose exam scope">
+              <button type="button" class="exam-preset-card active" data-exam-preset="full">
+                <span>FULL SYLLABUS</span><strong>80 Marks</strong><small>3 Hours</small>
+              </button>
+              <button type="button" class="exam-preset-card" data-exam-preset="chapter">
+                <span>CHAPTER TEST</span><strong>20 Marks</strong><small>30 Minutes</small>
+              </button>
+              <button type="button" class="exam-preset-card" data-exam-preset="topic">
+                <span>TOPIC TEST</span><strong>10 Marks</strong><small>15 Minutes</small>
+              </button>
+            </div>
+            <input type="hidden" id="testExamPreset" value="full">
             <div class="test-scope-grid">
               <label class="test-field"><span>Subject</span><select id="testSubjectSelect" aria-label="Choose test subject"></select></label>
               <label class="test-field"><span>Chapter</span><select id="testChapterSelect" aria-label="Choose test chapter"></select></label>
