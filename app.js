@@ -343,8 +343,24 @@ function dashboardTopicName(lesson){
  const match=topics.find(t=>t.key===key);
  return (match&&match.title)||((topics[0]&&topics[0].title)||lesson.title);
 }
+function revisionRowsForGrade(grade){
+ const rows=gradeTopicRows(grade);
+ LESSONS.filter(l=>l.grade===grade).forEach(lesson=>{
+  const overview=studyData.topicStats[topicStatKey(lesson.id,'overview')];
+  if(overview&&(overview.nextReviewAt||overview.lastStudied)){
+   rows.push({lesson,topic:{key:'overview',title:lesson.title},mastery:topicMastery(lesson,'overview')});
+  }
+ });
+ const seen=new Set();
+ return rows.filter(row=>{
+  const key=topicStatKey(row.lesson.id,row.topic.key);
+  if(seen.has(key))return false;
+  seen.add(key);
+  return true;
+ });
+}
 function revisionCandidates(grade){
- return gradeTopicRows(grade).filter(row=>{
+ return revisionRowsForGrade(grade).filter(row=>{
   const stat=studyData.topicStats[topicStatKey(row.lesson.id,row.topic.key)];
   return revisionDue(stat);
  }).sort((a,b)=>{
@@ -379,7 +395,7 @@ function renderDashboardTopicRows(host,rows,emptyText){
 function renderRevisionPlan(grade){
  const host=$('dashboardRevisionPlan');
  if(!host)return;
- const rows=gradeTopicRows(grade).filter(row=>{
+ const rows=revisionRowsForGrade(grade).filter(row=>{
   const stat=studyData.topicStats[topicStatKey(row.lesson.id,row.topic.key)];
   return stat&&stat.nextReviewAt;
  }).sort((a,b)=>{
