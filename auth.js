@@ -77,6 +77,59 @@ function accountForSession(){
  const accounts=readAccounts();
  return accounts[normalizeEmail(session.email)]||null;
 }
+function cloudEnabled(){
+ return !!window.TLWCloud?.enabled;
+}
+async function ensureCloudReady(){
+ if(!cloudEnabled())return false;
+ return !!(await window.TLWCloud.ready);
+}
+function mirrorCloudProfile(profile){
+ if(!profile||!profile.email)return null;
+ const email=normalizeEmail(profile.email);
+ const accounts=readAccounts();
+ const existing=accounts[email]||{};
+ accounts[email]={
+  ...existing,
+  email,
+  uid:profile.uid||existing.uid||'',
+  displayName:profile.displayName||existing.displayName||'Student',
+  grade:Number(profile.grade??existing.grade??1),
+  parentEmail:profile.parentEmail||email,
+  cloud:true,
+  createdAt:profile.createdAt||existing.createdAt||new Date().toISOString(),
+  updatedAt:profile.updatedAt||new Date().toISOString()
+ };
+ delete accounts[email].salt;
+ delete accounts[email].passwordHash;
+ writeAccounts(accounts);
+ writeSession(email);
+ return accounts[email];
+}
+function friendlyCloudError(error){
+ const code=String(error?.code||'');
+ if(code.includes('email-already-in-use'))return 'An account with this email already exists. Please log in.';
+ if(code.includes('invalid-credential')||code.includes('wrong-password')||code.includes('user-not-found'))return 'Incorrect email or password.';
+ if(code.includes('weak-password'))return 'Please choose a stronger password.';
+ if(code.includes('too-many-requests'))return 'Too many attempts. Please try again later.';
+ if(code.includes('network-request-failed'))return 'Could not reach the cloud service. Check your internet connection.';
+ return error?.message||'Cloud account request failed.';
+}
+function updateStorageNotice(){
+ const note=$('authStorageNotice');
+ if(!note)return;
+ if(cloudEnabled()){
+  note.innerHTML='<strong>Cloud account enabled.</strong> Your profile and learning progress can sync across supported devices after login.';
+ }else{
+  note.innerHTML='<strong>Browser-only account.</strong> This login is stored on this device and browser. Cloud sync is not configured yet. Passwords are not stored as plain text.';
+ }
+}
+function applyCloudProfile(profile){
+ const account=mirrorCloudProfile(profile);
+ if(!account)return;
+ setCurrentClass(Number(account.grade));
+ renderAuthState();
+}
 function setCurrentClass(grade){
  const select=$('classSelect');
  if(!select||grade===undefined||grade===null)return;
@@ -201,37 +254,46 @@ async function createAccount(event){
   $('authSignupConfirm')?.focus();
   return;
  }
- if(!window.crypto?.subtle){
-  setStatus('authSignupStatus','This browser cannot create a secure local password. Please use a modern browser.');
-  return;
- }
- const accounts=readAccounts();
- if(accounts[email]){
-  setStatus('authSignupStatus','An account with this email already exists on this browser. Please log in.');
-  return;
- }
+
  const submit=event.submitter;
  if(submit){submit.disabled=true;submit.textContent='Creating account...';}
  try{
-  const salt=newSalt();
-  const passwordHash=await derivePasswordHash(password,salt);
-  accounts[email]={
-   email,
-   displayName,
-   grade:Number(gradeValue),
-   salt,
-   passwordHash,
-   createdAt:new Date().toISOString()
-  };
-  writeAccounts(accounts);
-  writeSession(email);
-  setCurrentClass(Number(gradeValue));
-  setStatus('authSignupStatus','Account created successfully.',true);
-  renderAuthState();
+  if(cloudEnabled()){
+   const ready=await ensureCloudReady();
+   if(!ready)throw new Error('Cloud authentication is temporarily unavailable.');
+   const profile=await window.TLWCloud.signup({
+    displayName,
+    grade:Number(gradeValue),
+    email,
+    password
+   });
+   applyCloudProfile(profile);
+   setStatus('authSignupStatus','Cloud account created successfully. Your learning can now sync across devices.',true);
+  }else{
+   if(!window.crypto?.subtle)throw new Error('This browser cannot create a secure local password. Please use a modern browser.');
+   const accounts=readAccounts();
+   if(accounts[email])throw new Error('An account with this email already exists on this browser. Please log in.');
+   const salt=newSalt();
+   const passwordHash=await derivePasswordHash(password,salt);
+   accounts[email]={
+    email,
+    displayName,
+    grade:Number(gradeValue),
+    salt,
+    passwordHash,
+    cloud:false,
+    createdAt:new Date().toISOString()
+   };
+   writeAccounts(accounts);
+   writeSession(email);
+   setCurrentClass(Number(gradeValue));
+   renderAuthState();
+   setStatus('authSignupStatus','Account created successfully.',true);
+  }
   event.target.reset();
   setTimeout(closeAuth,250);
  }catch(error){
-  setStatus('authSignupStatus',error?.message||'Could not create the account in this browser.');
+  setStatus('authSignupStatus',cloudEnabled()?friendlyCloudError(error):(error?.message||'Could not create the account in this browser.'));
  }finally{
   if(submit){submit.disabled=false;submit.textContent='Create account';}
  }
@@ -245,33 +307,38 @@ async function login(event){
   setStatus('authLoginStatus','Please enter the parent or guardian email used for this account.');
   return;
  }
- const accounts=readAccounts();
- const account=accounts[email];
- if(!account){
-  setStatus('authLoginStatus','No account with this email exists on this browser.');
-  return;
- }
  const submit=event.submitter;
  if(submit){submit.disabled=true;submit.textContent='Logging in...';}
  try{
-  const passwordHash=await derivePasswordHash(password,account.salt);
-  if(passwordHash!==account.passwordHash){
-   setStatus('authLoginStatus','Incorrect password.');
-   return;
+  if(cloudEnabled()){
+   const ready=await ensureCloudReady();
+   if(!ready)throw new Error('Cloud authentication is temporarily unavailable.');
+   const profile=await window.TLWCloud.login(email,password);
+   applyCloudProfile(profile);
+   setStatus('authLoginStatus','Login successful. Cloud learning data is being synchronized.',true);
+  }else{
+   const accounts=readAccounts();
+   const account=accounts[email];
+   if(!account)throw new Error('No account with this email exists on this browser.');
+   const passwordHash=await derivePasswordHash(password,account.salt);
+   if(passwordHash!==account.passwordHash)throw new Error('Incorrect password.');
+   writeSession(email);
+   setCurrentClass(Number(account.grade));
+   renderAuthState();
+   setStatus('authLoginStatus','Login successful.',true);
   }
-  writeSession(email);
-  setCurrentClass(Number(account.grade));
-  setStatus('authLoginStatus','Login successful.',true);
-  renderAuthState();
   event.target.reset();
   setTimeout(closeAuth,220);
  }catch(error){
-  setStatus('authLoginStatus',error?.message||'Could not log in on this browser.');
+  setStatus('authLoginStatus',cloudEnabled()?friendlyCloudError(error):(error?.message||'Could not log in on this browser.'));
  }finally{
   if(submit){submit.disabled=false;submit.textContent='Log in';}
  }
 }
-function logout(){
+async function logout(){
+ try{
+  if(cloudEnabled()&&await ensureCloudReady())await window.TLWCloud.logout();
+ }catch{}
  clearSession();
  closeUserMenu();
  renderAuthState();
@@ -323,6 +390,19 @@ function install(){
   }
  });
  window.addEventListener('storage',renderAuthState);
+ window.addEventListener('tlw-cloud-auth-state',event=>{
+  if(!cloudEnabled())return;
+  if(event.detail?.loggedIn&&event.detail.profile)applyCloudProfile(event.detail.profile);
+  else{clearSession();renderAuthState();}
+ });
+ window.addEventListener('tlw-cloud-ready',updateStorageNotice);
+ updateStorageNotice();
+ if(window.TLWCloud?.ready){
+  window.TLWCloud.ready.then(()=>{
+   updateStorageNotice();
+   if(window.TLWCloud?.currentProfile)applyCloudProfile(window.TLWCloud.currentProfile);
+  });
+ }
  renderAuthState();
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});
