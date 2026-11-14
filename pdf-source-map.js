@@ -3,6 +3,36 @@
 
 const lessons=window.TLW_LESSONS||[];
 
+const CLASS10_HPE_PDFS=[
+  [1,'Physical Education: Relation with other Subjects','jehp101.pdf'],
+  [2,'Effects of Physical Activities on Human Body','jehp102.pdf'],
+  [3,'Growth and Development during Adolescence','jehp103.pdf'],
+  [4,'Individual Games and Sports I','jehp104.pdf'],
+  [5,'Individual Games and Sports II','jehp105.pdf'],
+  [6,'Team Games and Sports I','jehp106.pdf'],
+  [7,'Team Games and Sports II','jehp107.pdf'],
+  [8,'Yoga for Healthy Living','jehp108.pdf'],
+  [9,'Dietary Considerations and Food Quality','jehp109.pdf'],
+  [10,'Safety Measures for Healthy Living','jehp110.pdf'],
+  [11,'Healthy Community Living','jehp111.pdf'],
+  [12,'Social Health','jehp112.pdf'],
+  [13,'Agencies and Awards Promoting Health, Sports and Yoga','jehp113.pdf']
+];
+
+CLASS10_HPE_PDFS.forEach(([chapter,title,pdf])=>{
+  const lesson=lessons.find(item=>
+    item&&
+    item.grade===10&&
+    item.subject==='Health and Physical Education'&&
+    String(item.title||'').trim().toLowerCase()===title.toLowerCase()
+  );
+  if(!lesson)return;
+  lesson.sourceChapter=chapter;
+  lesson.sourcePdf=pdf;
+  lesson.chapterStartPage=1;
+  lesson.originalPdfTitle='NCERT Class 10 Health and Physical Education - Chapter '+chapter+': '+title;
+});
+
 const CLASS10_MATHS_PDFS=[
   [
     1,
@@ -106,4 +136,5 @@ lessons.forEach(lesson=>{
 });
 
 window.TLW_CLASS10_MATHS_PDFS=CLASS10_MATHS_PDFS;
+window.TLW_CLASS10_HPE_PDFS=CLASS10_HPE_PDFS;
 })();
