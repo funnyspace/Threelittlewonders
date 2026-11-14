@@ -1223,6 +1223,22 @@ function openDashboardLesson(id,topicKey=''){
  renderAll();
  requestAnimationFrame(()=>$('lessonResultsSection')?.scrollIntoView({behavior:'smooth',block:'start'}));
 }
+const CLASS10_MATHS_CHAPTERS=[
+ 'Real Numbers',
+ 'Polynomials',
+ 'Pair of Linear Equations in Two Variables',
+ 'Quadratic Equations',
+ 'Arithmetic Progressions',
+ 'Triangles',
+ 'Coordinate Geometry',
+ 'Introduction to Trigonometry',
+ 'Some Applications of Trigonometry',
+ 'Circles',
+ 'Areas Related to Circles',
+ 'Surface Areas and Volumes',
+ 'Statistics',
+ 'Probability'
+];
 const CLASS10_SCIENCE_CHAPTERS=[
  'Chemical Reactions and Equations',
  'Acids, Bases and Salts',
@@ -2727,6 +2743,23 @@ function renderCourses(){
  $('selectedSubjectTitle').textContent=subject;
  $('selectedSubjectPill').innerHTML=`<span aria-hidden="true">${allSubjects?'✦':subjectIcon(subject)}</span><strong>${safe(subject)}</strong> · ${gradeName(state.grade)}`;
  let lessons=LESSONS.filter(l=>l.grade===state.grade&&(allSubjects||l.subject===subject)&&(!query||[l.title,l.subject,l.description,l.concept].some(t=>t.toLowerCase().includes(query))));
+ if(state.grade===10&&subject==='Maths'){
+  const existingMaths=new Map(LESSONS.filter(l=>l.grade===10&&l.subject==='Maths').map(l=>[String(l.title||'').toLowerCase(),l]));
+  lessons=CLASS10_MATHS_CHAPTERS.map((chapter,i)=>{
+   const existing=existingMaths.get(chapter.toLowerCase());
+   return existing||{
+    id:'10-maths-chapter-'+String(i+1).padStart(2,'0'),
+    grade:10,
+    subject:'Maths',
+    title:chapter,
+    description:'NCERT Class 10 Mathematics - Chapter '+(i+1),
+    concept:'Chapter '+(i+1)+': '+chapter,
+    sourceChapter:i+1,
+    minutes:20,
+    questions:[]
+   };
+  }).filter(l=>!query||[l.title,l.subject,l.description,l.concept].some(t=>String(t||'').toLowerCase().includes(query)));
+ }
  if(state.grade===10&&subject==='Science'){
   const existingScience=new Map(LESSONS.filter(l=>l.grade===10&&l.subject==='Science').map(l=>[l.title,l]));
   lessons=CLASS10_SCIENCE_CHAPTERS.map((chapter,i)=>{
