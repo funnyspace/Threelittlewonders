@@ -1159,7 +1159,7 @@ function applyExamPresetScope(){
  const chapter=$('testChapterSelect');
  const topic=$('testTopicSelect');
  if(!chapter||!topic)return;
- if(paperType==='descriptive'){
+ if(paperType==='objective'){
   chapter.disabled=false;
   topic.disabled=!chapter.value;
   return;
@@ -1224,10 +1224,10 @@ function populateTestTopics(){
 }
 function validateExamScope(){
  const paperType=$('testPaperTypeSelect')?.value||'objective';
- if(paperType==='descriptive')return true;
- const preset=currentExamPreset();
  const chapterId=$('testChapterSelect')?.value||'';
  const topicKey=$('testTopicSelect')?.value||'';
+ if(paperType==='objective')return true;
+ const preset=currentExamPreset();
  if(preset.key==='chapter'&&!chapterId){
   showToast('Choose a chapter before starting the Chapter Test.');
   return false;
@@ -1252,15 +1252,15 @@ function updateTestScopeNote(){
  if(topic)scope+=' · '+topic.title;
  const start=$('generateTestBtn');
  if(paperType==='descriptive'){
-  note.textContent=(testGrade===10?'Current CBSE reference: 2026-27. ':'')+'Paper scope: '+scope+'. Finish the paper to reveal the practice marking scheme, model-answer guidance and examiner keywords.';
+  const preset=currentExamPreset();
+  const cbse=testGrade===10?' Current CBSE reference: 2026-27.':'';
+  note.textContent=preset.label+' · '+preset.marks+' marks · '+preset.minutes+' minutes. '+scope+'.'+cbse+' Finish the paper to reveal the practice marking scheme, model-answer guidance and examiner keywords.';
   if(start)start.innerHTML='Begin Descriptive Exam <span aria-hidden="true">↗</span>';
  }else{
-  const preset=currentExamPreset();
   const difficulty=$('testDifficultySelect')?.value||'all';
   const level=difficulty==='all'?'Mixed difficulty':(DIFFICULTY_LEVELS[difficulty]?.label||difficulty);
-  const cbse=(testGrade===10&&subject==='Science'&&preset.key==='full')?' CBSE Class X Science reference: 80 marks, 3 hours.':'';
-  note.textContent=preset.label+' · '+preset.marks+' marks · '+preset.minutes+' minutes · '+level+'.'+cbse+' Question count depends on the verified question bank currently available.';
-  if(start)start.innerHTML='Begin Exam <span aria-hidden="true">↗</span>';
+  note.textContent='MCQ Exam · '+scope+' · '+level+'. Each MCQ carries 1 mark. Timer is based on the number of verified MCQs available.';
+  if(start)start.innerHTML='Begin MCQ Exam <span aria-hidden="true">↗</span>';
  }
 }
 function openTestBuilder(grade){
@@ -1294,13 +1294,13 @@ function chooseTestMode(mode){
  const difficultyField=$('testDifficultyField');
  const presetChoice=$('testExamPresetChoice');
  if(difficultyField)difficultyField.hidden=paperType.value==='descriptive';
- if(presetChoice)presetChoice.hidden=paperType.value==='descriptive';
+ if(presetChoice)presetChoice.hidden=paperType.value!=='descriptive';
  resetTestPaper();
  scope.hidden=false;
  if(modeChoice)modeChoice.querySelectorAll('[data-test-mode]').forEach(button=>{
   button.classList.toggle('selected',button.dataset.testMode===paperType.value);
  });
- if(paperType.value==='objective')setExamPresetValue('full');
+ if(paperType.value==='descriptive')setExamPresetValue('full');
  populateTestSubjects();
  applyExamPresetScope();
  updateTestScopeNote();
@@ -1319,15 +1319,14 @@ function buildTestQuestionPool(){
  const chapterId=$('testChapterSelect')?.value||'';
  const topicKey=$('testTopicSelect')?.value||'';
  const difficulty=$('testDifficultySelect')?.value||'all';
- const preset=currentExamPreset();
  let lessons=testLessonsForGrade().filter(l=>l.subject===subject);
- if(preset.key!=='full'&&chapterId)lessons=lessons.filter(l=>l.id===chapterId);
+ if(chapterId)lessons=lessons.filter(l=>l.id===chapterId);
  let items=lessons.flatMap(lesson=>validQuestionsWithMeta(lesson).map(item=>({
   lesson,question:item.question,index:item.index,difficulty:item.difficulty
  })));
  if(difficulty!=='all')items=items.filter(item=>item.difficulty===difficulty);
  let topicFallback=false;
- if(preset.key==='topic'&&topicKey&&chapterId){
+ if(topicKey&&chapterId){
   const chapter=lessons[0];
   const topic=chapterTopics(chapter).find(t=>t.key===topicKey);
   const tagged=items.filter(item=>{
@@ -1339,9 +1338,9 @@ function buildTestQuestionPool(){
   if(tagged.length)items=tagged;
   else{items=[];topicFallback=true;}
  }
- return {items:shuffledTestItems(items).slice(0,preset.targetQuestions),topicFallback,difficulty,preset};
+ const limit=topicKey?10:(chapterId?20:40);
+ return {items:shuffledTestItems(items).slice(0,limit),topicFallback,difficulty};
 }
-
 function rotatePick(items,count,offset){
  if(!items.length)return [];
  const out=[];
@@ -1756,6 +1755,8 @@ function renderDescriptivePaper(){
  const panel=$('testPaperPanel');
  if(!panel)return;
  stopExamTimer();
+ if(!validateExamScope())return;
+ const preset=currentExamPreset();
  const sections=buildDescriptivePaper();
  activeDescriptiveSections=sections;
  const subject=$('testSubjectSelect')?.value||'';
@@ -1781,7 +1782,7 @@ function renderDescriptivePaper(){
  panel.hidden=false;
  panel.innerHTML='<div class="descriptive-paper">'+
   '<div class="descriptive-paper-title"><div><span>CBSE '+CBSE_PATTERN_SESSION+' QUESTION-ONLY PRACTICE PAPER</span><h3>'+safe(scope)+'</h3><p>'+safe(descriptivePatternNote(subject))+'</p></div><div class="descriptive-paper-actions"><button type="button" class="btn btn-light" data-new-descriptive>New Paper</button><button type="button" class="btn btn-secondary" data-print-descriptive>Print</button></div></div>'+
-  '<div class="descriptive-meta"><span><b>Maximum Marks:</b> '+total+'</span><span><b>Current CBSE reference:</b> '+CBSE_PATTERN_SESSION+'</span><span><b>Questions change:</b> Every new start</span></div>'+
+  '<div class="descriptive-meta"><span><b>Exam preset:</b> '+safe(preset.label)+'</span><span><b>Target Marks:</b> '+preset.marks+'</span><span><b>Time:</b> '+preset.minutes+' minutes</span><span><b>Generated question marks:</b> '+total+'</span><span><b>Current CBSE reference:</b> '+CBSE_PATTERN_SESSION+'</span></div>'+
   '<div class="descriptive-instructions"><strong>General Instructions</strong><ol><li>Attempt the questions according to the marks shown.</li><li>Use complete reasoning, steps, equations or diagrams wherever the question requires them.</li><li>Read application and case-based questions carefully before answering.</li><li>Finish the paper before opening the marking scheme.</li></ol></div>'+
   body+
   '<div class="descriptive-finish-row"><button type="button" class="btn btn-primary" data-finish-descriptive>Finish Exam & View Marking Scheme</button></div>'+
@@ -1876,7 +1877,7 @@ function renderTestPaper(){
  if(!validateExamScope())return;
  const panel=$('testPaperPanel');
  if(!panel)return;
- const {items,topicFallback,difficulty,preset}=buildTestQuestionPool();
+ const {items,topicFallback,difficulty}=buildTestQuestionPool();
  activeTestItems=items;
  examCurrentIndex=0;
  examAnswers=Array(items.length).fill(null);
@@ -1888,7 +1889,7 @@ function renderTestPaper(){
  const topicKey=$('testTopicSelect')?.value||'';
  const chapter=LESSONS.find(l=>l.id===chapterId);
  const topic=chapter?chapterTopics(chapter).find(t=>t.key===topicKey):null;
- const scope=[gradeName(testGrade),subject,preset.key!=='full'&&chapter&&chapter.title,preset.key==='topic'&&topic&&topic.title].filter(Boolean).join(' · ');
+ const scope=[gradeName(testGrade),subject,chapter&&chapter.title,topic&&topic.title].filter(Boolean).join(' · ');
  if(!items.length){
   panel.hidden=false;
   const message=topicFallback
@@ -1898,14 +1899,12 @@ function renderTestPaper(){
   return;
  }
  const difficultyLabel=difficulty==='all'?'Mixed difficulty':(DIFFICULTY_LEVELS[difficulty]?.icon+' '+DIFFICULTY_LEVELS[difficulty]?.label);
- const bankNote=items.length<preset.targetQuestions
-  ?'<p class="exam-empty-bank">The current verified bank contains '+items.length+' question'+(items.length===1?'':'s')+' for this selection. The final score is normalized to the '+preset.marks+'-mark exam preset; no extra questions were invented.</p>'
-  :'';
+ const bankNote='<p class="exam-empty-bank">This MCQ exam uses '+items.length+' verified question'+(items.length===1?'':'s')+'. Each question carries 1 mark. No questions are invented to reach a fixed marks total.</p>';
  panel.hidden=false;
  panel.innerHTML='<section class="exam-mode-shell">'+
   '<div class="exam-live-bar">'+
-   '<div class="exam-progress-label"><strong id="examQuestionStatus">Question 1 of '+items.length+'</strong><small>'+safe(scope)+' · '+safe(preset.label)+' · '+safe(difficultyLabel)+'</small></div>'+
-   '<div class="exam-stat exam-timer"><span>TIME REMAINING</span><strong id="examTimeRemaining">'+formatExamTime(preset.minutes*60)+'</strong></div>'+
+   '<div class="exam-progress-label"><strong id="examQuestionStatus">Question 1 of '+items.length+'</strong><small>'+safe(scope)+' · '+safe(difficultyLabel)+' · '+items.length+' marks</small></div>'+
+   '<div class="exam-stat exam-timer"><span>TIME REMAINING</span><strong id="examTimeRemaining">'+formatExamTime(Math.max(10,items.length)*60)+'</strong></div>'+
    '<div class="exam-stat"><span>ANSWERED</span><strong id="examAnsweredCount">0</strong></div>'+
    '<div class="exam-stat"><span>UNANSWERED</span><strong id="examUnansweredCount">'+items.length+'</strong></div>'+
    '<div class="exam-stat"><span>MARKED REVIEW</span><strong id="examReviewCount">0</strong></div>'+
@@ -1918,7 +1917,7 @@ function renderTestPaper(){
   '</div>'+
  '</section>';
  renderExamQuestion();
- startExamTimer(preset.minutes);
+ startExamTimer(Math.max(10,items.length));
  panel.scrollIntoView({behavior:'smooth',block:'start'});
 }
 function examPerformanceSummary(){
@@ -1955,7 +1954,6 @@ function submitExamPaper(autoSubmitted=false){
  if(examSubmitted||!activeTestItems.length)return;
  examSubmitted=true;
  stopExamTimer();
- const preset=currentExamPreset();
  const selectedTopicKey=$('testTopicSelect')?.value||'';
  let correctCount=0;
  let answered=0;
@@ -1974,18 +1972,17 @@ function submitExamPaper(autoSubmitted=false){
  });
  const total=activeTestItems.length;
  const accuracy=Math.round(correctCount/total*100);
- const scoreMarks=Math.round(accuracy/100*preset.marks);
+ const scoreMarks=correctCount;
  const {groupRows,conceptRows}=examPerformanceSummary();
  lastExamWeakConcepts=conceptRows.filter(row=>row.accuracy<80).slice(0,6);
  studyData.testAttempts.push({
   date:new Date().toISOString(),
   grade:testGrade,
   subject:$('testSubjectSelect')?.value||'',
-  preset:preset.key,
+  preset:'mcq',
   score:correctCount,
   total,
-  normalizedMarks:scoreMarks,
-  maxMarks:preset.marks,
+  maxMarks:total,
   accuracy
  });
  studyData.testAttempts=studyData.testAttempts.slice(-50);
@@ -1999,8 +1996,8 @@ function submitExamPaper(autoSubmitted=false){
   :'<p class="dashboard-empty">No weak concepts detected in this attempt.</p>';
  panel.innerHTML='<section class="exam-mode-shell"><div class="exam-result-dashboard">'+
   '<div class="exam-result-hero">'+
-   '<div class="exam-result-score"><div><strong>'+scoreMarks+'/'+preset.marks+'</strong><small>NORMALIZED SCORE</small></div></div>'+
-   '<div><h3>'+safe(preset.label)+' Result</h3><p>Accuracy: <b>'+accuracy+'%</b> · '+correctCount+' correct · '+answered+' answered · '+(total-answered)+' unanswered'+(autoSubmitted?' · Auto-submitted when time ended':'')+'</p></div>'+
+   '<div class="exam-result-score"><div><strong>'+scoreMarks+'/'+total+'</strong><small>MCQ SCORE</small></div></div>'+
+   '<div><h3>MCQ Exam Result</h3><p>Accuracy: <b>'+accuracy+'%</b> · '+correctCount+' correct · '+answered+' answered · '+(total-answered)+' unanswered'+(autoSubmitted?' · Auto-submitted when time ended':'')+'</p></div>'+
    '<div class="exam-stat"><span>MARKED REVIEW</span><strong>'+examReview.size+'</strong></div>'+
   '</div>'+
   '<div class="exam-analysis-grid">'+
