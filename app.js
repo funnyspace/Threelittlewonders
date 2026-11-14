@@ -160,6 +160,14 @@ function resolveMistake(id){
  saveStudyData();
  renderStudyDashboard();
 }
+function resolveMistakeForQuestion(lessonId,questionText){
+ const id=mistakeIdFor(lessonId,questionText);
+ const item=studyData.mistakes.find(m=>m.id===id&&!m.resolved);
+ if(!item)return;
+ item.resolved=true;
+ item.resolvedAt=new Date().toISOString();
+ saveStudyData();
+}
 function activeMistakesForGrade(grade){
  return studyData.mistakes.filter(m=>{
   if(m.resolved)return false;
@@ -1928,7 +1936,7 @@ function bindQuizFeedbackActions(){
  $('quizFeedback')?.querySelector('[data-feedback-similar]')?.addEventListener('click',trySimilarQuizQuestion);
  $('quizFeedback')?.querySelectorAll('[data-confidence]').forEach(button=>button.addEventListener('click',()=>{
   if(!currentLesson)return;
-  scheduleRevision(currentLesson.id,currentSubtopicKey||'overview','correct',button.dataset.confidence==='confident'?'confident':'normal');
+  if(button.dataset.confidence==='confident')scheduleRevision(currentLesson.id,currentSubtopicKey||'overview','correct','confident');
   saveStudyData();
   renderStudyDashboard();
   $('quizFeedback')?.querySelectorAll('[data-confidence]').forEach(b=>b.disabled=true);
@@ -1945,7 +1953,7 @@ function answer(choice){
  questionAnswered=true;
  recordQuizChoice(currentLesson.id,correct,currentSubtopicKey||'overview');
  if(!correct)saveMistake(currentLesson,currentSubtopicKey||'overview',q,choice,'quiz');
- else if(currentMistakeId){resolveMistake(currentMistakeId);currentMistakeId='';}
+ else{resolveMistakeForQuestion(currentLesson.id,q.text);if(currentMistakeId){resolveMistake(currentMistakeId);currentMistakeId='';}}
 
  buttons.forEach((b,i)=>{
   b.disabled=true;
@@ -2055,9 +2063,23 @@ function installEvents(){
  $('dashboardContinueBtn')?.addEventListener('click',e=>{const id=e.currentTarget.dataset.dashboardLesson;if(id)openDashboardLesson(id,e.currentTarget.dataset.dashboardTopic||'');});
  $('dashboardWeakTopics')?.addEventListener('click',e=>{const button=e.target.closest('[data-dashboard-lesson]');if(button)openDashboardLesson(button.dataset.dashboardLesson,button.dataset.dashboardTopic||'');});
  $('dashboardStrongTopics')?.addEventListener('click',e=>{const button=e.target.closest('[data-dashboard-lesson]');if(button)openDashboardLesson(button.dataset.dashboardLesson,button.dataset.dashboardTopic||'');});
- $('dashboardReviseBtn')?.addEventListener('click',()=>{const account=dashboardAccount();if(!account)return;const due=revisionCandidates(Number(account.grade));const row=due[0];if(row)openDashboardLesson(row.lesson.id,row.topic.key);else showToast('No topics are due for revision today. Keep learning!');});
+ $('dashboardReviseBtn')?.addEventListener('click',()=>{
+  const account=dashboardAccount();if(!account)return;
+  const due=revisionCandidates(Number(account.grade));
+  const row=due[0];
+  if(!row){showToast('No topics are due for revision today. Keep learning!');return;}
+  const mistake=activeMistakesForGrade(Number(account.grade)).find(m=>m.lessonId===row.lesson.id&&(m.topicKey||'overview')===row.topic.key);
+  if(mistake)openMistakeRetry(mistake.id);
+  else openDashboardLesson(row.lesson.id,row.topic.key);
+ });
  window.addEventListener('tlw-auth-change',renderStudyDashboard);
- $('dashboardRevisionPlan')?.addEventListener('click',e=>{const button=e.target.closest('[data-dashboard-lesson]');if(button)openDashboardLesson(button.dataset.dashboardLesson,button.dataset.dashboardTopic||'');});
+ $('dashboardRevisionPlan')?.addEventListener('click',e=>{
+  const button=e.target.closest('[data-dashboard-lesson]');if(!button)return;
+  const account=dashboardAccount();
+  const mistake=account?activeMistakesForGrade(Number(account.grade)).find(m=>m.lessonId===button.dataset.dashboardLesson&&(m.topicKey||'overview')===(button.dataset.dashboardTopic||'overview')):null;
+  if(mistake)openMistakeRetry(mistake.id);
+  else openDashboardLesson(button.dataset.dashboardLesson,button.dataset.dashboardTopic||'');
+ });
  $('dashboardMistakes')?.addEventListener('click',e=>{
   const retry=e.target.closest('[data-mistake-retry]');
   const review=e.target.closest('[data-mistake-review]');
