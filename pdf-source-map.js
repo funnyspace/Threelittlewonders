@@ -3,6 +3,29 @@
 
 const lessons=window.TLW_LESSONS||[];
 
+const CLASS10_ECONOMICS_PDFS=[
+  [1,'Development','jess201.pdf'],
+  [2,'Sectors of the Indian Economy','jess202.pdf'],
+  [3,'Money and Credit','jess203.pdf'],
+  [4,'Globalisation and the Indian Economy','jess204.pdf'],
+  [5,'Consumer Rights','jess205.pdf']
+];
+
+CLASS10_ECONOMICS_PDFS.forEach(([chapter,title,pdf])=>{
+  const lesson=lessons.find(item=>
+    item&&
+    item.grade===10&&
+    item.subject==='Social Science'&&
+    item.subSubject==='economics'&&
+    String(item.title||'').trim().toLowerCase()===title.toLowerCase()
+  );
+  if(!lesson)return;
+  lesson.sourceChapter=chapter;
+  lesson.sourcePdf=pdf;
+  lesson.chapterStartPage=1;
+  lesson.originalPdfTitle='NCERT Understanding Economic Development - Economics - Chapter '+chapter+': '+title;
+});
+
 const CLASS10_POLITICAL_SCIENCE_PDFS=[
   [1,'Power-sharing','jess401.pdf'],
   [2,'Federalism','jess402.pdf'],
@@ -264,6 +287,7 @@ lessons.forEach(lesson=>{
 window.TLW_CLASS10_MATHS_PDFS=CLASS10_MATHS_PDFS;
 window.TLW_CLASS10_ENGLISH_PDFS=CLASS10_ENGLISH_PDFS;
 window.TLW_CLASS10_HINDI_PDFS=CLASS10_HINDI_PDFS;
+window.TLW_CLASS10_ECONOMICS_PDFS=CLASS10_ECONOMICS_PDFS;
 window.TLW_CLASS10_POLITICAL_SCIENCE_PDFS=CLASS10_POLITICAL_SCIENCE_PDFS;
 window.TLW_CLASS10_HISTORY_PDFS=CLASS10_HISTORY_PDFS;
 window.TLW_CLASS10_GEOGRAPHY_PDFS=CLASS10_GEOGRAPHY_PDFS;
