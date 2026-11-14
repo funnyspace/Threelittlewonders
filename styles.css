@@ -1871,3 +1871,61 @@
  .descriptive-finish-row{flex-direction:column}
  .descriptive-finish-row .btn{width:100%}
 }
+
+
+/* Logged-in Home and Parent Dashboard */
+.home-learning-dashboard{margin-top:8px;margin-bottom:20px;padding:18px;border:1px solid #dfe7e0;border-radius:20px;background:rgba(255,255,255,.9);box-shadow:0 12px 28px rgba(34,73,51,.055)}
+.home-learning-head{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;margin-bottom:14px}
+.home-learning-head span{display:block;color:#74877a;font-size:8px;font-weight:900;letter-spacing:1.35px}
+.home-learning-head h2{margin:3px 0 2px;color:#234e38;font-size:25px;letter-spacing:-.5px}
+.home-learning-head h2 strong{font-weight:900}
+.home-learning-head p{margin:0;color:#7c8b82;font-size:10px;font-weight:800}
+.home-dashboard-link{color:#2e6e4c;font-size:10px;font-weight:900}
+.home-learning-grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:9px}
+.home-smart-card{display:grid;align-content:start;gap:4px;min-width:0;border:1px solid #e1e7e2;border-radius:13px;background:#fff;padding:12px;text-align:left;color:inherit;text-decoration:none}
+button.home-smart-card{width:100%;font:inherit;cursor:pointer}
+.home-smart-card:hover{border-color:#a9c7b3;background:#f7fbf8;transform:translateY(-1px)}
+.home-smart-card>span{font-size:19px}
+.home-smart-card small{color:#819087;font-size:7px;font-weight:900;letter-spacing:.9px}
+.home-smart-card strong{color:#31523e;font-size:10px;line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.home-smart-card em{color:#8b968f;font-size:8px;line-height:1.35;font-style:normal}
+.home-smart-continue{background:#f1f8f3;border-color:#cfe2d4}
+
+.parent-dashboard-card{grid-column:span 12;background:linear-gradient(145deg,#fbfdfb,#f5faf6)}
+.parent-dashboard-head{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;margin-bottom:14px}
+.parent-dashboard-head h3{margin:3px 0;color:#284f39;font-size:18px}
+.parent-dashboard-head p{margin:0!important;color:#7b8980!important;font-size:9px!important}
+.parent-dashboard-head>span{font-size:25px}
+.parent-summary-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;margin-bottom:14px}
+.parent-summary-grid>div{padding:12px;border:1px solid #e2e8e3;border-radius:12px;background:#fff}
+.parent-summary-grid span{display:block;color:#7c8c82;font-size:8px;font-weight:800}
+.parent-summary-grid strong{display:block;margin-top:4px;color:#28573e;font-size:19px}
+.parent-dashboard-lower{display:grid;grid-template-columns:1.4fr 1fr;gap:14px}
+.parent-dashboard-lower>section{border:1px solid #e3e8e4;border-radius:12px;background:#fff;padding:13px}
+.parent-dashboard-lower h4{margin:0 0 9px;color:#3b5947;font-size:11px}
+.parent-subject-list{display:grid;gap:8px}
+.parent-subject-row{display:grid;grid-template-columns:90px 1fr 36px;align-items:center;gap:8px}
+.parent-subject-row>span{font-size:9px;color:#52665a;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.parent-subject-row>div{height:7px;border-radius:999px;background:#edf1ed;overflow:hidden}
+.parent-subject-row i{display:block;height:100%;border-radius:inherit;background:#5ea47a}
+.parent-subject-row>strong{font-size:9px;color:#2c6c49;text-align:right}
+.parent-insights{display:grid;gap:8px}
+.parent-insights>div{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid #edf0ed}
+.parent-insights>div:last-child{border-bottom:0}
+.parent-insights span{color:#718078;font-size:9px}
+.parent-insights strong{max-width:58%;color:#355441;font-size:9px;text-align:right}
+
+@media(max-width:1000px){
+ .home-learning-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+@media(max-width:720px){
+ .home-learning-head{align-items:flex-start;flex-direction:column}
+ .home-learning-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .parent-summary-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .parent-dashboard-lower{grid-template-columns:1fr}
+}
+@media(max-width:480px){
+ .home-learning-grid{grid-template-columns:1fr}
+ .parent-summary-grid{grid-template-columns:1fr 1fr}
+ .parent-subject-row{grid-template-columns:74px 1fr 34px}
+}
