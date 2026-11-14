@@ -2076,3 +2076,28 @@ button.home-smart-card{width:100%;font:inherit;cursor:pointer}
  .chapter-learning-steps{grid-template-columns:1fr}
  .flashcard-ratings{grid-template-columns:1fr}
 }
+
+
+/* Class 10 Social Science sub-subjects */
+.social-subject-browser{display:grid;gap:16px}
+.social-subject-intro{padding:18px;border:1px solid #e3e7e4;border-radius:18px;background:linear-gradient(145deg,#fbfdfb,#f7faf8)}
+.social-subject-intro>span{display:block;color:#718079;font-size:8px;font-weight:900;letter-spacing:1.2px}
+.social-subject-intro h3{margin:4px 0 4px;color:#2f523e;font-size:22px}
+.social-subject-intro p{margin:0;color:#7d8982;font-size:10px}
+.social-subject-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.social-subject-card{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:12px;border:1px solid #e0e6e1;border-radius:15px;background:#fff;padding:15px;text-align:left;color:inherit}
+.social-subject-card:hover{border-color:#a6c1ae;background:#f7fbf8}
+.social-subject-card.active{border-color:#7eaf8f;background:#eef8f1}
+.social-subject-icon{display:grid;place-items:center;width:42px;height:42px;border-radius:12px;background:#f1f5f2;font-size:21px}
+.social-subject-copy{display:grid;gap:3px;min-width:0}
+.social-subject-copy small{color:#7b8981;font-size:8px;font-weight:900;letter-spacing:.8px;text-transform:uppercase}
+.social-subject-copy strong{color:#31503d;font-size:12px;line-height:1.35}
+.social-subject-arrow{color:#64806f;font-size:16px;font-weight:900}
+.social-subject-detail{padding:18px;border:1px solid #e2e7e3;border-radius:17px;background:#fff}
+.social-subject-detail>div>span{display:block;color:#75837b;font-size:8px;font-weight:900;letter-spacing:1px}
+.social-subject-detail h3{margin:4px 0;color:#2e503b;font-size:18px}
+.social-subject-detail>p{margin:0 0 12px;color:#7c8981;font-size:10px;line-height:1.5}
+.social-subject-empty{padding:15px;border:1px dashed #ccd8d0;border-radius:12px;background:#fafcfb;color:#829087;font-size:9px;text-align:center}
+@media(max-width:720px){
+ .social-subject-grid{grid-template-columns:1fr}
+}
