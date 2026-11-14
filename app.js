@@ -882,8 +882,14 @@ function renderScienceConceptMap(lesson){
   ).join('')+'</div>'+
  '</section>';
 }
+function chapterIsMastered(lesson){
+ const topics=chapterTopics(lesson);
+ if(!topics.length)return topicMastery(lesson,'overview')>=80;
+ return topics.every(topic=>topicMastery(lesson,topic.key)>=80);
+}
 function chapterStepStatus(lesson){
  const mastery=chapterMastery(lesson);
+ const mastered=chapterIsMastered(lesson);
  const hasPdf=!!sourcePdfUrl(lesson);
  const hasQuestions=validLessonQuestions(lesson).length>0;
  const mistakes=activeMistakesForGrade(lesson.grade).filter(m=>m.lessonId===lesson.id).length;
@@ -893,7 +899,7 @@ function chapterStepStatus(lesson){
   practice:hasQuestions?'ready':'pending',
   test:hasQuestions?'ready':'pending',
   revise:(mistakes||mastery>0)?'ready':'available',
-  mastered:mastery>=80?'done':'progress'
+  mastered:mastered?'done':'progress'
  };
 }
 function renderChapterJourney(lesson){
@@ -1120,7 +1126,7 @@ function renderReviseSection(lesson){
 function renderMasteredSection(lesson){
  const mastery=chapterMastery(lesson);
  const status=topicStatusInfo(mastery);
- const mastered=mastery>=80;
+ const mastered=chapterIsMastered(lesson);
  return '<section class="chapter-journey-section chapter-mastered-section '+(mastered?'is-mastered':'')+'" id="chapter-step-mastered" data-journey-section="mastered">'+
   journeySectionHead(6,'🏆','Mastered',mastered?'Chapter mastery achieved':'Keep retrieving, testing and revising')+
   '<div class="chapter-mastery-summary"><div><span class="topic-mastery-badge mastery-'+status.key+'">'+status.icon+' '+mastery+'% · '+status.label+'</span><p>'+(mastered?'You have reached the mastery threshold for this chapter.':'Reach 80%+ mastery through quizzes, tests and spaced revision.')+'</p></div>'+
