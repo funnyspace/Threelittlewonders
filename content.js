@@ -305,6 +305,38 @@ window.TLW_CLASS10_SOCIAL_SCIENCE_SUBSUBJECTS=[
   {key:'political-science',title:'Democratic Politics – II',discipline:'Political Science',icon:'🗳️'},
   {key:'economics',title:'Understanding Economic Development',discipline:'Economics',icon:'📈'}
 ];
+
+[
+  "Resources and Development",
+  "Forest and Wildlife Resources",
+  "Water Resources",
+  "Agriculture",
+  "Minerals and Energy Resources",
+  "Manufacturing Industries",
+  "Lifelines of National Economy"
+].forEach((title,index)=>{
+  const chapter=index+1;
+  window.TLW_LESSONS.push({
+    id:'10-social-science-geography-ch'+String(chapter).padStart(2,'0'),
+    grade:10,
+    subject:'Social Science',
+    subSubject:'geography',
+    bookTitle:'Contemporary India – II',
+    discipline:'Geography',
+    title,
+    description:'NCERT Contemporary India – II · Geography · Chapter '+chapter,
+    emoji:'🗺️',
+    concept:'Chapter '+chapter+': '+title,
+    example:'',
+    tip:'',
+    minutes:20,
+    sourceChapter:chapter,
+    sourcePdf:'jess'+String(100+chapter)+'.pdf',
+    chapterStartPage:1,
+    originalPdfTitle:'NCERT Contemporary India – II - Geography - Chapter '+chapter+': '+title,
+    questions:[]
+  });
+});
 /* Class 10 Health and Physical Education chapters and original NCERT PDFs. */
 [
   "Physical Education: Relation with other Subjects",
