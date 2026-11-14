@@ -16,7 +16,10 @@ const GRADE_GROUPS=[
 ];
 function load(){try{const v=JSON.parse(localStorage.getItem(STORE_KEY)||localStorage.getItem(LEGACY_STORE_KEY)||'{}');return {grade:Number.isInteger(v.grade)&&GRADE_LEVELS.includes(v.grade)?v.grade:3,completed:Array.isArray(v.completed)?[...new Set(v.completed.filter(x=>typeof x==='string'))]:[]}}catch{return {grade:3,completed:[]}}}
 let state=load(),subject='',query='',classChoicesOpen=true,currentTopicId='',currentSubtopicKey='',currentLesson=null,currentQuestion=0,questionAnswered=false,currentQuizDifficulty='all',currentQuizQuestions=[],currentMistakeId='',returnFocus=null,toastTimer;
-function persist(){try{localStorage.setItem(STORE_KEY,JSON.stringify(state))}catch{showToast('Progress cannot be saved in this browser.')}}
+function persist(){
+ try{localStorage.setItem(STORE_KEY,JSON.stringify(state))}catch{showToast('Progress cannot be saved in this browser.')}
+ queueCloudLearningSync();
+}
 const gradeName=g=>g===-2?'Nursery':g===-1?'LKG':g===0?'UKG':`Class ${g}`;
 const subjectIcon=s=>SUBJECTS[s]?.icon||'📚';
 function emptyStudyData(){
@@ -27,6 +30,7 @@ function emptyStudyData(){
   topicStats:{},
   testAttempts:[],
   mistakes:[],
+  badges:[],
   timeByDate:{},
   daily:{date:'',completedLessonIds:[],practicedTopics:[]}
  };
@@ -41,6 +45,7 @@ function loadStudyData(){
    topicStats:raw&&raw.topicStats&&typeof raw.topicStats==='object'?raw.topicStats:{},
    testAttempts:Array.isArray(raw&&raw.testAttempts)?raw.testAttempts:[],
    mistakes:Array.isArray(raw&&raw.mistakes)?raw.mistakes:[],
+   badges:Array.isArray(raw&&raw.badges)?raw.badges:[],
    timeByDate:raw&&raw.timeByDate&&typeof raw.timeByDate==='object'?raw.timeByDate:{},
    daily:raw&&raw.daily&&typeof raw.daily==='object'?{
     date:String(raw.daily.date||''),
@@ -51,6 +56,93 @@ function loadStudyData(){
  }catch{return emptyStudyData()}
 }
 let studyData=loadStudyData();
+let cloudSyncTimer=null;
+let cloudHydrating=false;
+let cloudHydratedUid='';
+function cloudLearningAvailable(){
+ return !!(window.TLWCloud?.enabled&&window.TLWCloud?.currentUser?.uid);
+}
+function cloudLearningPayload(){
+ return {
+  progress:{
+   grade:state.grade,
+   completed:[...state.completed]
+  },
+  studyData:{
+   ...studyData,
+   badges:Array.isArray(studyData.badges)?studyData.badges:[]
+  },
+  badges:Array.isArray(studyData.badges)?studyData.badges:[]
+ };
+}
+function queueCloudLearningSync(){
+ if(cloudHydrating||!cloudLearningAvailable())return;
+ clearTimeout(cloudSyncTimer);
+ cloudSyncTimer=setTimeout(()=>{
+  window.TLWCloud.saveLearning(cloudLearningPayload()).catch(error=>{
+   console.error('Cloud learning sync failed',error);
+  });
+ },650);
+}
+function normaliseCloudStudyData(raw){
+ const base=emptyStudyData();
+ const value=raw&&typeof raw==='object'?raw:{};
+ return {
+  ...base,...value,
+  lessonStats:value.lessonStats&&typeof value.lessonStats==='object'?value.lessonStats:{},
+  topicStats:value.topicStats&&typeof value.topicStats==='object'?value.topicStats:{},
+  testAttempts:Array.isArray(value.testAttempts)?value.testAttempts:[],
+  mistakes:Array.isArray(value.mistakes)?value.mistakes:[],
+  badges:Array.isArray(value.badges)?value.badges:[],
+  timeByDate:value.timeByDate&&typeof value.timeByDate==='object'?value.timeByDate:{},
+  daily:value.daily&&typeof value.daily==='object'?{
+   date:String(value.daily.date||''),
+   completedLessonIds:Array.isArray(value.daily.completedLessonIds)?value.daily.completedLessonIds:[],
+   practicedTopics:Array.isArray(value.daily.practicedTopics)?value.daily.practicedTopics:[]
+  }:base.daily
+ };
+}
+async function hydrateCloudLearning(){
+ const cloud=window.TLWCloud;
+ if(!cloud?.enabled)return false;
+ const ready=await cloud.ready;
+ if(!ready||!cloud.currentUser?.uid)return false;
+ const uid=cloud.currentUser.uid;
+ if(cloudHydratedUid===uid)return true;
+ cloudHydrating=true;
+ try{
+  const remote=await cloud.loadLearning();
+  if(remote&&(remote.progress||remote.studyData)){
+   const progress=remote.progress||{};
+   state={
+    grade:Number.isInteger(progress.grade)&&GRADE_LEVELS.includes(progress.grade)?progress.grade:state.grade,
+    completed:Array.isArray(progress.completed)?[...new Set(progress.completed.filter(x=>typeof x==='string'))]:[]
+   };
+   studyData=normaliseCloudStudyData(remote.studyData||{});
+   if(Array.isArray(remote.badges)&&!studyData.badges.length)studyData.badges=[...remote.badges];
+   try{
+    localStorage.setItem(STORE_KEY,JSON.stringify(state));
+    localStorage.setItem(STUDY_STORE_KEY,JSON.stringify(studyData));
+   }catch{}
+  }else{
+   await cloud.saveLearning(cloudLearningPayload());
+  }
+  cloudHydratedUid=uid;
+  renderAll();
+  renderTestSeriesClasses();
+  renderStudyDashboard();
+  return true;
+ }catch(error){
+  console.error('Cloud learning hydration failed',error);
+  return false;
+ }finally{
+  cloudHydrating=false;
+ }
+}
+function resetCloudHydration(){
+ cloudHydratedUid='';
+}
+
 function todayKey(){return new Date().toISOString().slice(0,10)}
 function normaliseStudyDay(){
  const today=todayKey();
@@ -60,6 +152,7 @@ function normaliseStudyDay(){
 function saveStudyData(){
  normaliseStudyDay();
  try{localStorage.setItem(STUDY_STORE_KEY,JSON.stringify(studyData))}catch{}
+ queueCloudLearningSync();
 }
 function lessonStudyStat(id){
  if(!studyData.lessonStats[id])studyData.lessonStats[id]={correct:0,wrong:0,attempts:0,lastStudied:'',completedAt:''};
@@ -2580,7 +2673,16 @@ function installEvents(){
   if(mistake)openMistakeRetry(mistake.id);
   else openDashboardLesson(row.lesson.id,row.topic.key);
  });
- window.addEventListener('tlw-auth-change',renderStudyDashboard);
+ window.addEventListener('tlw-auth-change',event=>{
+  renderStudyDashboard();
+  if(event.detail?.loggedIn)hydrateCloudLearning();
+  else resetCloudHydration();
+ });
+ window.addEventListener('tlw-cloud-auth-state',event=>{
+  if(event.detail?.loggedIn)hydrateCloudLearning();
+  else resetCloudHydration();
+ });
+ window.addEventListener('tlw-cloud-ready',()=>hydrateCloudLearning());
  $('dashboardRevisionPlan')?.addEventListener('click',e=>{
   const button=e.target.closest('[data-dashboard-lesson]');if(!button)return;
   const account=dashboardAccount();
@@ -2623,6 +2725,7 @@ Promise.resolve(window.TLW_DRIVE_READY).catch(()=>false).finally(()=>{
  renderAll();
  renderTestSeriesClasses();
  renderStudyDashboard();
+ hydrateCloudLearning();
  startStudyTimeTracking();
  installEvents();
 });
