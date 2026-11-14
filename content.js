@@ -480,6 +480,9 @@ for (let grade=3; grade<=9; grade++) {
     tip:'',
     minutes:20,
     sourceChapter:chapter,
+    sourcePdf:'jhks'+String(100+chapter)+'.pdf',
+    chapterStartPage:1,
+    originalPdfTitle:'NCERT क्षितिज भाग 2 - कक्षा 10 हिंदी - अध्याय '+chapter+': '+item.title,
     questions:[]
   });
 });
