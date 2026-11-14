@@ -90,16 +90,24 @@ function scheduleRevision(lessonId,topicKey='overview',outcome='correct',confide
  let step=Number.isInteger(stat.revisionStep)?stat.revisionStep:0;
  if(outcome==='wrong'){
   step=1;
+  stat.revisionStep=step;
+  stat.nextReviewAt=dateAfterDays(REVISION_INTERVALS[step]);
  }else if(confidence==='confident'){
   step=Math.max(step,3);
- }else{
+  stat.revisionStep=step;
+  stat.nextReviewAt=dateAfterDays(REVISION_INTERVALS[step]);
+ }else if(!stat.nextReviewAt){
+  step=1;
+  stat.revisionStep=step;
+  stat.nextReviewAt=dateAfterDays(REVISION_INTERVALS[step]);
+ }else if(revisionDue(stat)){
   step=Math.min(REVISION_INTERVALS.length-1,Math.max(1,step+1));
+  stat.revisionStep=step;
+  stat.nextReviewAt=dateAfterDays(REVISION_INTERVALS[step]);
  }
- stat.revisionStep=step;
  stat.lastReviewAt=now;
  stat.lastOutcome=outcome;
  stat.confidence=confidence;
- stat.nextReviewAt=dateAfterDays(REVISION_INTERVALS[step]);
  return stat.nextReviewAt;
 }
 function revisionDue(stat){
@@ -1975,6 +1983,7 @@ function answer(choice){
    (correct?'<div class="mcq-confidence"><span>How confident were you?</span><button type="button" data-confidence="normal">🙂 Need another review</button><button type="button" data-confidence="confident">😎 Confident</button></div>':'')+
   '</div>';
  bindQuizFeedbackActions();
+ renderStudyDashboard();
 
  const last=currentQuestion===currentQuizQuestions.length-1;
  const footerButton=$('modalAction');
