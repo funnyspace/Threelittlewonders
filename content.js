@@ -367,6 +367,36 @@ window.TLW_CLASS10_SOCIAL_SCIENCE_SUBSUBJECTS=[
 });
 
 [
+  "Development",
+  "Sectors of the Indian Economy",
+  "Money and Credit",
+  "Globalisation and the Indian Economy",
+  "Consumer Rights"
+].forEach((title,index)=>{
+  const chapter=index+1;
+  window.TLW_LESSONS.push({
+    id:'10-social-science-economics-ch'+String(chapter).padStart(2,'0'),
+    grade:10,
+    subject:'Social Science',
+    subSubject:'economics',
+    bookTitle:'Understanding Economic Development',
+    discipline:'Economics',
+    title,
+    description:'NCERT Understanding Economic Development · Economics · Chapter '+chapter,
+    emoji:'📈',
+    concept:'Chapter '+chapter+': '+title,
+    example:'',
+    tip:'',
+    minutes:20,
+    sourceChapter:chapter,
+    sourcePdf:'jess'+String(200+chapter)+'.pdf',
+    chapterStartPage:1,
+    originalPdfTitle:'NCERT Understanding Economic Development - Economics - Chapter '+chapter+': '+title,
+    questions:[]
+  });
+});
+
+[
   "Resources and Development",
   "Forest and Wildlife Resources",
   "Water Resources",
