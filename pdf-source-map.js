@@ -3,6 +3,29 @@
 
 const lessons=window.TLW_LESSONS||[];
 
+const CLASS10_POLITICAL_SCIENCE_PDFS=[
+  [1,'Power-sharing','jess401.pdf'],
+  [2,'Federalism','jess402.pdf'],
+  [3,'Gender, Religion and Caste','jess403.pdf'],
+  [4,'Political Parties','jess404.pdf'],
+  [5,'Outcomes of Democracy','jess405.pdf']
+];
+
+CLASS10_POLITICAL_SCIENCE_PDFS.forEach(([chapter,title,pdf])=>{
+  const lesson=lessons.find(item=>
+    item&&
+    item.grade===10&&
+    item.subject==='Social Science'&&
+    item.subSubject==='political-science'&&
+    String(item.title||'').trim().toLowerCase()===title.toLowerCase()
+  );
+  if(!lesson)return;
+  lesson.sourceChapter=chapter;
+  lesson.sourcePdf=pdf;
+  lesson.chapterStartPage=1;
+  lesson.originalPdfTitle='NCERT Democratic Politics – II - Political Science - Chapter '+chapter+': '+title;
+});
+
 const CLASS10_HISTORY_PDFS=[
   [1,'The Rise of Nationalism in Europe','jess301.pdf'],
   [2,'Nationalism in India','jess302.pdf'],
@@ -241,6 +264,7 @@ lessons.forEach(lesson=>{
 window.TLW_CLASS10_MATHS_PDFS=CLASS10_MATHS_PDFS;
 window.TLW_CLASS10_ENGLISH_PDFS=CLASS10_ENGLISH_PDFS;
 window.TLW_CLASS10_HINDI_PDFS=CLASS10_HINDI_PDFS;
+window.TLW_CLASS10_POLITICAL_SCIENCE_PDFS=CLASS10_POLITICAL_SCIENCE_PDFS;
 window.TLW_CLASS10_HISTORY_PDFS=CLASS10_HISTORY_PDFS;
 window.TLW_CLASS10_GEOGRAPHY_PDFS=CLASS10_GEOGRAPHY_PDFS;
 window.TLW_CLASS10_HPE_PDFS=CLASS10_HPE_PDFS;
