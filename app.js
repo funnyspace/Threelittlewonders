@@ -1223,6 +1223,20 @@ function openDashboardLesson(id,topicKey=''){
  renderAll();
  requestAnimationFrame(()=>$('lessonResultsSection')?.scrollIntoView({behavior:'smooth',block:'start'}));
 }
+const CLASS10_HINDI_CHAPTERS=[
+ 'सूरदास के पद',
+ 'राम-लक्ष्मण-परशुराम संवाद',
+ 'आत्मकथ्य',
+ 'उत्साह और अट नहीं रही है',
+ 'यह दंतुरित मुस्कान और फसल',
+ 'संगतकार',
+ 'नेताजी का चश्मा',
+ 'बालगोबिन भगत',
+ 'लखनवी अंदाज़',
+ 'एक कहानी यह भी',
+ 'नौबतखाने में इबादत',
+ 'संस्कृति'
+];
 const CLASS10_ENGLISH_CHAPTERS=[
  'A Letter to God',
  'Nelson Mandela: Long Walk to Freedom',
@@ -2754,6 +2768,23 @@ function renderCourses(){
  $('selectedSubjectTitle').textContent=subject;
  $('selectedSubjectPill').innerHTML=`<span aria-hidden="true">${allSubjects?'✦':subjectIcon(subject)}</span><strong>${safe(subject)}</strong> · ${gradeName(state.grade)}`;
  let lessons=LESSONS.filter(l=>l.grade===state.grade&&(allSubjects||l.subject===subject)&&(!query||[l.title,l.subject,l.description,l.concept].some(t=>t.toLowerCase().includes(query))));
+ if(state.grade===10&&subject==='Hindi'){
+  const existingHindi=new Map(LESSONS.filter(l=>l.grade===10&&l.subject==='Hindi').map(l=>[String(l.title||'').toLowerCase(),l]));
+  lessons=CLASS10_HINDI_CHAPTERS.map((chapter,i)=>{
+   const existing=existingHindi.get(chapter.toLowerCase());
+   return existing||{
+    id:'10-hindi-kshitij-ch'+String(i+1).padStart(2,'0'),
+    grade:10,
+    subject:'Hindi',
+    title:chapter,
+    description:'NCERT क्षितिज भाग 2 · कक्षा 10 हिंदी · अध्याय '+(i+1),
+    concept:'अध्याय '+(i+1)+': '+chapter,
+    sourceChapter:i+1,
+    minutes:20,
+    questions:[]
+   };
+  }).filter(l=>!query||[l.title,l.subject,l.description,l.concept].some(t=>String(t||'').toLowerCase().includes(query)));
+ }
  if(state.grade===10&&subject==='English'){
   const existingEnglish=new Map(LESSONS.filter(l=>l.grade===10&&l.subject==='English').map(l=>[String(l.title||'').toLowerCase(),l]));
   lessons=CLASS10_ENGLISH_CHAPTERS.map((chapter,i)=>{
