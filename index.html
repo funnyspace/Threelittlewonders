@@ -7,7 +7,7 @@
   <meta name="description" content="Threelittlewonders makes learning delightful with bite-sized lessons, fun quizzes and learning paths from Nursery through Class 10." />
   <title>Threelittlewonders | Little lessons, big wonders</title>
   <link rel="icon" href="favicon.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="styles.css?v=20261114-study-dashboard-v1" />
+  <link rel="stylesheet" href="styles.css?v=20261114-mastery-feedback-v1" />
   <script src="content.js?v=20261103-class10-maths-14ch" defer></script>
   <script src="class1-english-mridang-content.js?v=20261105-ncert-v1" defer></script>
   <script src="class1-maths-joyful-content.js?v=20261106-ncert-v1" defer></script>
@@ -39,7 +39,7 @@
   <script src="curriculum.js" defer></script>
   <script src="school-curriculum.js" defer></script>
   <script src="secondary-curriculum.js" defer></script>  <script src="pdf-source-map.js?v=20261109-global-pdf-speech-v1" defer></script>
-  <script src="app.js?v=20261114-study-dashboard-v1" defer></script>
+  <script src="app.js?v=20261114-mastery-feedback-v1" defer></script>
   <script src="curriculum-ui.js?v=20261030-hide-all-roadmaps" defer></script>
   <script src="contact-form.js" defer></script>
   <script src="site-navigation.js?v=20261113-home-test-modes-v1" defer></script>
@@ -61,7 +61,7 @@
         <a class="nav-link" href="#contact">Contact</a>
         <a class="nav-link" href="#how-it-works">How it works</a>
       </nav>
-      <a class="nav-progress" href="#my-learning"><span aria-hidden="true">⭐</span> <span id="learningNavLabel">My learning</span> <span id="navStars" class="nav-stars">0</span></a>
+      <a class="nav-progress" href="#my-learning"><span aria-hidden="true">🧠</span> <span id="learningNavLabel">My learning</span> <span id="navStars" class="nav-stars">0</span></a>
       <div class="nav-auth" id="navAuth">
         <button type="button" class="nav-auth-button" id="authButton" aria-haspopup="dialog"><span aria-hidden="true">👤</span><span id="authButtonLabel">Log in</span></button>
         <div class="auth-user-menu" id="authUserMenu" hidden>
@@ -179,6 +179,7 @@
               <label class="test-field"><span>Subject</span><select id="testSubjectSelect" aria-label="Choose test subject"></select></label>
               <label class="test-field"><span>Chapter</span><select id="testChapterSelect" aria-label="Choose test chapter"></select></label>
               <label class="test-field"><span>Topic</span><select id="testTopicSelect" aria-label="Choose test topic"></select></label>
+              <label class="test-field" id="testDifficultyField"><span>Difficulty</span><select id="testDifficultySelect" aria-label="Choose test difficulty"><option value="all">All levels</option><option value="foundation">🟢 Foundation</option><option value="standard">🟡 Standard</option><option value="challenge">🔴 Challenge</option></select></label>
             </div>
             <div class="test-builder-footer" id="testBuilderFooter">
               <p id="testScopeNote">Select a subject, chapter and topic to prepare the paper.</p>
@@ -218,8 +219,8 @@
             <p id="dashboardClassName">Class</p>
           </div>
           <div class="dashboard-header-stats">
-            <span>⭐ <strong id="dashboardStars">0</strong> stars</span>
-            <span>✅ <strong id="dashboardCompleted">0</strong> completed</span>
+            <span>🧠 <strong id="dashboardAverageMastery">0%</strong> average mastery</span>
+            <span>🏆 <strong id="dashboardMasteredTopics">0</strong> mastered topics</span>
           </div>
         </header>
 
