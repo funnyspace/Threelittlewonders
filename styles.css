@@ -1996,3 +1996,83 @@ button.home-smart-card{width:100%;font:inherit;cursor:pointer}
  .momentum-note{white-space:normal}
  .mastery-badge{max-width:100%;width:100%}
 }
+
+
+/* Chapter Journey and Spaced Flashcards */
+.chapter-learning-path{margin:0 0 18px;padding:15px;border:1px solid #dfe7e1;border-radius:18px;background:linear-gradient(145deg,#fbfefc,#f5faf7)}
+.chapter-learning-path-head{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;margin-bottom:11px}
+.chapter-learning-path-head span{color:#72857a;font-size:8px;font-weight:900;letter-spacing:1.25px}
+.chapter-learning-path-head strong{color:#2d543e;font-size:14px}
+.chapter-learning-steps{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px}
+.chapter-learning-step{display:grid;grid-template-columns:auto auto 1fr;align-items:center;gap:7px;min-height:64px;border:1px solid #e1e7e2;border-radius:12px;background:#fff;padding:9px;text-align:left;color:#425a4b}
+.chapter-learning-step:hover{border-color:#9ebca8;background:#f6fbf7}
+.chapter-learning-step>b{display:grid;place-items:center;width:21px;height:21px;border-radius:999px;background:#edf2ee;color:#52685a;font-size:8px}
+.chapter-learning-step>i{font-style:normal;font-size:15px}
+.chapter-learning-step>span{display:grid;min-width:0}
+.chapter-learning-step strong{font-size:9px;color:#344f3f}
+.chapter-learning-step small{margin-top:2px;color:#89958e;font-size:7px;line-height:1.3}
+.chapter-learning-step.step-done{border-color:#abd0b7;background:#edf8f0}
+.chapter-learning-step.step-ready{border-color:#d6e6da}
+.chapter-learning-step.step-pending{opacity:.65}
+
+.chapter-journey-section{margin:0 0 18px;padding:16px;border:1px solid #e1e7e2;border-radius:17px;background:#fff;scroll-margin-top:90px}
+.journey-section-head{display:flex;align-items:center;gap:9px;margin-bottom:13px}
+.journey-section-head>span{display:grid;place-items:center;width:24px;height:24px;border-radius:999px;background:#edf4ef;color:#2f6648;font-size:9px;font-weight:900}
+.journey-section-head>i{font-style:normal;font-size:17px}
+.journey-section-head>div{display:grid;gap:1px}
+.journey-section-head strong{color:#2d513d;font-size:14px}
+.journey-section-head small{color:#829087;font-size:8px}
+
+.understand-actions,.chapter-test-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:11px}
+.quick-practice-card{display:flex;align-items:center;justify-content:space-between;gap:14px;border:1px solid #e3e8e4;border-radius:12px;background:#f8fbf9;padding:12px;margin-bottom:12px}
+.quick-practice-card>div{min-width:0}
+.quick-practice-card strong{display:block;color:#355441;font-size:11px}
+.quick-practice-card p{margin:3px 0 0;color:#7f8c84;font-size:9px;line-height:1.45}
+
+.flashcard-study{border:1px solid #e1e7e2;border-radius:14px;background:#f9fcfa;padding:13px}
+.flashcard-study-top{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin-bottom:10px}
+.flashcard-study-top>div{display:grid;gap:2px}
+.flashcard-study-top span{color:#73857a;font-size:7px;font-weight:900;letter-spacing:1px}
+.flashcard-study-top strong{color:#355441;font-size:10px}
+.flashcard-study-top small{color:#75867b;font-size:8px;font-weight:800}
+.study-flashcard{display:block;width:100%;min-height:170px;border:1px solid #dce5de;border-radius:15px;background:#fff;padding:0;text-align:left;overflow:hidden;box-shadow:0 8px 18px rgba(40,75,54,.045)}
+.study-flashcard:hover{border-color:#9db9a6}
+.flashcard-side{display:flex;min-height:170px;flex-direction:column;justify-content:center;gap:8px;padding:22px}
+.flashcard-side small{color:#7b8b81;font-size:7px;font-weight:900;letter-spacing:1.2px}
+.flashcard-side strong{color:#2f4f3c;font-size:14px;line-height:1.55}
+.flashcard-side em{color:#8d9991;font-size:9px;font-style:normal}
+.flashcard-back{background:#f4faf6}
+.flashcard-ratings{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:10px}
+.flashcard-ratings button{display:grid;gap:2px;border:1px solid #dfe6e0;border-radius:10px;background:#fff;padding:9px;color:#3d5b48;font-size:10px;font-weight:900}
+.flashcard-ratings button:hover{background:#f3f8f4}
+.flashcard-ratings button small{color:#859188;font-size:7px;font-weight:700}
+.flashcard-empty{padding:13px;border-radius:11px;background:#f7faf8;color:#6f8075}
+.flashcard-empty strong{display:block;color:#3d5a48;font-size:10px}
+.flashcard-empty p{margin:3px 0 0;font-size:9px;line-height:1.45}
+
+.chapter-revision-summary{display:grid;grid-template-columns:1fr 1fr auto;align-items:center;gap:9px;margin-top:11px}
+.chapter-revision-summary>div{padding:10px;border:1px solid #e3e8e4;border-radius:10px;background:#fff}
+.chapter-revision-summary span{display:block;color:#829087;font-size:7px;font-weight:800}
+.chapter-revision-summary strong{display:block;margin-top:3px;color:#375642;font-size:10px}
+.chapter-mastered-section{background:#fbfcfb}
+.chapter-mastered-section.is-mastered{border-color:#a9d1b5;background:#f2faf4}
+.chapter-mastery-summary{display:grid;gap:10px}
+.chapter-mastery-summary p{margin:7px 0 0;color:#708078;font-size:9px;line-height:1.5}
+.chapter-mastered-section .dashboard-mastery-track{height:8px}
+
+@media(max-width:1100px){
+ .chapter-learning-steps{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+@media(max-width:720px){
+ .chapter-learning-path-head,.flashcard-study-top{align-items:flex-start;flex-direction:column}
+ .chapter-learning-steps{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .quick-practice-card{align-items:flex-start;flex-direction:column}
+ .quick-practice-card .btn{width:100%}
+ .chapter-revision-summary{grid-template-columns:1fr}
+ .chapter-test-actions,.understand-actions{display:grid;grid-template-columns:1fr}
+ .chapter-test-actions .btn,.understand-actions .btn{width:100%}
+}
+@media(max-width:480px){
+ .chapter-learning-steps{grid-template-columns:1fr}
+ .flashcard-ratings{grid-template-columns:1fr}
+}
