@@ -3,6 +3,32 @@
 
 const lessons=window.TLW_LESSONS||[];
 
+const CLASS10_ENGLISH_PDFS=[
+  [1,'A Letter to God','jeff101.pdf'],
+  [2,'Nelson Mandela: Long Walk to Freedom','jeff102.pdf'],
+  [3,'Two Stories about Flying','jeff103.pdf'],
+  [4,'From the Diary of Anne Frank','jeff104.pdf'],
+  [5,'Glimpses of India','jeff105.pdf'],
+  [6,'Mijbil the Otter','jeff106.pdf'],
+  [7,'Madam Rides the Bus','jeff107.pdf'],
+  [8,'The Sermon at Benares','jeff108.pdf'],
+  [9,'The Proposal','jeff109.pdf']
+];
+
+CLASS10_ENGLISH_PDFS.forEach(([chapter,title,pdf])=>{
+  const lesson=lessons.find(item=>
+    item&&
+    item.grade===10&&
+    item.subject==='English'&&
+    String(item.title||'').trim().toLowerCase()===title.toLowerCase()
+  );
+  if(!lesson)return;
+  lesson.sourceChapter=chapter;
+  lesson.sourcePdf=pdf;
+  lesson.chapterStartPage=1;
+  lesson.originalPdfTitle='NCERT First Flight - Class 10 English - Chapter '+chapter+': '+title;
+});
+
 const CLASS10_HPE_PDFS=[
   [1,'Physical Education: Relation with other Subjects','jehp101.pdf'],
   [2,'Effects of Physical Activities on Human Body','jehp102.pdf'],
@@ -136,5 +162,6 @@ lessons.forEach(lesson=>{
 });
 
 window.TLW_CLASS10_MATHS_PDFS=CLASS10_MATHS_PDFS;
+window.TLW_CLASS10_ENGLISH_PDFS=CLASS10_ENGLISH_PDFS;
 window.TLW_CLASS10_HPE_PDFS=CLASS10_HPE_PDFS;
 })();
