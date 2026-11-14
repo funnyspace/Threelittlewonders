@@ -113,6 +113,8 @@ function renderAuthState(){
   if($('authUserName'))$('authUserName').textContent=account.displayName||'Student';
   if($('authUserGrade'))$('authUserGrade').textContent=gradeName(Number(account.grade));
   if(mobile)mobile.textContent='👤 '+first+' · Log out';
+  if($('learningNavLabel'))$('learningNavLabel').textContent='My Study Dashboard';
+  if($('mobileLearningNavLabel'))$('mobileLearningNavLabel').textContent='My Study Dashboard';
  }else{
   if(label)label.textContent='Log in';
   if(button){
@@ -122,7 +124,10 @@ function renderAuthState(){
   }
   if(menu)menu.hidden=true;
   if(mobile)mobile.textContent='Log in / Sign up';
+  if($('learningNavLabel'))$('learningNavLabel').textContent='My learning';
+  if($('mobileLearningNavLabel'))$('mobileLearningNavLabel').textContent='My learning';
  }
+ window.dispatchEvent(new CustomEvent('tlw-auth-change',{detail:account?{loggedIn:true,displayName:account.displayName,grade:Number(account.grade)}:{loggedIn:false}}));
 }
 function switchTab(tab){
  activeTab=tab==='signup'?'signup':'login';
