@@ -1668,10 +1668,80 @@ function descriptivePatternNote(subject){
  return 'CBSE-style competency practice using the current '+CBSE_PATTERN_SESSION+' approach. CBSE does not publish one board sample-paper blueprint for every lower class and subject.';
 }
 
+function descriptiveKeywords(item){
+ const stop=new Set(['which','what','when','where','with','from','into','this','that','these','those','using','state','write','explain','analyse','analyze','identify','give','correct','answer','question','student','learner','reaction','process']);
+ const words=(String(item.focus||'')+' '+String(item.text||'')).toLowerCase().match(/[a-z][a-z-]{3,}/g)||[];
+ return [...new Set(words.filter(word=>!stop.has(word)))].slice(0,8);
+}
+function descriptiveModelAnswer(item){
+ const terms=descriptiveKeywords(item);
+ const sentences=cleanConceptSentences(item.lesson);
+ const ranked=sentences.map(sentence=>{
+  const lower=sentence.toLowerCase();
+  let score=0;
+  terms.forEach(term=>{if(lower.includes(term))score+=1;});
+  if(String(item.focus||'')&&lower.includes(String(item.focus).toLowerCase()))score+=3;
+  return {sentence,score};
+ }).sort((a,b)=>b.score-a.score);
+ const count=item.marks>=5?3:item.marks>=3?2:1;
+ const chosen=ranked.filter(x=>x.score>0).slice(0,count).map(x=>x.sentence);
+ if(chosen.length)return chosen.join(' ');
+ if(item.lesson?.example)return String(item.lesson.example);
+ const fallback=sentences.slice(0,count).map(x=>x);
+ if(fallback.length)return fallback.join(' ');
+ return 'A complete answer should use the correct concept, relevant subject terminology, an appropriate example or equation where required, and a justified conclusion.';
+}
+function descriptiveMarkingPoints(item){
+ const text=String(item.text||'').toLowerCase();
+ const points=[];
+ if(/\bdefine|definition|what is|meaning\b/.test(text))points.push('1 mark: Correct definition or identification of the core concept.');
+ else points.push('1 mark: Correct identification of the relevant concept, principle or process.');
+ if(/\bequation|balance|reaction|formula|calculate|working\b/.test(text))points.push('1 mark: Correct equation, formula, calculation or essential working.');
+ else if(/\bexample|observation|evidence\b/.test(text))points.push('1 mark: One correct relevant example, observation or piece of evidence.');
+ else points.push('1 mark: One correct supporting fact or application.');
+ if(item.marks>=3)points.push('1 mark: Clear explanation, reasoning or cause-and-effect link.');
+ if(item.marks>=4)points.push('1 mark: Correct application, prediction, comparison or interpretation of the given situation.');
+ if(item.marks>=5)points.push('1 mark: Complete justification or conclusion using appropriate subject terminology.');
+ while(points.length<item.marks)points.push('1 mark: One additional accurate and relevant point that directly answers the question.');
+ return points.slice(0,item.marks);
+}
+function descriptiveMarkingSchemeHtml(){
+ let number=1;
+ const items=activeDescriptiveSections.flatMap(section=>section.items||[]);
+ return '<section class="marking-scheme-panel" id="descriptiveMarkingSchemePanel">'+
+  '<h3>Marking Scheme & Model Answer Guidance</h3>'+
+  '<p>This is a ThreeLittleWonders practice marking scheme structured in CBSE style for the generated questions. It is not an official CBSE marking scheme. Model-answer guidance is derived from the lesson material where available.</p>'+
+  items.map(item=>{
+   const q=number++;
+   const points=descriptiveMarkingPoints(item);
+   const model=descriptiveModelAnswer(item);
+   const keywords=descriptiveKeywords(item);
+   return '<details class="marking-scheme-item" '+(q===1?'open':'')+'>'+
+    '<summary><span>Q'+q+'. '+safe(item.focus||item.lesson?.title||'Question')+'</span><strong>'+item.marks+' marks</strong></summary>'+
+    '<div class="marking-scheme-body">'+
+     '<ol class="marking-points">'+points.map(point=>'<li>'+safe(point)+'</li>').join('')+'</ol>'+
+     '<div class="model-answer-box"><strong>Model answer guidance</strong><br>'+safe(model)+'</div>'+
+     '<div class="examiner-keywords"><strong>Examiner keywords</strong><br>'+keywords.map(k=>'<span>'+safe(k)+'</span>').join('')+'</div>'+
+    '</div>'+
+   '</details>';
+  }).join('')+
+ '</section>';
+}
+function finishDescriptivePaper(){
+ const host=$('descriptiveMarkingScheme');
+ if(!host||!activeDescriptiveSections.length)return;
+ host.hidden=false;
+ host.innerHTML=descriptiveMarkingSchemeHtml();
+ const button=document.querySelector('[data-finish-descriptive]');
+ if(button){button.disabled=true;button.textContent='Marking Scheme Shown';}
+ host.scrollIntoView({behavior:'smooth',block:'start'});
+}
 function renderDescriptivePaper(){
  const panel=$('testPaperPanel');
  if(!panel)return;
+ stopExamTimer();
  const sections=buildDescriptivePaper();
+ activeDescriptiveSections=sections;
  const subject=$('testSubjectSelect')?.value||'';
  const chapterId=$('testChapterSelect')?.value||'';
  const topicKey=$('testTopicSelect')?.value||'';
@@ -1696,89 +1766,236 @@ function renderDescriptivePaper(){
  panel.innerHTML='<div class="descriptive-paper">'+
   '<div class="descriptive-paper-title"><div><span>CBSE '+CBSE_PATTERN_SESSION+' QUESTION-ONLY PRACTICE PAPER</span><h3>'+safe(scope)+'</h3><p>'+safe(descriptivePatternNote(subject))+'</p></div><div class="descriptive-paper-actions"><button type="button" class="btn btn-light" data-new-descriptive>New Paper</button><button type="button" class="btn btn-secondary" data-print-descriptive>Print</button></div></div>'+
   '<div class="descriptive-meta"><span><b>Maximum Marks:</b> '+total+'</span><span><b>Current CBSE reference:</b> '+CBSE_PATTERN_SESSION+'</span><span><b>Questions change:</b> Every new start</span></div>'+
-  '<div class="descriptive-instructions"><strong>General Instructions</strong><ol><li>Attempt the questions according to the marks shown.</li><li>Use complete reasoning, steps, equations or diagrams wherever the question requires them.</li><li>Read application and case-based questions carefully before answering.</li></ol></div>'+
+  '<div class="descriptive-instructions"><strong>General Instructions</strong><ol><li>Attempt the questions according to the marks shown.</li><li>Use complete reasoning, steps, equations or diagrams wherever the question requires them.</li><li>Read application and case-based questions carefully before answering.</li><li>Finish the paper before opening the marking scheme.</li></ol></div>'+
   body+
+  '<div class="descriptive-finish-row"><button type="button" class="btn btn-primary" data-finish-descriptive>Finish Exam & View Marking Scheme</button></div>'+
+  '<div id="descriptiveMarkingScheme" hidden></div>'+
   '</div>';
  panel.scrollIntoView({behavior:'smooth',block:'start'});
 }
 
+function formatExamTime(seconds){
+ const value=Math.max(0,Math.floor(seconds));
+ const hours=Math.floor(value/3600);
+ const minutes=Math.floor((value%3600)/60);
+ const secs=value%60;
+ return hours>0
+  ?String(hours).padStart(2,'0')+':'+String(minutes).padStart(2,'0')+':'+String(secs).padStart(2,'0')
+  :String(minutes).padStart(2,'0')+':'+String(secs).padStart(2,'0');
+}
+function updateExamTimerDisplay(){
+ const el=$('examTimeRemaining');
+ if(el)el.textContent=formatExamTime(examSecondsLeft);
+}
+function startExamTimer(minutes){
+ stopExamTimer();
+ examSecondsLeft=Math.max(1,Math.round(minutes*60));
+ updateExamTimerDisplay();
+ examTimerId=setInterval(()=>{
+  examSecondsLeft=Math.max(0,examSecondsLeft-1);
+  updateExamTimerDisplay();
+  if(examSecondsLeft<=0){
+   stopExamTimer();
+   submitExamPaper(true);
+  }
+ },1000);
+}
+function examQuestionTopicKey(item){
+ const selected=$('testTopicSelect')?.value||'';
+ if(selected)return selected;
+ const explicit=String(item?.question?.topicKey||'');
+ if(explicit)return explicit;
+ return 'overview';
+}
+function examConceptName(item){
+ const topicKey=examQuestionTopicKey(item);
+ if(topicKey!=='overview'){
+  const topic=chapterTopics(item.lesson).find(t=>t.key===topicKey);
+  if(topic)return topic.title;
+ }
+ return item.lesson?.title||'Concept';
+}
+function examGroupName(item){
+ if(testGrade===10&&item.lesson?.subject==='Science')return scienceBranchForLesson(item.lesson).title;
+ return item.lesson?.title||item.lesson?.subject||'Other';
+}
+function updateExamLiveStatus(){
+ const total=activeTestItems.length;
+ const answered=examAnswers.filter(v=>Number.isInteger(v)).length;
+ const unanswered=Math.max(0,total-answered);
+ const review=examReview.size;
+ const q=$('examQuestionStatus');
+ if(q)q.textContent='Question '+(examCurrentIndex+1)+' of '+total;
+ const a=$('examAnsweredCount');if(a)a.textContent=answered;
+ const u=$('examUnansweredCount');if(u)u.textContent=unanswered;
+ const r=$('examReviewCount');if(r)r.textContent=review;
+ $('examQuestionNav')?.querySelectorAll('[data-exam-nav]').forEach(button=>{
+  const index=Number(button.dataset.examNav);
+  button.classList.toggle('answered',Number.isInteger(examAnswers[index]));
+  button.classList.toggle('review',examReview.has(index));
+  button.classList.toggle('current',index===examCurrentIndex);
+ });
+}
+function renderExamQuestion(){
+ const pane=$('examQuestionPane');
+ if(!pane||!activeTestItems.length)return;
+ examCurrentIndex=Math.max(0,Math.min(activeTestItems.length-1,examCurrentIndex));
+ const item=activeTestItems[examCurrentIndex];
+ const q=item.question;
+ const selected=examAnswers[examCurrentIndex];
+ const marked=examReview.has(examCurrentIndex);
+ const level=DIFFICULTY_LEVELS[item.difficulty]||{icon:'🧩',label:'Practice'};
+ pane.innerHTML='<div class="exam-q-number">'+level.icon+' '+safe(level.label.toUpperCase())+' · QUESTION '+(examCurrentIndex+1)+'</div>'+
+  '<h3>'+safe(q.text)+'</h3>'+
+  '<div class="exam-option-list">'+q.options.map((option,index)=>
+   '<label class="exam-option"><input type="radio" name="exam-answer" value="'+index+'" '+(selected===index?'checked':'')+'><span>'+String.fromCharCode(65+index)+'. '+safe(option)+'</span></label>'
+  ).join('')+'</div>'+
+  '<div class="exam-question-actions">'+
+   '<button type="button" class="btn btn-light exam-review-btn '+(marked?'active':'')+'" data-exam-review>'+(marked?'★ Marked for review':'☆ Mark for review')+'</button>'+
+   '<div><button type="button" class="btn btn-light" data-exam-prev '+(examCurrentIndex===0?'disabled':'')+'>← Previous</button><button type="button" class="btn btn-primary" data-exam-next>'+(examCurrentIndex===activeTestItems.length-1?'Finish':'Next →')+'</button></div>'+
+  '</div>';
+ updateExamLiveStatus();
+}
 function renderTestPaper(){
+ if(!validateExamScope())return;
  const panel=$('testPaperPanel');
  if(!panel)return;
- const {items,topicFallback,difficulty}=buildTestQuestionPool();
+ const {items,topicFallback,difficulty,preset}=buildTestQuestionPool();
  activeTestItems=items;
+ examCurrentIndex=0;
+ examAnswers=Array(items.length).fill(null);
+ examReview=new Set();
+ examSubmitted=false;
+ lastExamWeakConcepts=[];
  const subject=$('testSubjectSelect')?.value||'';
  const chapterId=$('testChapterSelect')?.value||'';
  const topicKey=$('testTopicSelect')?.value||'';
  const chapter=LESSONS.find(l=>l.id===chapterId);
  const topic=chapter?chapterTopics(chapter).find(t=>t.key===topicKey):null;
- const scope=[gradeName(testGrade),subject,chapter&&chapter.title,topic&&topic.title].filter(Boolean).join(' · ');
+ const scope=[gradeName(testGrade),subject,preset.key!=='full'&&chapter&&chapter.title,preset.key==='topic'&&topic&&topic.title].filter(Boolean).join(' · ');
  if(!items.length){
   panel.hidden=false;
-  panel.innerHTML='<div class="test-empty"><span aria-hidden="true">📝</span><h4>No test questions are available for this selection yet.</h4><p>Choose another subject or chapter with an existing quiz question bank.</p></div>';
+  const message=topicFallback
+   ?'This Topic Test needs questions explicitly tagged to the selected topic. No chapter-level questions were substituted.'
+   :'No verified MCQ questions are available for this exam selection yet.';
+  panel.innerHTML='<div class="test-empty"><span aria-hidden="true">📝</span><h4>Exam cannot start yet.</h4><p>'+safe(message)+'</p></div>';
   return;
  }
- const fallbackNote=topicFallback?'<p class="test-paper-note">This topic does not yet have separately tagged questions, so the paper uses the available questions from its chapter.</p>':'';
+ const difficultyLabel=difficulty==='all'?'Mixed difficulty':(DIFFICULTY_LEVELS[difficulty]?.icon+' '+DIFFICULTY_LEVELS[difficulty]?.label);
+ const bankNote=items.length<preset.targetQuestions
+  ?'<p class="exam-empty-bank">The current verified bank contains '+items.length+' question'+(items.length===1?'':'s')+' for this selection. The final score is normalized to the '+preset.marks+'-mark exam preset; no extra questions were invented.</p>'
+  :'';
  panel.hidden=false;
- const difficultyLabel=difficulty==='all'?'Mixed difficulty':(DIFFICULTY_LEVELS[difficulty]?.icon+' '+DIFFICULTY_LEVELS[difficulty]?.label);panel.innerHTML='<div class="test-paper-head"><div><span>TEST PAPER · '+safe(difficultyLabel)+'</span><h3>'+safe(scope)+'</h3><p>'+items.length+' questions · 1 mark each</p></div><strong>'+items.length+' marks</strong></div>'+
-  fallbackNote+
-  '<form id="testPaperForm" class="test-paper-form">'+items.map((item,i)=>
-   '<fieldset class="test-question-card" data-test-question="'+i+'"><legend><span>'+(i+1)+'</span>'+safe(item.question.text)+'</legend>'+
-   '<div class="test-option-list">'+item.question.options.map((option,oi)=>
-    '<label class="test-option"><input type="radio" name="test-q-'+i+'" value="'+oi+'"><span>'+String.fromCharCode(65+oi)+'. '+safe(option)+'</span></label>'
-   ).join('')+'</div><div class="test-question-feedback" data-test-feedback="'+i+'"></div></fieldset>'
-  ).join('')+
-  '<div class="test-submit-row"><span>Answer all questions, then submit your test.</span><button type="submit" class="btn btn-primary">Submit Test</button></div>'+
-  '</form><div class="test-result" id="testResult" hidden></div>';
+ panel.innerHTML='<section class="exam-mode-shell">'+
+  '<div class="exam-live-bar">'+
+   '<div class="exam-progress-label"><strong id="examQuestionStatus">Question 1 of '+items.length+'</strong><small>'+safe(scope)+' · '+safe(preset.label)+' · '+safe(difficultyLabel)+'</small></div>'+
+   '<div class="exam-stat exam-timer"><span>TIME REMAINING</span><strong id="examTimeRemaining">'+formatExamTime(preset.minutes*60)+'</strong></div>'+
+   '<div class="exam-stat"><span>ANSWERED</span><strong id="examAnsweredCount">0</strong></div>'+
+   '<div class="exam-stat"><span>UNANSWERED</span><strong id="examUnansweredCount">'+items.length+'</strong></div>'+
+   '<div class="exam-stat"><span>MARKED REVIEW</span><strong id="examReviewCount">0</strong></div>'+
+   '<button type="button" class="btn exam-submit-top" data-exam-submit>Submit Exam</button>'+
+  '</div>'+
+  bankNote+
+  '<div class="exam-body">'+
+   '<aside class="exam-question-nav"><h4>QUESTION NAVIGATOR</h4><div class="exam-nav-grid" id="examQuestionNav">'+items.map((_,index)=>'<button type="button" class="exam-nav-btn '+(index===0?'current':'')+'" data-exam-nav="'+index+'">'+(index+1)+'</button>').join('')+'</div></aside>'+
+   '<main class="exam-question-pane" id="examQuestionPane"></main>'+
+  '</div>'+
+ '</section>';
+ renderExamQuestion();
+ startExamTimer(preset.minutes);
  panel.scrollIntoView({behavior:'smooth',block:'start'});
 }
-function submitTestPaper(){
- if(!activeTestItems.length)return;
- let score=0,answered=0;
+function examPerformanceSummary(){
+ const groups=new Map();
+ const concepts=new Map();
+ activeTestItems.forEach((item,index)=>{
+  const selected=examAnswers[index];
+  const correct=selected===item.question.answer;
+  const group=examGroupName(item);
+  const concept=examConceptName(item);
+  if(!groups.has(group))groups.set(group,{correct:0,total:0});
+  if(!concepts.has(concept))concepts.set(concept,{correct:0,total:0,lessonId:item.lesson.id,topicKey:examQuestionTopicKey(item)});
+  groups.get(group).total++;
+  concepts.get(concept).total++;
+  if(correct){groups.get(group).correct++;concepts.get(concept).correct++;}
+ });
+ const groupRows=[...groups.entries()].map(([name,value])=>({name,...value,accuracy:Math.round(value.correct/value.total*100)})).sort((a,b)=>a.name.localeCompare(b.name));
+ const conceptRows=[...concepts.entries()].map(([name,value])=>({name,...value,accuracy:Math.round(value.correct/value.total*100)})).sort((a,b)=>a.accuracy-b.accuracy||b.total-a.total);
+ return {groupRows,conceptRows};
+}
+function generateExamRevisionPlan(){
+ if(!lastExamWeakConcepts.length){
+  showToast('No weak concepts were identified in this exam.');
+  return;
+ }
+ lastExamWeakConcepts.forEach(row=>scheduleRevision(row.lessonId,row.topicKey||'overview','wrong','normal'));
+ saveStudyData();
+ renderStudyDashboard();
+ showToast('Revision plan created. Weak concepts are scheduled for review tomorrow.');
+ const button=document.querySelector('[data-generate-exam-revision]');
+ if(button){button.disabled=true;button.textContent='Revision Plan Generated ✓';}
+}
+function submitExamPaper(autoSubmitted=false){
+ if(examSubmitted||!activeTestItems.length)return;
+ examSubmitted=true;
+ stopExamTimer();
+ const preset=currentExamPreset();
  const selectedTopicKey=$('testTopicSelect')?.value||'';
- activeTestItems.forEach((item,i)=>{
-  const checked=document.querySelector('input[name="test-q-'+i+'"]:checked');
-  const card=document.querySelector('[data-test-question="'+i+'"]');
-  const feedback=document.querySelector('[data-test-feedback="'+i+'"]');
-  let selected=null,correct=false;
-  if(checked){
+ let correctCount=0;
+ let answered=0;
+ activeTestItems.forEach((item,index)=>{
+  const selected=examAnswers[index];
+  const correct=selected===item.question.answer;
+  const topicKey=selectedTopicKey||item.question.topicKey||'overview';
+  if(Number.isInteger(selected)){
    answered++;
-   selected=Number(checked.value);
-   correct=selected===item.question.answer;
-   if(correct){score++;card?.classList.add('test-correct');}
-   else card?.classList.add('test-wrong');
-   const topicKey=selectedTopicKey||item.question.topicKey||item.question.section||'overview';
+   if(correct)correctCount++;
    recordTopicTestChoice(item.lesson.id,topicKey,correct);
-   if(!correct)saveMistake(item.lesson,topicKey,item.question,selected,'test-series');
+   if(!correct)saveMistake(item.lesson,topicKey,item.question,selected,'exam-mode');
   }else{
-   card?.classList.add('test-unanswered');
-  }
-  if(feedback){
-   const correctText=String.fromCharCode(65+item.question.answer)+'. '+item.question.options[item.question.answer];
-   const explanation=questionExplanation(item.lesson,item.question);
-   feedback.innerHTML='<div class="test-explanation">'+
-    '<strong>'+(checked?(correct?'✅ Correct':'❌ Incorrect'):'⚪ Unanswered')+'</strong>'+
-    '<p><b>Correct answer:</b> '+safe(correctText)+'</p>'+
-    '<p><b>Why?</b> '+safe(explanation)+'</p>'+
-    '<button type="button" data-review-test-lesson="'+safe(item.lesson.id)+'" data-review-test-topic="'+safe(selectedTopicKey||item.question.topicKey||'')+'">📖 Review concept</button>'+
-   '</div>';
+   recordTopicTestChoice(item.lesson.id,topicKey,false);
   }
  });
- document.querySelectorAll('#testPaperForm input').forEach(input=>input.disabled=true);
- const submit=document.querySelector('#testPaperForm button[type="submit"]');
- if(submit)submit.disabled=true;
- studyData.testAttempts.push({date:new Date().toISOString(),grade:testGrade,subject:$('testSubjectSelect')?.value||'',score:score,total:activeTestItems.length});
+ const total=activeTestItems.length;
+ const accuracy=Math.round(correctCount/total*100);
+ const scoreMarks=Math.round(accuracy/100*preset.marks);
+ const {groupRows,conceptRows}=examPerformanceSummary();
+ lastExamWeakConcepts=conceptRows.filter(row=>row.accuracy<80).slice(0,6);
+ studyData.testAttempts.push({
+  date:new Date().toISOString(),
+  grade:testGrade,
+  subject:$('testSubjectSelect')?.value||'',
+  preset:preset.key,
+  score:correctCount,
+  total,
+  normalizedMarks:scoreMarks,
+  maxMarks:preset.marks,
+  accuracy
+ });
  studyData.testAttempts=studyData.testAttempts.slice(-50);
  saveStudyData();
  renderStudyDashboard();
- const result=$('testResult');
- if(result){
-  const percent=Math.round(score/activeTestItems.length*100);
-  result.hidden=false;
-  result.innerHTML='<div><span>YOUR SCORE</span><strong>'+score+' / '+activeTestItems.length+'</strong><p>'+percent+'% · '+answered+' answered</p></div><button type="button" class="btn btn-secondary" data-retry-test>Try Again</button>';
-  result.scrollIntoView({behavior:'smooth',block:'center'});
- }
+ const panel=$('testPaperPanel');
+ if(!panel)return;
+ const groupHtml=groupRows.map(row=>'<div class="exam-performance-row"><span>'+safe(row.name)+'</span><strong>'+row.accuracy+'%</strong></div>').join('');
+ const weakHtml=lastExamWeakConcepts.length
+  ?lastExamWeakConcepts.map(row=>'<div class="exam-weak-item"><span>'+safe(row.name)+'</span><b>'+row.accuracy+'%</b></div>').join('')
+  :'<p class="dashboard-empty">No weak concepts detected in this attempt.</p>';
+ panel.innerHTML='<section class="exam-mode-shell"><div class="exam-result-dashboard">'+
+  '<div class="exam-result-hero">'+
+   '<div class="exam-result-score"><div><strong>'+scoreMarks+'/'+preset.marks+'</strong><small>NORMALIZED SCORE</small></div></div>'+
+   '<div><h3>'+safe(preset.label)+' Result</h3><p>Accuracy: <b>'+accuracy+'%</b> · '+correctCount+' correct · '+answered+' answered · '+(total-answered)+' unanswered'+(autoSubmitted?' · Auto-submitted when time ended':'')+'</p></div>'+
+   '<div class="exam-stat"><span>MARKED REVIEW</span><strong>'+examReview.size+'</strong></div>'+
+  '</div>'+
+  '<div class="exam-analysis-grid">'+
+   '<article class="exam-analysis-card"><h4>Performance Analysis</h4>'+groupHtml+'</article>'+
+   '<article class="exam-analysis-card"><h4>Weak Concepts</h4><div class="exam-weak-list">'+weakHtml+'</div></article>'+
+  '</div>'+
+  '<div class="exam-result-actions"><button type="button" class="btn btn-primary" data-generate-exam-revision>Generate Revision Plan</button><button type="button" class="btn btn-secondary" data-retry-test>Try Another Paper</button></div>'+
+ '</div></section>';
+ panel.scrollIntoView({behavior:'smooth',block:'start'});
 }
+function submitTestPaper(){submitExamPaper(false);}
 
 
 function renderCourses(){
