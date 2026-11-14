@@ -3,6 +3,35 @@
 
 const lessons=window.TLW_LESSONS||[];
 
+const CLASS10_HINDI_PDFS=[
+  [1,'सूरदास के पद','jhks101.pdf'],
+  [2,'राम-लक्ष्मण-परशुराम संवाद','jhks102.pdf'],
+  [3,'आत्मकथ्य','jhks103.pdf'],
+  [4,'उत्साह और अट नहीं रही है','jhks104.pdf'],
+  [5,'यह दंतुरित मुस्कान और फसल','jhks105.pdf'],
+  [6,'संगतकार','jhks106.pdf'],
+  [7,'नेताजी का चश्मा','jhks107.pdf'],
+  [8,'बालगोबिन भगत','jhks108.pdf'],
+  [9,'लखनवी अंदाज़','jhks109.pdf'],
+  [10,'एक कहानी यह भी','jhks110.pdf'],
+  [11,'नौबतखाने में इबादत','jhks111.pdf'],
+  [12,'संस्कृति','jhks112.pdf']
+];
+
+CLASS10_HINDI_PDFS.forEach(([chapter,title,pdf])=>{
+  const lesson=lessons.find(item=>
+    item&&
+    item.grade===10&&
+    item.subject==='Hindi'&&
+    String(item.title||'').trim().toLowerCase()===title.toLowerCase()
+  );
+  if(!lesson)return;
+  lesson.sourceChapter=chapter;
+  lesson.sourcePdf=pdf;
+  lesson.chapterStartPage=1;
+  lesson.originalPdfTitle='NCERT क्षितिज भाग 2 - कक्षा 10 हिंदी - अध्याय '+chapter+': '+title;
+});
+
 const CLASS10_ENGLISH_PDFS=[
   [1,'A Letter to God','jeff101.pdf'],
   [2,'Nelson Mandela: Long Walk to Freedom','jeff102.pdf'],
@@ -163,5 +192,6 @@ lessons.forEach(lesson=>{
 
 window.TLW_CLASS10_MATHS_PDFS=CLASS10_MATHS_PDFS;
 window.TLW_CLASS10_ENGLISH_PDFS=CLASS10_ENGLISH_PDFS;
+window.TLW_CLASS10_HINDI_PDFS=CLASS10_HINDI_PDFS;
 window.TLW_CLASS10_HPE_PDFS=CLASS10_HPE_PDFS;
 })();
