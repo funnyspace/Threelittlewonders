@@ -3,6 +3,31 @@
 
 const lessons=window.TLW_LESSONS||[];
 
+const CLASS10_GEOGRAPHY_PDFS=[
+  [1,'Resources and Development','jess101.pdf'],
+  [2,'Forest and Wildlife Resources','jess102.pdf'],
+  [3,'Water Resources','jess103.pdf'],
+  [4,'Agriculture','jess104.pdf'],
+  [5,'Minerals and Energy Resources','jess105.pdf'],
+  [6,'Manufacturing Industries','jess106.pdf'],
+  [7,'Lifelines of National Economy','jess107.pdf']
+];
+
+CLASS10_GEOGRAPHY_PDFS.forEach(([chapter,title,pdf])=>{
+  const lesson=lessons.find(item=>
+    item&&
+    item.grade===10&&
+    item.subject==='Social Science'&&
+    item.subSubject==='geography'&&
+    String(item.title||'').trim().toLowerCase()===title.toLowerCase()
+  );
+  if(!lesson)return;
+  lesson.sourceChapter=chapter;
+  lesson.sourcePdf=pdf;
+  lesson.chapterStartPage=1;
+  lesson.originalPdfTitle='NCERT Contemporary India – II - Geography - Chapter '+chapter+': '+title;
+});
+
 const CLASS10_HINDI_PDFS=[
   [1,'सूरदास के पद','jhks101.pdf'],
   [2,'राम-लक्ष्मण-परशुराम संवाद','jhks102.pdf'],
@@ -193,5 +218,6 @@ lessons.forEach(lesson=>{
 window.TLW_CLASS10_MATHS_PDFS=CLASS10_MATHS_PDFS;
 window.TLW_CLASS10_ENGLISH_PDFS=CLASS10_ENGLISH_PDFS;
 window.TLW_CLASS10_HINDI_PDFS=CLASS10_HINDI_PDFS;
+window.TLW_CLASS10_GEOGRAPHY_PDFS=CLASS10_GEOGRAPHY_PDFS;
 window.TLW_CLASS10_HPE_PDFS=CLASS10_HPE_PDFS;
 })();
