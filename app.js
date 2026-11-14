@@ -15,7 +15,7 @@ const GRADE_GROUPS=[
  {key:'secondary',label:'Secondary',range:'Classes 9–10',icon:'🎓',grades:[9,10]}
 ];
 function load(){try{const v=JSON.parse(localStorage.getItem(STORE_KEY)||localStorage.getItem(LEGACY_STORE_KEY)||'{}');return {grade:Number.isInteger(v.grade)&&GRADE_LEVELS.includes(v.grade)?v.grade:3,completed:Array.isArray(v.completed)?[...new Set(v.completed.filter(x=>typeof x==='string'))]:[]}}catch{return {grade:3,completed:[]}}}
-let state=load(),subject='',query='',classChoicesOpen=true,currentTopicId='',currentSubtopicKey='',currentLesson=null,currentQuestion=0,questionAnswered=false,currentQuizDifficulty='all',currentQuizQuestions=[],returnFocus=null,toastTimer;
+let state=load(),subject='',query='',classChoicesOpen=true,currentTopicId='',currentSubtopicKey='',currentLesson=null,currentQuestion=0,questionAnswered=false,currentQuizDifficulty='all',currentQuizQuestions=[],currentMistakeId='',returnFocus=null,toastTimer;
 function persist(){try{localStorage.setItem(STORE_KEY,JSON.stringify(state))}catch{showToast('Progress cannot be saved in this browser.')}}
 const gradeName=g=>g===-2?'Nursery':g===-1?'LKG':g===0?'UKG':`Class ${g}`;
 const subjectIcon=s=>SUBJECTS[s]?.icon||'📚';
@@ -26,6 +26,7 @@ function emptyStudyData(){
   lessonStats:{},
   topicStats:{},
   testAttempts:[],
+  mistakes:[],
   daily:{date:'',completedLessonIds:[],practicedTopics:[]}
  };
 }
@@ -38,6 +39,7 @@ function loadStudyData(){
    lessonStats:raw&&raw.lessonStats&&typeof raw.lessonStats==='object'?raw.lessonStats:{},
    topicStats:raw&&raw.topicStats&&typeof raw.topicStats==='object'?raw.topicStats:{},
    testAttempts:Array.isArray(raw&&raw.testAttempts)?raw.testAttempts:[],
+   mistakes:Array.isArray(raw&&raw.mistakes)?raw.mistakes:[],
    daily:raw&&raw.daily&&typeof raw.daily==='object'?{
     date:String(raw.daily.date||''),
     completedLessonIds:Array.isArray(raw.daily.completedLessonIds)?raw.daily.completedLessonIds:[],
@@ -69,10 +71,127 @@ function topicStudyStat(lessonId,topicKey='overview'){
    quizCorrect:0,quizWrong:0,
    revisionCorrect:0,revisionWrong:0,
    testCorrect:0,testWrong:0,
-   lastStudied:'',lastAttemptAt:''
+   lastStudied:'',lastAttemptAt:'',
+   revisionStep:0,nextReviewAt:'',lastReviewAt:'',lastOutcome:'',confidence:''
   };
  }
  return studyData.topicStats[key];
+}
+const REVISION_INTERVALS=[0,1,3,7,14,30];
+function dateAfterDays(days){
+ const d=new Date();
+ d.setHours(9,0,0,0);
+ d.setDate(d.getDate()+Math.max(0,Number(days)||0));
+ return d.toISOString();
+}
+function scheduleRevision(lessonId,topicKey='overview',outcome='correct',confidence='normal'){
+ const stat=topicStudyStat(lessonId,topicKey||'overview');
+ const now=new Date().toISOString();
+ let step=Number.isInteger(stat.revisionStep)?stat.revisionStep:0;
+ if(outcome==='wrong'){
+  step=1;
+ }else if(confidence==='confident'){
+  step=Math.max(step,3);
+ }else{
+  step=Math.min(REVISION_INTERVALS.length-1,Math.max(1,step+1));
+ }
+ stat.revisionStep=step;
+ stat.lastReviewAt=now;
+ stat.lastOutcome=outcome;
+ stat.confidence=confidence;
+ stat.nextReviewAt=dateAfterDays(REVISION_INTERVALS[step]);
+ return stat.nextReviewAt;
+}
+function revisionDue(stat){
+ if(!stat||!stat.nextReviewAt)return false;
+ return new Date(stat.nextReviewAt).getTime()<=Date.now();
+}
+function nextRevisionLabel(stat){
+ if(!stat||!stat.nextReviewAt)return 'Not scheduled';
+ const due=new Date(stat.nextReviewAt);
+ const today=new Date();today.setHours(0,0,0,0);
+ const target=new Date(due);target.setHours(0,0,0,0);
+ const days=Math.round((target-today)/86400000);
+ if(days<=0)return 'Today';
+ if(days===1)return 'Tomorrow';
+ return 'In '+days+' days';
+}
+function mistakeIdFor(lessonId,questionText){
+ let hash=0;
+ const value=lessonId+'|'+String(questionText||'');
+ for(let i=0;i<value.length;i++)hash=((hash<<5)-hash+value.charCodeAt(i))|0;
+ return lessonId+'::'+Math.abs(hash);
+}
+function saveMistake(lesson,topicKey,question,selectedIndex,source='quiz'){
+ if(!lesson||!question||!Array.isArray(question.options))return;
+ const id=mistakeIdFor(lesson.id,question.text);
+ const correctIndex=Number(question.answer);
+ const existing=studyData.mistakes.find(m=>m.id===id);
+ const entry={
+  id,
+  lessonId:lesson.id,
+  topicKey:topicKey||'overview',
+  subject:lesson.subject,
+  chapter:lesson.title,
+  question:String(question.text||''),
+  options:[...question.options],
+  selectedIndex:Number(selectedIndex),
+  correctIndex,
+  selectedAnswer:String(question.options[selectedIndex]??''),
+  correctAnswer:String(question.options[correctIndex]??''),
+  explanation:questionExplanation(lesson,question),
+  source,
+  lastWrongAt:new Date().toISOString(),
+  wrongCount:(existing?.wrongCount||0)+1,
+  resolved:false,
+  resolvedAt:''
+ };
+ if(existing)Object.assign(existing,entry);
+ else studyData.mistakes.unshift(entry);
+ studyData.mistakes=studyData.mistakes.slice(0,200);
+ saveStudyData();
+}
+function resolveMistake(id){
+ if(!id)return;
+ const item=studyData.mistakes.find(m=>m.id===id);
+ if(!item)return;
+ item.resolved=true;
+ item.resolvedAt=new Date().toISOString();
+ saveStudyData();
+ renderStudyDashboard();
+}
+function activeMistakesForGrade(grade){
+ return studyData.mistakes.filter(m=>{
+  if(m.resolved)return false;
+  const lesson=LESSONS.find(l=>l.id===m.lessonId);
+  return lesson&&lesson.grade===grade;
+ }).sort((a,b)=>new Date(b.lastWrongAt)-new Date(a.lastWrongAt));
+}
+function openMistakeRetry(id){
+ const mistake=studyData.mistakes.find(m=>m.id===id);
+ if(!mistake)return;
+ const lesson=LESSONS.find(l=>l.id===mistake.lessonId);
+ if(!lesson)return;
+ const all=validQuestionsWithMeta(lesson);
+ const item=all.find(x=>String(x.question.text)===String(mistake.question));
+ if(!item){
+  openDashboardLesson(lesson.id,mistake.topicKey||'');
+  return;
+ }
+ currentMistakeId=id;
+ currentLesson=lesson;
+ currentQuizDifficulty=item.difficulty;
+ currentQuizQuestions=[item];
+ currentQuestion=0;
+ currentSubtopicKey=mistake.topicKey||'overview';
+ returnFocus=document.activeElement;
+ $('lessonModal').hidden=false;
+ document.body.classList.add('modal-open');
+ $('lessonTitle').textContent='Retry: '+lesson.title;
+ $('modalSubjectIcon').textContent=subjectIcon(lesson.subject);
+ $('modalMeta').textContent='MY MISTAKES · '+String(item.difficulty||'practice').toUpperCase();
+ showQuiz();
+ $('closeLesson').focus();
 }
 function markPracticedTopic(lessonId,topicKey='overview'){
  normaliseStudyDay();
@@ -91,7 +210,7 @@ function touchStudyLesson(lessonId,subtopicKey=''){
  }
  saveStudyData();
 }
-function recordQuizChoice(lessonId,isCorrect,topicKey='overview'){
+function recordQuizChoice(lessonId,isCorrect,topicKey='overview',confidence='normal'){
  if(!lessonId)return;
  const now=new Date().toISOString();
  const lessonStat=lessonStudyStat(lessonId);
@@ -113,6 +232,7 @@ function recordQuizChoice(lessonId,isCorrect,topicKey='overview'){
  }
  topicStat.lastAttemptAt=now;
  topicStat.lastStudied=now;
+ scheduleRevision(lessonId,topicKey||'overview',isCorrect?'correct':'wrong',confidence);
  markPracticedTopic(lessonId,topicKey||'overview');
  saveStudyData();
 }
@@ -123,6 +243,7 @@ function recordTopicTestChoice(lessonId,topicKey,isCorrect){
  if(isCorrect)stat.testCorrect=(stat.testCorrect||0)+1;
  else stat.testWrong=(stat.testWrong||0)+1;
  stat.lastStudied=new Date().toISOString();
+ scheduleRevision(lessonId,key,isCorrect?'correct':'wrong',isCorrect?'confident':'normal');
  markPracticedTopic(lessonId,key);
 
  const lessonStat=lessonStudyStat(lessonId);
@@ -207,14 +328,16 @@ function dashboardTopicName(lesson){
  return (match&&match.title)||((topics[0]&&topics[0].title)||lesson.title);
 }
 function revisionCandidates(grade){
- const now=Date.now();
  return gradeTopicRows(grade).filter(row=>{
   const stat=studyData.topicStats[topicStatKey(row.lesson.id,row.topic.key)];
-  if(!stat||!stat.lastStudied)return false;
-  const age=(now-new Date(stat.lastStudied).getTime())/86400000;
-  return (row.mastery>0&&row.mastery<80&&age>=1)||(row.mastery>=80&&age>=7);
- }).sort((a,b)=>a.mastery-b.mastery);
+  return revisionDue(stat);
+ }).sort((a,b)=>{
+  const sa=studyData.topicStats[topicStatKey(a.lesson.id,a.topic.key)]||{};
+  const sb=studyData.topicStats[topicStatKey(b.lesson.id,b.topic.key)]||{};
+  return new Date(sa.nextReviewAt||0)-new Date(sb.nextReviewAt||0)||a.mastery-b.mastery;
+ });
 }
+
 function dashboardAccount(){
  try{
   const session=JSON.parse(localStorage.getItem('Threelittlewonders-local-session-v1')||'null');
@@ -235,6 +358,57 @@ function renderDashboardTopicRows(host,rows,emptyText){
    '<span><strong>'+safe(row.topic.title)+'</strong><small>'+safe(row.lesson.subject)+' · '+safe(row.lesson.title)+'</small></span>'+
    '<b class="mastery-mini mastery-'+status.key+'">'+status.icon+' '+row.mastery+'%</b>'+
   '</button>';
+ }).join('');
+}
+function renderRevisionPlan(grade){
+ const host=$('dashboardRevisionPlan');
+ if(!host)return;
+ const rows=gradeTopicRows(grade).filter(row=>{
+  const stat=studyData.topicStats[topicStatKey(row.lesson.id,row.topic.key)];
+  return stat&&stat.nextReviewAt;
+ }).sort((a,b)=>{
+  const sa=studyData.topicStats[topicStatKey(a.lesson.id,a.topic.key)]||{};
+  const sb=studyData.topicStats[topicStatKey(b.lesson.id,b.topic.key)]||{};
+  return new Date(sa.nextReviewAt)-new Date(sb.nextReviewAt);
+ }).slice(0,5);
+ if(!rows.length){
+  host.innerHTML='<p class="dashboard-empty">Complete a quiz to start your smart revision schedule.</p>';
+  return;
+ }
+ host.innerHTML=rows.map(row=>{
+  const stat=studyData.topicStats[topicStatKey(row.lesson.id,row.topic.key)]||{};
+  const due=revisionDue(stat);
+  return '<button type="button" class="revision-plan-row '+(due?'due':'')+'" data-dashboard-lesson="'+safe(row.lesson.id)+'" data-dashboard-topic="'+safe(row.topic.key)+'">'+
+   '<span><strong>'+safe(row.topic.title)+'</strong><small>'+safe(row.lesson.subject)+' · '+safe(row.lesson.title)+'</small></span>'+
+   '<b>'+safe(nextRevisionLabel(stat))+'</b>'+
+  '</button>';
+ }).join('');
+}
+function renderMistakeNotebook(grade){
+ const host=$('dashboardMistakes');
+ const count=$('dashboardMistakeCount');
+ if(!host)return;
+ const mistakes=activeMistakesForGrade(grade);
+ if(count)count.textContent=mistakes.length;
+ if(!mistakes.length){
+  host.innerHTML='<p class="dashboard-empty">No unresolved mistakes yet. Incorrect MCQs will automatically appear here for revision.</p>';
+  return;
+ }
+ host.innerHTML=mistakes.slice(0,6).map(m=>{
+  const lesson=LESSONS.find(l=>l.id===m.lessonId);
+  const topic=lesson?chapterTopics(lesson).find(t=>t.key===m.topicKey):null;
+  return '<article class="mistake-card">'+
+   '<div class="mistake-card-head"><span>'+safe(m.subject)+'</span><small>'+safe(m.chapter)+(topic?' · '+safe(topic.title):'')+'</small></div>'+
+   '<h4>'+safe(m.question)+'</h4>'+
+   '<p class="mistake-wrong">❌ <b>Your answer:</b> '+safe(m.selectedAnswer||'Not answered')+'</p>'+
+   '<p class="mistake-correct">✅ <b>Correct answer:</b> '+safe(m.correctAnswer)+'</p>'+
+   '<div class="mistake-explanation"><b>💡 Explanation</b><p>'+safe(m.explanation)+'</p></div>'+
+   '<div class="mistake-actions">'+
+    '<button type="button" data-mistake-review="'+safe(m.id)+'">📖 Review topic</button>'+
+    '<button type="button" data-mistake-video="'+safe(m.id)+'">▶ Watch explanation</button>'+
+    '<button type="button" data-mistake-retry="'+safe(m.id)+'">🔁 Try again</button>'+
+   '</div>'+
+  '</article>';
  }).join('');
 }
 function renderStudyDashboard(){
@@ -299,6 +473,8 @@ function renderStudyDashboard(){
  }
  renderDashboardTopicRows($('dashboardWeakTopics'),weak,'Complete quizzes and tests to identify topics that need more practice.');
  renderDashboardTopicRows($('dashboardStrongTopics'),strong,'Your strongest topics will appear as your mastery grows.');
+ renderRevisionPlan(grade);
+ renderMistakeNotebook(grade);
 }
 function openDashboardLesson(id,topicKey=''){
  const lesson=LESSONS.find(l=>l.id===id);
@@ -1459,6 +1635,7 @@ function submitTestPaper(){
    else card?.classList.add('test-wrong');
    const topicKey=selectedTopicKey||item.question.topicKey||item.question.section||'overview';
    recordTopicTestChoice(item.lesson.id,topicKey,correct);
+   if(!correct)saveMistake(item.lesson,topicKey,item.question,selected,'test-series');
   }else{
    card?.classList.add('test-unanswered');
   }
@@ -1639,6 +1816,7 @@ function openLesson(id,difficulty='all'){
  touchStudyLesson(lesson.id,currentSubtopicKey);
  stopReadAloud();
  currentLesson=lesson;
+ currentMistakeId='';
  currentQuizDifficulty=normaliseDifficulty(difficulty)||'all';
  currentQuizQuestions=quizQuestionsForLesson(lesson,currentQuizDifficulty);
  if(!currentQuizQuestions.length)currentQuizQuestions=quizQuestionsForLesson(lesson,'all');
@@ -1748,6 +1926,14 @@ function bindQuizFeedbackActions(){
  $('quizFeedback')?.querySelector('[data-feedback-review]')?.addEventListener('click',reviewCurrentQuizConcept);
  $('quizFeedback')?.querySelector('[data-feedback-video]')?.addEventListener('click',watchCurrentQuizVideo);
  $('quizFeedback')?.querySelector('[data-feedback-similar]')?.addEventListener('click',trySimilarQuizQuestion);
+ $('quizFeedback')?.querySelectorAll('[data-confidence]').forEach(button=>button.addEventListener('click',()=>{
+  if(!currentLesson)return;
+  scheduleRevision(currentLesson.id,currentSubtopicKey||'overview','correct',button.dataset.confidence==='confident'?'confident':'normal');
+  saveStudyData();
+  renderStudyDashboard();
+  $('quizFeedback')?.querySelectorAll('[data-confidence]').forEach(b=>b.disabled=true);
+  button.classList.add('selected');
+ }));
 }
 function answer(choice){
  if(!currentLesson||questionAnswered)return;
@@ -1758,6 +1944,8 @@ function answer(choice){
  const correct=choice===q.answer;
  questionAnswered=true;
  recordQuizChoice(currentLesson.id,correct,currentSubtopicKey||'overview');
+ if(!correct)saveMistake(currentLesson,currentSubtopicKey||'overview',q,choice,'quiz');
+ else if(currentMistakeId){resolveMistake(currentMistakeId);currentMistakeId='';}
 
  buttons.forEach((b,i)=>{
   b.disabled=true;
@@ -1776,6 +1964,7 @@ function answer(choice){
     '<button type="button" data-feedback-video>▶ Watch video</button>'+
     '<button type="button" data-feedback-similar>🔁 Try similar question</button>'+
    '</div>'+
+   (correct?'<div class="mcq-confidence"><span>How confident were you?</span><button type="button" data-confidence="normal">🙂 Need another review</button><button type="button" data-confidence="confident">😎 Confident</button></div>':'')+
   '</div>';
  bindQuizFeedbackActions();
 
@@ -1790,7 +1979,7 @@ function completeLesson(){if(!currentLesson)return;stage('Complete');const alrea
  $('lessonBody').innerHTML=`<div class="celebrate"><div class="celebrate-emoji" aria-hidden="true">🎉🌟</div><h3>Wonderfully done!</h3><p>You completed <strong>${safe(currentLesson.title)}</strong>! Every little lesson takes you closer to big discoveries.</p><div class="reward">⭐ ${already?'Lesson reviewed!':'+20 stars earned!'}</div></div>`;
  footer('Keep that curious mind shining!','Explore more',()=>{closeLesson();window.location.hash='#explore';});
 }
-function closeLesson(){stopReadAloud();if($('lessonModal').hidden)return;$('lessonModal').hidden=true;document.body.classList.remove('modal-open');currentLesson=null;if(returnFocus&&typeof returnFocus.focus==='function')returnFocus.focus()}
+function closeLesson(){stopReadAloud();if($('lessonModal').hidden)return;$('lessonModal').hidden=true;document.body.classList.remove('modal-open');currentLesson=null;currentMistakeId='';if(returnFocus&&typeof returnFocus.focus==='function')returnFocus.focus()}
 function continueLearning(){const next=LESSONS.find(l=>l.grade===state.grade&&!state.completed.includes(l.id))||LESSONS.find(l=>l.grade===state.grade);if(next)openLesson(next.id);else showToast('Choose a class to start learning!')}
 function ensurePdfFigureViewer(){
  let viewer=$('pdfFigureViewer');
@@ -1866,8 +2055,27 @@ function installEvents(){
  $('dashboardContinueBtn')?.addEventListener('click',e=>{const id=e.currentTarget.dataset.dashboardLesson;if(id)openDashboardLesson(id,e.currentTarget.dataset.dashboardTopic||'');});
  $('dashboardWeakTopics')?.addEventListener('click',e=>{const button=e.target.closest('[data-dashboard-lesson]');if(button)openDashboardLesson(button.dataset.dashboardLesson,button.dataset.dashboardTopic||'');});
  $('dashboardStrongTopics')?.addEventListener('click',e=>{const button=e.target.closest('[data-dashboard-lesson]');if(button)openDashboardLesson(button.dataset.dashboardLesson,button.dataset.dashboardTopic||'');});
- $('dashboardReviseBtn')?.addEventListener('click',()=>{const account=dashboardAccount();if(!account)return;const due=revisionCandidates(Number(account.grade));const row=due[0];if(row)openDashboardLesson(row.lesson.id,row.topic.key);else showToast('No topics are due for revision yet. Keep learning!');});
+ $('dashboardReviseBtn')?.addEventListener('click',()=>{const account=dashboardAccount();if(!account)return;const due=revisionCandidates(Number(account.grade));const row=due[0];if(row)openDashboardLesson(row.lesson.id,row.topic.key);else showToast('No topics are due for revision today. Keep learning!');});
  window.addEventListener('tlw-auth-change',renderStudyDashboard);
+ $('dashboardRevisionPlan')?.addEventListener('click',e=>{const button=e.target.closest('[data-dashboard-lesson]');if(button)openDashboardLesson(button.dataset.dashboardLesson,button.dataset.dashboardTopic||'');});
+ $('dashboardMistakes')?.addEventListener('click',e=>{
+  const retry=e.target.closest('[data-mistake-retry]');
+  const review=e.target.closest('[data-mistake-review]');
+  const video=e.target.closest('[data-mistake-video]');
+  if(retry){openMistakeRetry(retry.dataset.mistakeRetry);return;}
+  if(review){
+   const m=studyData.mistakes.find(x=>x.id===review.dataset.mistakeReview);
+   if(m)openDashboardLesson(m.lessonId,m.topicKey||'');
+   return;
+  }
+  if(video){
+   const m=studyData.mistakes.find(x=>x.id===video.dataset.mistakeVideo);
+   if(!m)return;
+   const lesson=LESSONS.find(l=>l.id===m.lessonId);
+   const topic=lesson?chapterTopics(lesson).find(t=>t.key===m.topicKey)||chapterTopics(lesson)[0]:null;
+   if(lesson&&topic)openTopicVideo(lesson,topic);
+  }
+ });
  $('clearFiltersBtn').addEventListener('click',()=>{query='';$('searchInput').value='';renderCourses()});
  $('continueBtn').addEventListener('click',continueLearning);
  $('closeLesson').addEventListener('click',closeLesson);
