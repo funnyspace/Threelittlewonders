@@ -7,7 +7,7 @@
   <meta name="description" content="Threelittlewonders makes learning delightful with bite-sized lessons, fun quizzes and learning paths from Nursery through Class 10." />
   <title>Threelittlewonders | Little lessons, big wonders</title>
   <link rel="icon" href="favicon.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="styles.css?v=20261113-home-test-modes-v1" />
+  <link rel="stylesheet" href="styles.css?v=20261114-study-dashboard-v1" />
   <script src="content.js?v=20261103-class10-maths-14ch" defer></script>
   <script src="class1-english-mridang-content.js?v=20261105-ncert-v1" defer></script>
   <script src="class1-maths-joyful-content.js?v=20261106-ncert-v1" defer></script>
@@ -39,11 +39,11 @@
   <script src="curriculum.js" defer></script>
   <script src="school-curriculum.js" defer></script>
   <script src="secondary-curriculum.js" defer></script>  <script src="pdf-source-map.js?v=20261109-global-pdf-speech-v1" defer></script>
-  <script src="app.js?v=20261113-hide-question-count-v1" defer></script>
+  <script src="app.js?v=20261114-study-dashboard-v1" defer></script>
   <script src="curriculum-ui.js?v=20261030-hide-all-roadmaps" defer></script>
   <script src="contact-form.js" defer></script>
   <script src="site-navigation.js?v=20261113-home-test-modes-v1" defer></script>
-  <script src="auth.js?v=20261109-local-login-v1" defer></script>
+  <script src="auth.js?v=20261114-study-dashboard-v1" defer></script>
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to content</a>
@@ -61,7 +61,7 @@
         <a class="nav-link" href="#contact">Contact</a>
         <a class="nav-link" href="#how-it-works">How it works</a>
       </nav>
-      <a class="nav-progress" href="#my-learning"><span aria-hidden="true">⭐</span> My learning <span id="navStars" class="nav-stars">0</span></a>
+      <a class="nav-progress" href="#my-learning"><span aria-hidden="true">⭐</span> <span id="learningNavLabel">My learning</span> <span id="navStars" class="nav-stars">0</span></a>
       <div class="nav-auth" id="navAuth">
         <button type="button" class="nav-auth-button" id="authButton" aria-haspopup="dialog"><span aria-hidden="true">👤</span><span id="authButtonLabel">Log in</span></button>
         <div class="auth-user-menu" id="authUserMenu" hidden>
@@ -73,7 +73,7 @@
       <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Open menu" aria-expanded="false" aria-controls="mobileMenu">☰</button>
     </div>
     <div id="mobileMenu" class="mobile-menu" hidden>
-      <a href="#home">Home</a><a href="#explore">Explore courses</a><a href="#test-series">Test Series</a><a href="#contact">Contact</a><a href="#how-it-works">How it works</a><a href="#my-learning">My learning ⭐</a><button type="button" class="mobile-auth-button" id="mobileAuthButton">Log in / Sign up</button>
+      <a href="#home">Home</a><a href="#explore">Explore courses</a><a href="#test-series">Test Series</a><a href="#contact">Contact</a><a href="#how-it-works">How it works</a><a href="#my-learning"><span id="mobileLearningNavLabel">My learning</span> ⭐</a><button type="button" class="mobile-auth-button" id="mobileAuthButton">Log in / Sign up</button>
     </div>
   </header>
   <main id="main">
@@ -189,7 +189,88 @@
         </section>
       </div>
     </section>
-    <section class="daily-section section-padding" id="my-learning" hidden><div class="container daily-grid"><div class="daily-copy"><span class="kicker">✦ YOUR LITTLE LEARNING CORNER</span><h2>A little progress<br><em>every day.</em></h2><p>Every lesson you finish is a win! Collect stars, build your confidence, and keep your curiosity going.</p><div class="progress-pills"><span>🌟 <strong id="totalStars">0</strong> stars earned</span><span>✅ <strong id="completedCount">0</strong> lessons finished</span></div><button class="btn btn-primary" id="continueBtn">Continue learning <span aria-hidden="true">↗</span></button><p class="save-note">Progress is saved on this device, in this browser.</p></div><div class="progress-card"><div class="progress-top"><div class="progress-icon">🏆</div><span class="progress-label">MY LEARNING JOURNEY</span></div><div class="progress-card-title">You're doing <span>great!</span></div><div class="progress-stat"><strong id="progressPercent">0%</strong><span>of starter lessons completed for your class</span></div><div class="progress-track"><div class="progress-fill" id="progressFill" style="width:0%"></div></div><div class="progress-card-footer"><span id="progressSubtitle">Your next adventure is waiting.</span><span>✨</span></div></div></div></section>
+    <section class="daily-section section-padding" id="my-learning" hidden>
+      <div class="container" id="learningGuestView">
+        <div class="daily-grid">
+          <div class="daily-copy">
+            <span class="kicker">✦ YOUR LITTLE LEARNING CORNER</span>
+            <h2>A little progress<br><em>every day.</em></h2>
+            <p>Every lesson you finish is a win! Log in to unlock your personalised Study Dashboard.</p>
+            <div class="progress-pills"><span>🌟 <strong id="totalStars">0</strong> stars earned</span><span>✅ <strong id="completedCount">0</strong> lessons finished</span></div>
+            <button class="btn btn-primary" id="continueBtn">Continue learning <span aria-hidden="true">↗</span></button>
+            <p class="save-note">Progress is saved on this device, in this browser.</p>
+          </div>
+          <div class="progress-card">
+            <div class="progress-top"><div class="progress-icon">🏆</div><span class="progress-label">MY LEARNING JOURNEY</span></div>
+            <div class="progress-card-title">You're doing <span>great!</span></div>
+            <div class="progress-stat"><strong id="progressPercent">0%</strong><span>of starter lessons completed for your class</span></div>
+            <div class="progress-track"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+            <div class="progress-card-footer"><span id="progressSubtitle">Your next adventure is waiting.</span><span>✨</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="container study-dashboard" id="studyDashboard" hidden>
+        <header class="study-dashboard-header">
+          <div>
+            <span class="kicker">✦ MY STUDY DASHBOARD</span>
+            <h2><span id="dashboardGreeting">Good morning</span>, <span id="dashboardStudentName">Student</span> <span aria-hidden="true">👋</span></h2>
+            <p id="dashboardClassName">Class</p>
+          </div>
+          <div class="dashboard-header-stats">
+            <span>⭐ <strong id="dashboardStars">0</strong> stars</span>
+            <span>✅ <strong id="dashboardCompleted">0</strong> completed</span>
+          </div>
+        </header>
+
+        <div class="study-dashboard-grid">
+          <article class="dashboard-card dashboard-continue">
+            <div class="dashboard-card-icon" aria-hidden="true">📚</div>
+            <div class="dashboard-card-copy">
+              <span class="dashboard-card-kicker">CONTINUE LEARNING</span>
+              <h3 id="dashboardContinueTitle">Choose a lesson to begin</h3>
+              <p id="dashboardContinuePath">Your next lesson will appear here.</p>
+              <div class="dashboard-mastery-row"><div class="dashboard-mastery-track"><div id="dashboardContinueFill"></div></div><strong id="dashboardContinueMastery">0% mastered</strong></div>
+            </div>
+            <button type="button" class="btn btn-primary" id="dashboardContinueBtn">Continue <span aria-hidden="true">↗</span></button>
+          </article>
+
+          <article class="dashboard-card dashboard-revise">
+            <div class="dashboard-card-icon" aria-hidden="true">🔁</div>
+            <span class="dashboard-card-kicker">REVISE TODAY</span>
+            <strong class="dashboard-big-number" id="dashboardReviseCount">0</strong>
+            <p>topics due for revision</p>
+            <button type="button" class="dashboard-text-action" id="dashboardReviseBtn">Start revision →</button>
+          </article>
+
+          <article class="dashboard-card dashboard-topics">
+            <div class="dashboard-card-title-row"><div><span class="dashboard-card-kicker">WEAK TOPICS</span><h3>Needs attention</h3></div><span aria-hidden="true">🎯</span></div>
+            <div class="dashboard-topic-list" id="dashboardWeakTopics"></div>
+          </article>
+
+          <article class="dashboard-card dashboard-topics">
+            <div class="dashboard-card-title-row"><div><span class="dashboard-card-kicker">STRONG TOPICS</span><h3>Doing well</h3></div><span aria-hidden="true">🏆</span></div>
+            <div class="dashboard-topic-list" id="dashboardStrongTopics"></div>
+          </article>
+
+          <article class="dashboard-card dashboard-goal">
+            <div class="dashboard-card-icon" aria-hidden="true">⏱️</div>
+            <span class="dashboard-card-kicker">TODAY'S GOAL</span>
+            <h3>20 minutes · 3 topics</h3>
+            <p id="dashboardGoalProgress">0 of 3 topics completed today</p>
+            <div class="dashboard-goal-track"><div id="dashboardGoalFill"></div></div>
+          </article>
+
+          <article class="dashboard-card dashboard-test">
+            <div class="dashboard-card-icon" aria-hidden="true">📝</div>
+            <span class="dashboard-card-kicker">UPCOMING TEST</span>
+            <h3 id="dashboardUpcomingTest">Chapter Test</h3>
+            <p id="dashboardUpcomingTestMeta">Practise when you are ready.</p>
+            <a class="btn btn-secondary" href="#test-series">Open Test Series</a>
+          </article>
+        </div>
+      </div>
+    </section>
     <section class="contact-section section-padding" id="contact" aria-labelledby="contactTitle" hidden>
       <div class="container">
         <div class="contact-page-header">
