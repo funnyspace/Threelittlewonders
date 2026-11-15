@@ -1931,27 +1931,7 @@ button.home-smart-card{width:100%;font:inherit;cursor:pointer}
 }
 
 
-/* Concept Maps and Calm Learning Momentum */
-.concept-map-block{margin:0 0 18px;padding:16px;border:1px solid #e0e8e2;border-radius:17px;background:linear-gradient(180deg,#fbfefc,#f6faf7)}
-.concept-map-heading{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;margin-bottom:14px}
-.concept-map-heading>div{display:grid;gap:2px}
-.concept-map-heading span{color:#71847a;font-size:8px;font-weight:900;letter-spacing:1.35px}
-.concept-map-heading strong{color:#284f39;font-size:15px}
-.concept-map-heading small{color:#89958e;font-size:8px}
-.concept-map-root{position:relative;width:max-content;max-width:100%;margin:0 auto 22px;padding:10px 16px;border-radius:999px;background:#285f45;color:#fff;font-size:12px;font-weight:900;text-align:center;box-shadow:0 8px 18px rgba(40,95,69,.12)}
-.concept-map-root:after{content:"";position:absolute;left:50%;top:100%;width:1px;height:22px;background:#b8cbbf}
-.concept-map-branches{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;align-items:start}
-.concept-map-group{position:relative;border:1px solid #e0e7e1;border-radius:13px;background:#fff;padding:12px}
-.concept-map-group:before{content:"";position:absolute;left:50%;bottom:100%;width:1px;height:10px;background:#c4d2c8}
-.concept-map-group h4{margin:0 0 9px;color:#61756a;font-size:8px;font-weight:900;letter-spacing:.9px;text-transform:uppercase}
-.concept-map-nodes{display:grid;gap:7px}
-.concept-map-node{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;border:1px solid #e4e9e5;border-radius:10px;background:#fbfdfb;padding:9px 10px;text-align:left;color:#3e5949}
-.concept-map-node:hover{border-color:#9dbdaa;background:#f1f8f3}
-.concept-map-node span{min-width:0;font-size:9px;font-weight:850;line-height:1.35}
-.concept-map-node small{flex:none;font-size:8px;font-weight:900}
-.concept-map-node.mastery-needs-work{border-color:#f0d5d0}
-.concept-map-node.mastery-learning{border-color:#eadfac}
-.concept-map-node.mastery-mastered{border-color:#bedfc8}
+/* Calm Learning Momentum */
 
 .learning-momentum-card{grid-column:span 12;background:linear-gradient(145deg,#fbfdfb,#f6faf7)}
 .learning-momentum-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:14px}
@@ -1984,13 +1964,10 @@ button.home-smart-card{width:100%;font:inherit;cursor:pointer}
 .topic-badge{border-color:#cfe0d3;background:#f8fcf9}
 
 @media(max-width:940px){
- .concept-map-branches{grid-template-columns:1fr}
- .concept-map-group:before{display:none}
  .learning-momentum-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
 @media(max-width:620px){
- .concept-map-heading,.learning-momentum-head{align-items:flex-start;flex-direction:column}
- .concept-map-root{width:100%}
+ .learning-momentum-head{align-items:flex-start;flex-direction:column}
  .learning-momentum-grid{grid-template-columns:1fr}
  .momentum-block{min-height:0}
  .momentum-note{white-space:normal}
