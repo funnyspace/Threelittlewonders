@@ -82,6 +82,41 @@ CLASS9_ENGLISH_PDFS.forEach(([chapter,title,pdf])=>{
   lesson.originalPdfTitle='NCERT Kaveri - Grade 9 English - Unit '+chapter+': '+title;
 });
 
+const CLASS9_SANSKRIT_PDFS=[
+  [1,"सत्यं शिवं सुन्दरं संस्कृतम्",'ihsh101.pdf'],
+  [2,"सुखस्य मूलं धर्मः धर्मस्य मूलम् अर्थः",'ihsh102.pdf'],
+  [3,"आत्मवत्सर्वभूतेषु यः पश्यति सः पण्डितः",'ihsh103.pdf'],
+  [4,"न खलु वयस्तेजसो हेतुः",'ihsh104.pdf'],
+  [5,"एषा सा कृतकबुद्धिः मानवबुद्धेः सहकरी",'ihsh105.pdf'],
+  [6,"मनःपूतं समाचरेत्",'ihsh106.pdf'],
+  [7,"उपायं चिन्तयेत् प्राज्ञस्तथापायं च चिन्तयेत्",'ihsh107.pdf'],
+  [8,"अन्नाद् आनन्दं प्रति",'ihsh108.pdf'],
+  [9,"कृतं प्रतिकृतं भूयादेष धर्मः सनातनः",'ihsh109.pdf'],
+  [10,"णमो अरिहन्ताणम्",'ihsh110.pdf'],
+  [11,"वर्णोच्चारण-शिक्षा २",'ihsh111.pdf'],
+  [12,"परिशिष्टम् १: अन्वयः",'ihsh112.pdf'],
+  [13,"परिशिष्टम् २: समासः",'ihsh113.pdf'],
+  [14,"परिशिष्टम् ३: वाच्यम्",'ihsh114.pdf'],
+  [15,"परिशिष्टम् ४: शब्दरूपाणि",'ihsh115.pdf'],
+  [16,"परिशिष्टम् ५: धातुरूपाणि",'ihsh116.pdf']
+];
+
+CLASS9_SANSKRIT_PDFS.forEach(([chapter,title,pdf])=>{
+  const lesson=lessons.find(item=>
+    item&&
+    item.grade===9&&
+    item.subject==='Sanskrit'&&
+    String(item.title||'').trim()===title
+  );
+  if(!lesson)return;
+  const isAppendix=chapter>=12;
+  const label=isAppendix?'परिशिष्ट '+(chapter-11):'पाठ '+chapter;
+  lesson.sourceChapter=chapter;
+  lesson.sourcePdf=pdf;
+  lesson.chapterStartPage=1;
+  lesson.originalPdfTitle='NCERT शारदा - कक्षा 9 संस्कृत - '+label+': '+title;
+});
+
 const CLASS9_SCIENCE_PDFS=[
   [1,'Exploration: Entering the World of Secondary Science','iesc101.pdf'],
   [2,'Cell: The Building Block of Life','iesc102.pdf'],
@@ -397,6 +432,7 @@ window.TLW_CLASS10_MATHS_PDFS=CLASS10_MATHS_PDFS;
 window.TLW_CLASS10_ENGLISH_PDFS=CLASS10_ENGLISH_PDFS;
 window.TLW_CLASS10_HINDI_PDFS=CLASS10_HINDI_PDFS;
 window.TLW_CLASS9_MATHS_PDFS=CLASS9_MATHS_PDFS;
+window.TLW_CLASS9_SANSKRIT_PDFS=CLASS9_SANSKRIT_PDFS;
 window.TLW_CLASS9_HINDI_PDFS=CLASS9_HINDI_PDFS;
 window.TLW_CLASS9_ENGLISH_PDFS=CLASS9_ENGLISH_PDFS;
 window.TLW_CLASS9_SCIENCE_PDFS=CLASS9_SCIENCE_PDFS;
