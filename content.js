@@ -278,6 +278,41 @@ add(9,'Maths','Polynomials Explained','Build expressions using powers of x.','�
   });
 });
 [
+  "दो बैलों की कथा",
+  "क्या लिखूँ?",
+  "संवादहीन",
+  "ऐसी भी बातें होती हैं (लता मंगेशकर से साक्षात्कार)",
+  "आखिरी चट्टान तक",
+  "रीढ़ की हड्डी",
+  "मैं और मेरा देश",
+  "पद",
+  "राम-लक्ष्मण-परशुराम संवाद",
+  "भारति, जय, विजयकरे!",
+  "झाँसी की रानी",
+  "घर की याद"
+].forEach((title,index)=>{
+  const chapter=index+1;
+  window.TLW_LESSONS.push({
+    id:'9-hindi-ch'+String(chapter).padStart(2,'0'),
+    grade:9,
+    subject:'Hindi',
+    bookTitle:'गंगा',
+    title,
+    description:'NCERT गंगा · हिंदी · कक्षा 9 · पाठ '+chapter,
+    emoji:'📕',
+    concept:'पाठ '+chapter+': '+title,
+    example:'',
+    tip:'',
+    minutes:20,
+    sourceChapter:chapter,
+    sourcePdf:'ihga'+String(100+chapter)+'.pdf',
+    chapterStartPage:1,
+    originalPdfTitle:'NCERT गंगा - कक्षा 9 हिंदी - पाठ '+chapter+': '+title,
+    questions:[]
+  });
+});
+
+[
   "Exploration: Entering the World of Secondary Science",
   "Cell: The Building Block of Life",
   "Tissues in Action",
