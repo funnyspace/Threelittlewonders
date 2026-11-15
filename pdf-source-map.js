@@ -3,6 +3,35 @@
 
 const lessons=window.TLW_LESSONS||[];
 
+const CLASS9_HINDI_PDFS=[
+  [1,'दो बैलों की कथा','ihga101.pdf'],
+  [2,'क्या लिखूँ?','ihga102.pdf'],
+  [3,'संवादहीन','ihga103.pdf'],
+  [4,'ऐसी भी बातें होती हैं (लता मंगेशकर से साक्षात्कार)','ihga104.pdf'],
+  [5,'आखिरी चट्टान तक','ihga105.pdf'],
+  [6,'रीढ़ की हड्डी','ihga106.pdf'],
+  [7,'मैं और मेरा देश','ihga107.pdf'],
+  [8,'पद','ihga108.pdf'],
+  [9,'राम-लक्ष्मण-परशुराम संवाद','ihga109.pdf'],
+  [10,'भारति, जय, विजयकरे!','ihga110.pdf'],
+  [11,'झाँसी की रानी','ihga111.pdf'],
+  [12,'घर की याद','ihga112.pdf']
+];
+
+CLASS9_HINDI_PDFS.forEach(([chapter,title,pdf])=>{
+  const lesson=lessons.find(item=>
+    item&&
+    item.grade===9&&
+    item.subject==='Hindi'&&
+    String(item.title||'').trim().toLowerCase()===title.toLowerCase()
+  );
+  if(!lesson)return;
+  lesson.sourceChapter=chapter;
+  lesson.sourcePdf=pdf;
+  lesson.chapterStartPage=1;
+  lesson.originalPdfTitle='NCERT गंगा - कक्षा 9 हिंदी - पाठ '+chapter+': '+title;
+});
+
 const CLASS9_ENGLISH_PDFS=[
   [1,'How I Taught My Grandmother to Read','iebe101.pdf'],
   [2,'The Pot Maker','iebe102.pdf'],
@@ -342,6 +371,7 @@ lessons.forEach(lesson=>{
 window.TLW_CLASS10_MATHS_PDFS=CLASS10_MATHS_PDFS;
 window.TLW_CLASS10_ENGLISH_PDFS=CLASS10_ENGLISH_PDFS;
 window.TLW_CLASS10_HINDI_PDFS=CLASS10_HINDI_PDFS;
+window.TLW_CLASS9_HINDI_PDFS=CLASS9_HINDI_PDFS;
 window.TLW_CLASS9_ENGLISH_PDFS=CLASS9_ENGLISH_PDFS;
 window.TLW_CLASS9_SCIENCE_PDFS=CLASS9_SCIENCE_PDFS;
 window.TLW_CLASS10_ECONOMICS_PDFS=CLASS10_ECONOMICS_PDFS;
