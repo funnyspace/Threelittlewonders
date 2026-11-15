@@ -2720,6 +2720,39 @@ function submitExamPaper(autoSubmitted=false){
 function submitTestPaper(){submitExamPaper(false);}
 
 
+function renderClass9SocialScienceSubParts(){
+ const all=Array.isArray(window.TLW_CLASS9_SOCIAL_SCIENCE_SUBPARTS)?window.TLW_CLASS9_SOCIAL_SCIENCE_SUBPARTS:[];
+ const items=all.filter(item=>!query||[item.title,item.shortTitle].some(value=>String(value||'').toLowerCase().includes(query)));
+ if(!currentSubSubject||!items.some(item=>item.key===currentSubSubject))currentSubSubject=items[0]?.key||'';
+ const selected=items.find(item=>item.key===currentSubSubject)||items[0]||null;
+ $('emptyState').hidden=!!items.length;
+ if(!items.length){$('courseGrid').innerHTML='';return;}
+ const chapters=LESSONS.filter(lesson=>
+  lesson.grade===9&&
+  lesson.subject==='Social Science'&&
+  lesson.subSubject===selected.key&&
+  (!query||[lesson.title,lesson.description,lesson.concept].some(v=>String(v||'').toLowerCase().includes(query)))
+ );
+ const chapterHtml=chapters.length
+  ? '<div class="social-subject-empty">'+chapters.length+' chapter'+(chapters.length===1?'':'s')+' added.</div>'
+  : '<div class="social-subject-empty">Chapter list will appear here.</div>';
+ $('courseGrid').innerHTML=
+  '<section class="social-subject-browser">'+
+   '<div class="social-subject-intro"><span>CLASS 9 SOCIAL SCIENCE</span><h3>Choose a part</h3><p>Social Science is organised into two parts. Select one to view its chapters.</p></div>'+
+   '<div class="social-subject-grid">'+items.map(item=>
+    '<button type="button" class="social-subject-card '+(item.key===selected.key?'active':'')+'" data-social-subject="'+safe(item.key)+'" aria-pressed="'+(item.key===selected.key)+'">'+
+     '<span class="social-subject-icon" aria-hidden="true">'+item.icon+'</span>'+
+     '<span class="social-subject-copy"><small>'+safe(item.shortTitle)+'</small><strong>'+safe(item.title)+'</strong></span>'+
+     '<span class="social-subject-arrow" aria-hidden="true">→</span>'+
+    '</button>'
+   ).join('')+'</div>'+
+   '<article class="social-subject-detail">'+
+    '<div><span>'+safe(selected.shortTitle.toUpperCase())+'</span><h3>'+safe(selected.title)+'</h3></div>'+
+    '<p>'+chapters.length+' chapter'+(chapters.length===1?'':'s')+' available in this part.</p>'+
+    chapterHtml+
+   '</article>'+
+  '</section>';
+}
 function renderClass10SocialScienceSubSubjects(){
  const all=Array.isArray(window.TLW_CLASS10_SOCIAL_SCIENCE_SUBSUBJECTS)?window.TLW_CLASS10_SOCIAL_SCIENCE_SUBSUBJECTS:[];
  const items=all.filter(item=>!query||[item.title,item.discipline].some(value=>String(value||'').toLowerCase().includes(query))||
@@ -2798,6 +2831,11 @@ function renderCourses(){
  const allSubjects=subject==='All Subjects';
  $('selectedSubjectTitle').textContent=subject;
  $('selectedSubjectPill').innerHTML=`<span aria-hidden="true">${allSubjects?'✦':subjectIcon(subject)}</span><strong>${safe(subject)}</strong> · ${gradeName(state.grade)}`;
+ if(state.grade===9&&subject==='Social Science'){
+  currentTopicId='';
+  renderClass9SocialScienceSubParts();
+  return;
+ }
  if(state.grade===10&&subject==='Social Science'){
   currentTopicId='';
   renderClass10SocialScienceSubSubjects();
