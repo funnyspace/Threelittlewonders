@@ -114,6 +114,7 @@ CLASS9_SANSKRIT_PDFS.forEach(([chapter,title,pdf])=>{
   lesson.sourceChapter=chapter;
   lesson.sourcePdf=pdf;
   lesson.chapterStartPage=1;
+  lesson.sourcePdfVerified=true;
   lesson.originalPdfTitle='NCERT शारदा - कक्षा 9 संस्कृत - '+label+': '+title;
 });
 
