@@ -3,6 +3,31 @@
 
 const lessons=window.TLW_LESSONS||[];
 
+const CLASS9_ENGLISH_PDFS=[
+  [1,'How I Taught My Grandmother to Read','iebe101.pdf'],
+  [2,'The Pot Maker','iebe102.pdf'],
+  [3,'Winds of Change','iebe103.pdf'],
+  [4,'Vitamin-M','iebe104.pdf'],
+  [5,'The World of Limitless Possibilities','iebe105.pdf'],
+  [6,'Twin Melodies','iebe106.pdf'],
+  [7,'Carrier of Words','iebe107.pdf'],
+  [8,'Follow That Dream','iebe108.pdf']
+];
+
+CLASS9_ENGLISH_PDFS.forEach(([chapter,title,pdf])=>{
+  const lesson=lessons.find(item=>
+    item&&
+    item.grade===9&&
+    item.subject==='English'&&
+    String(item.title||'').trim().toLowerCase()===title.toLowerCase()
+  );
+  if(!lesson)return;
+  lesson.sourceChapter=chapter;
+  lesson.sourcePdf=pdf;
+  lesson.chapterStartPage=1;
+  lesson.originalPdfTitle='NCERT Kaveri - Grade 9 English - Unit '+chapter+': '+title;
+});
+
 const CLASS9_SCIENCE_PDFS=[
   [1,'Exploration: Entering the World of Secondary Science','iesc101.pdf'],
   [2,'Cell: The Building Block of Life','iesc102.pdf'],
@@ -317,6 +342,7 @@ lessons.forEach(lesson=>{
 window.TLW_CLASS10_MATHS_PDFS=CLASS10_MATHS_PDFS;
 window.TLW_CLASS10_ENGLISH_PDFS=CLASS10_ENGLISH_PDFS;
 window.TLW_CLASS10_HINDI_PDFS=CLASS10_HINDI_PDFS;
+window.TLW_CLASS9_ENGLISH_PDFS=CLASS9_ENGLISH_PDFS;
 window.TLW_CLASS9_SCIENCE_PDFS=CLASS9_SCIENCE_PDFS;
 window.TLW_CLASS10_ECONOMICS_PDFS=CLASS10_ECONOMICS_PDFS;
 window.TLW_CLASS10_POLITICAL_SCIENCE_PDFS=CLASS10_POLITICAL_SCIENCE_PDFS;
