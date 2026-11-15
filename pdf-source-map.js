@@ -3,6 +3,31 @@
 
 const lessons=window.TLW_LESSONS||[];
 
+const CLASS9_MATHS_PDFS=[
+  [1,'Orienting Yourself: The Use of Coordinates','iemh101.pdf'],
+  [2,'Introduction to Linear Polynomials','iemh102.pdf'],
+  [3,'The World of Numbers','iemh103.pdf'],
+  [4,'Exploring Algebraic Identities','iemh104.pdf'],
+  [5,'I’m Up and Down, and Round and Round','iemh105.pdf'],
+  [6,'Measuring Space: Perimeter and Area','iemh106.pdf'],
+  [7,'The Mathematics of Maybe: Introduction to Probability','iemh107.pdf'],
+  [8,'Predicting What Comes Next: Exploring Sequences and Progressions','iemh108.pdf']
+];
+
+CLASS9_MATHS_PDFS.forEach(([chapter,title,pdf])=>{
+  const lesson=lessons.find(item=>
+    item&&
+    item.grade===9&&
+    item.subject==='Maths'&&
+    String(item.title||'').trim().toLowerCase()===title.toLowerCase()
+  );
+  if(!lesson)return;
+  lesson.sourceChapter=chapter;
+  lesson.sourcePdf=pdf;
+  lesson.chapterStartPage=1;
+  lesson.originalPdfTitle='NCERT Ganita Manjari Part I - Grade 9 Mathematics - Chapter '+chapter+': '+title;
+});
+
 const CLASS9_HINDI_PDFS=[
   [1,'दो बैलों की कथा','ihga101.pdf'],
   [2,'क्या लिखूँ?','ihga102.pdf'],
@@ -371,6 +396,7 @@ lessons.forEach(lesson=>{
 window.TLW_CLASS10_MATHS_PDFS=CLASS10_MATHS_PDFS;
 window.TLW_CLASS10_ENGLISH_PDFS=CLASS10_ENGLISH_PDFS;
 window.TLW_CLASS10_HINDI_PDFS=CLASS10_HINDI_PDFS;
+window.TLW_CLASS9_MATHS_PDFS=CLASS9_MATHS_PDFS;
 window.TLW_CLASS9_HINDI_PDFS=CLASS9_HINDI_PDFS;
 window.TLW_CLASS9_ENGLISH_PDFS=CLASS9_ENGLISH_PDFS;
 window.TLW_CLASS9_SCIENCE_PDFS=CLASS9_SCIENCE_PDFS;
