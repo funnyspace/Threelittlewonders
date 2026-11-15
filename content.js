@@ -247,7 +247,36 @@ add(8,'Social Science','Inside Our Parliament','Understand representative democr
 add(8,'Computer','Data and Binary Basics','Learn how computers represent information.','💾','Digital computers use binary digits called bits. Each bit can have a value of 0 or 1. Groups of bits represent numbers, text and more.','Binary 10 represents decimal 2, and binary 11 represents decimal 3.','Try writing the decimal numbers 0, 1, 2 and 3 in binary.', ['A bit can be?',['0 or 1','Any colour','Only 5','A paragraph'],0], ['Binary 11 equals decimal?',['2','3','4','11'],1]);
 // CLASS 9
 add(9,'Maths','Polynomials Explained','Build expressions using powers of x.','📊','A polynomial uses variables with non-negative integer exponents and coefficients. Its degree is the highest exponent with a non-zero coefficient.','3x² + 2x + 5 is a polynomial of degree 2.','Write a polynomial of degree 3 and identify its leading term.', ['Degree of 4x² + x + 1?',['1','2','3','4'],1], ['Which expression is a polynomial?',['x² + 2x','1/x','√x','A rock'],0]);
-add(9,'English','Edit for Clear Writing','Fix grammar, punctuation and meaning.','🖊️','Editing makes writing clearer and more accurate. Check subject–verb agreement, word choice, sentence structure and punctuation.','Incorrect: “She go to school.” Correct: “She goes to school.”','Reread a short paragraph slowly and correct one error at a time.', ['Choose the correct sentence.',['He have a book.','He has a book.','he having a book.','He having a book.'],1], ['What ends a statement?',['Period / full stop','Question mark only','Comma only','Colon only'],0]);
+[
+  "How I Taught My Grandmother to Read",
+  "The Pot Maker",
+  "Winds of Change",
+  "Vitamin-M",
+  "The World of Limitless Possibilities",
+  "Twin Melodies",
+  "Carrier of Words",
+  "Follow That Dream"
+].forEach((title,index)=>{
+  const chapter=index+1;
+  window.TLW_LESSONS.push({
+    id:'9-english-ch'+String(chapter).padStart(2,'0'),
+    grade:9,
+    subject:'English',
+    bookTitle:'Kaveri',
+    title,
+    description:'NCERT Kaveri · English · Grade 9 · Unit '+chapter,
+    emoji:'📘',
+    concept:'Unit '+chapter+': '+title,
+    example:'',
+    tip:'',
+    minutes:20,
+    sourceChapter:chapter,
+    sourcePdf:'iebe'+String(100+chapter)+'.pdf',
+    chapterStartPage:1,
+    originalPdfTitle:'NCERT Kaveri - Grade 9 English - Unit '+chapter+': '+title,
+    questions:[]
+  });
+});
 [
   "Exploration: Entering the World of Secondary Science",
   "Cell: The Building Block of Life",
