@@ -849,39 +849,6 @@ function renderLearningMomentum(grade){
   ).join(''):'<p class="dashboard-empty">Master topics to earn calm, progress-based badges.</p>';
  }
 }
-function scienceConceptMapGroups(lesson){
- const topics=chapterTopics(lesson);
- if(!topics.length)return [];
- if(/chemical reactions/i.test(lesson.title)){
-  const types=topics.filter(t=>/(combination|decomposition|double displacement|displacement|redox)/i.test(t.title));
-  const effects=topics.filter(t=>/(oxidation|corrosion|rancidity)/i.test(t.title));
-  const used=new Set([...types,...effects].map(t=>t.key));
-  const core=topics.filter(t=>!used.has(t.key)&&!/checkpoint/i.test(t.title));
-  return [
-   {label:'Core Ideas',topics:core},
-   {label:'Reaction Types',topics:types},
-   {label:'Oxidation & Everyday Effects',topics:effects}
-  ].filter(group=>group.topics.length);
- }
- return [{label:'Key Concepts',topics:topics.filter(t=>!/checkpoint/i.test(t.title))}];
-}
-function renderScienceConceptMap(lesson){
- if(!lesson||lesson.subject!=='Science')return '';
- const groups=scienceConceptMapGroups(lesson);
- if(!groups.length)return '';
- const root=/chemical reactions/i.test(lesson.title)?'Chemical Reactions':lesson.title;
- return '<section class="concept-map-block">'+
-  '<div class="concept-map-heading"><div><span>CONCEPT MAP</span><strong>Quick revision view</strong></div><small>Click any concept to open that topic</small></div>'+
-  '<div class="concept-map-root">'+safe(root)+'</div>'+
-  '<div class="concept-map-branches">'+groups.map(group=>
-   '<section class="concept-map-group"><h4>'+safe(group.label)+'</h4><div class="concept-map-nodes">'+group.topics.map(topic=>{
-    const mastery=topicMastery(lesson,topic.key);
-    const status=topicStatusInfo(mastery);
-    return '<button type="button" class="concept-map-node mastery-'+status.key+'" data-concept-topic="'+safe(topic.key)+'"><span>'+safe(topic.title.replace(/^\d+\.\s*/,''))+'</span><small>'+status.icon+' '+mastery+'%</small></button>';
-   }).join('')+'</div></section>'
-  ).join('')+'</div>'+
- '</section>';
-}
 function chapterIsMastered(lesson){
  const topics=chapterTopics(lesson);
  if(!topics.length)return topicMastery(lesson,'overview')>=80;
@@ -930,7 +897,6 @@ function renderUnderstandSection(lesson){
  const active=topics.find(t=>t.key===currentSubtopicKey)||topics[0]||null;
  return '<section class="chapter-journey-section" id="chapter-step-understand" data-journey-section="understand">'+
   journeySectionHead(2,'▶','Understand','Video, Read Aloud and visual revision')+
-  renderScienceConceptMap(lesson)+
   '<div class="understand-actions">'+
    '<button type="button" class="btn btn-secondary" data-understand-video '+(!active?'disabled':'')+'>▶ Watch topic video</button>'+
    '<button type="button" class="btn btn-secondary read-aloud-btn" data-read-aloud="'+safe(lesson.id)+'">🔊 Read Aloud</button>'+
