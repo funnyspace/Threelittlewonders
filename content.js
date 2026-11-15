@@ -5,6 +5,7 @@ window.TLW_SUBJECTS = {
   'Maths': { icon:'🔢', color:'#eaf2ff', label:'Maths' },
   'English': { icon:'📚', color:'#fff0e0', label:'English' },
   'Hindi': { icon:'हिंदी', color:'#ffe9d8', label:'Hindi' },
+  'Sanskrit': { icon:'सं', color:'#fff3dc', label:'Sanskrit' },
   'Science': { icon:'🔬', color:'#e7f5e9', label:'Science' },
   'EVS': { icon:'🌿', color:'#ecf7e3', label:'EVS' },
   'Social Science': { icon:'🌍', color:'#f2ebff', label:'Social Science' },
@@ -337,6 +338,47 @@ add(8,'Computer','Data and Binary Basics','Learn how computers represent informa
     sourcePdf:'ihga'+String(100+chapter)+'.pdf',
     chapterStartPage:1,
     originalPdfTitle:'NCERT गंगा - कक्षा 9 हिंदी - पाठ '+chapter+': '+title,
+    questions:[]
+  });
+});
+
+[
+  "सत्यं शिवं सुन्दरं संस्कृतम्",
+  "सुखस्य मूलं धर्मः धर्मस्य मूलम् अर्थः",
+  "आत्मवत्सर्वभूतेषु यः पश्यति सः पण्डितः",
+  "न खलु वयस्तेजसो हेतुः",
+  "एषा सा कृतकबुद्धिः मानवबुद्धेः सहकरी",
+  "मनःपूतं समाचरेत्",
+  "उपायं चिन्तयेत् प्राज्ञस्तथापायं च चिन्तयेत्",
+  "अन्नाद् आनन्दं प्रति",
+  "कृतं प्रतिकृतं भूयादेष धर्मः सनातनः",
+  "णमो अरिहन्ताणम्",
+  "वर्णोच्चारण-शिक्षा २",
+  "परिशिष्टम् १: अन्वयः",
+  "परिशिष्टम् २: समासः",
+  "परिशिष्टम् ३: वाच्यम्",
+  "परिशिष्टम् ४: शब्दरूपाणि",
+  "परिशिष्टम् ५: धातुरूपाणि"
+].forEach((title,index)=>{
+  const chapter=index+1;
+  const isAppendix=chapter>=12;
+  const label=isAppendix?'परिशिष्ट '+(chapter-11):'पाठ '+chapter;
+  window.TLW_LESSONS.push({
+    id:'9-sanskrit-ch'+String(chapter).padStart(2,'0'),
+    grade:9,
+    subject:'Sanskrit',
+    bookTitle:'शारदा',
+    title,
+    description:'NCERT शारदा · संस्कृत · कक्षा 9 · '+label,
+    emoji:'📜',
+    concept:label+': '+title,
+    example:'',
+    tip:'',
+    minutes:20,
+    sourceChapter:chapter,
+    sourcePdf:'ihsh'+String(100+chapter)+'.pdf',
+    chapterStartPage:1,
+    originalPdfTitle:'NCERT शारदा - कक्षा 9 संस्कृत - '+label+': '+title,
     questions:[]
   });
 });
