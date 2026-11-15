@@ -417,7 +417,20 @@ add(8,'Computer','Data and Binary Basics','Learn how computers represent informa
     questions:[]
   });
 });
-add(9,'Social Science','Why Democracy Matters','Explore democratic principles.','🗳️','Democracy is a system in which people have a role in choosing government. Important principles include political equality, participation and accountability.','Regular elections give citizens a way to choose representatives.','Discuss why everyone’s voice should matter in public decisions.', ['A key feature of democracy is?',['Public participation','Rule by one person without choice','No accountability','No elections ever'],0], ['Why are free and fair elections important?',['To choose representatives','To change seasons','To grow plants','To set time'],0]);
+window.TLW_CLASS9_SOCIAL_SCIENCE_SUBPARTS=[
+  {
+    key:'part-1',
+    title:'Understanding Society India and Beyond Part I',
+    shortTitle:'Part I',
+    icon:'🌏'
+  },
+  {
+    key:'part-2',
+    title:'Understanding Society India and Beyond Part II',
+    shortTitle:'Part II',
+    icon:'🌍'
+  }
+];
 // CLASS 10
 add(10,'Maths','Real Numbers','NCERT Class 10 Mathematics — Chapter 1.','🔢','This card represents Chapter 1: Real Numbers from the Class 10 Mathematics textbook.','Chapter 1 is titled “Real Numbers”.','Follow the NCERT chapter order while studying.', ['What is the title of Chapter 1?',['Real Numbers','Polynomials','Pair of Linear Equations in Two Variables','Quadratic Equations'],0], ['Which chapter number is “Real Numbers”?',['1','2','2','3'],0]);
 add(10,'Maths','Polynomials','NCERT Class 10 Mathematics — Chapter 2.','🔢','This card represents Chapter 2: Polynomials from the Class 10 Mathematics textbook.','Chapter 2 is titled “Polynomials”.','Follow the NCERT chapter order while studying.', ['What is the title of Chapter 2?',['Polynomials','Pair of Linear Equations in Two Variables','Quadratic Equations','Arithmetic Progressions'],0], ['Which chapter number is “Polynomials”?',['2','3','1','4'],0]);
