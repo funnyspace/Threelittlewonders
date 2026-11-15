@@ -246,7 +246,36 @@ add(8,'Science','Meet Microorganisms','Tiny life, big impact.','🦠','Microorga
 add(8,'Social Science','Inside Our Parliament','Understand representative democracy.','🏛️','In India, Parliament includes the President, Lok Sabha and Rajya Sabha. Elected representatives in the Lok Sabha help make laws and hold the government accountable.','A proposed law is discussed through a legislative process before becoming law.','Find out who represents your constituency in the Lok Sabha.', ['Which is a house of the Indian Parliament?',['Lok Sabha','Supreme Court','RBI','Election Commission'],0], ['Parliament helps make?',['Laws','Weather','Mountains','Rivers'],0]);
 add(8,'Computer','Data and Binary Basics','Learn how computers represent information.','💾','Digital computers use binary digits called bits. Each bit can have a value of 0 or 1. Groups of bits represent numbers, text and more.','Binary 10 represents decimal 2, and binary 11 represents decimal 3.','Try writing the decimal numbers 0, 1, 2 and 3 in binary.', ['A bit can be?',['0 or 1','Any colour','Only 5','A paragraph'],0], ['Binary 11 equals decimal?',['2','3','4','11'],1]);
 // CLASS 9
-add(9,'Maths','Polynomials Explained','Build expressions using powers of x.','📊','A polynomial uses variables with non-negative integer exponents and coefficients. Its degree is the highest exponent with a non-zero coefficient.','3x² + 2x + 5 is a polynomial of degree 2.','Write a polynomial of degree 3 and identify its leading term.', ['Degree of 4x² + x + 1?',['1','2','3','4'],1], ['Which expression is a polynomial?',['x² + 2x','1/x','√x','A rock'],0]);
+[
+  "Orienting Yourself: The Use of Coordinates",
+  "Introduction to Linear Polynomials",
+  "The World of Numbers",
+  "Exploring Algebraic Identities",
+  "I’m Up and Down, and Round and Round",
+  "Measuring Space: Perimeter and Area",
+  "The Mathematics of Maybe: Introduction to Probability",
+  "Predicting What Comes Next: Exploring Sequences and Progressions"
+].forEach((title,index)=>{
+  const chapter=index+1;
+  window.TLW_LESSONS.push({
+    id:'9-maths-ch'+String(chapter).padStart(2,'0'),
+    grade:9,
+    subject:'Maths',
+    bookTitle:'Ganita Manjari Part I',
+    title,
+    description:'NCERT Ganita Manjari · Mathematics · Grade 9 · Chapter '+chapter,
+    emoji:'📐',
+    concept:'Chapter '+chapter+': '+title,
+    example:'',
+    tip:'',
+    minutes:20,
+    sourceChapter:chapter,
+    sourcePdf:'iemh'+String(100+chapter)+'.pdf',
+    chapterStartPage:1,
+    originalPdfTitle:'NCERT Ganita Manjari Part I - Grade 9 Mathematics - Chapter '+chapter+': '+title,
+    questions:[]
+  });
+});
 [
   "How I Taught My Grandmother to Read",
   "The Pot Maker",
