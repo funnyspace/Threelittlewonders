@@ -248,7 +248,40 @@ add(8,'Computer','Data and Binary Basics','Learn how computers represent informa
 // CLASS 9
 add(9,'Maths','Polynomials Explained','Build expressions using powers of x.','📊','A polynomial uses variables with non-negative integer exponents and coefficients. Its degree is the highest exponent with a non-zero coefficient.','3x² + 2x + 5 is a polynomial of degree 2.','Write a polynomial of degree 3 and identify its leading term.', ['Degree of 4x² + x + 1?',['1','2','3','4'],1], ['Which expression is a polynomial?',['x² + 2x','1/x','√x','A rock'],0]);
 add(9,'English','Edit for Clear Writing','Fix grammar, punctuation and meaning.','🖊️','Editing makes writing clearer and more accurate. Check subject–verb agreement, word choice, sentence structure and punctuation.','Incorrect: “She go to school.” Correct: “She goes to school.”','Reread a short paragraph slowly and correct one error at a time.', ['Choose the correct sentence.',['He have a book.','He has a book.','he having a book.','He having a book.'],1], ['What ends a statement?',['Period / full stop','Question mark only','Comma only','Colon only'],0]);
-add(9,'Science','Newton’s Laws of Motion','Explore forces and movement.','🚀','Newton’s first law says that an object keeps its state of rest or uniform straight-line motion unless acted upon by a net external force. His second law relates net force, mass and acceleration: F = ma.','For a mass of 2 kg accelerating at 3 m/s², net force is 6 N.','Think about why passengers lean forward when a bus brakes.', ['F = ma: what is force if m = 2 kg and a = 4 m/s²?',['2 N','6 N','8 N','10 N'],2], ['Without net external force, an object at rest?',['Stays at rest','Must speed up','Must turn','Must fall'],0]);
+[
+  "Exploration: Entering the World of Secondary Science",
+  "Cell: The Building Block of Life",
+  "Tissues in Action",
+  "Describing Motion Around Us",
+  "Exploring Mixtures and their Separation",
+  "How Forces Affect Motion",
+  "Work, Energy, and Simple Machines",
+  "Journey Inside the Atom",
+  "Atomic Foundations of Matter",
+  "Sound Waves: Characteristics and Applications",
+  "Reproduction: How Life Continues",
+  "Patterns in Life: Diversity and Classification",
+  "Earth as a System: Energy, Matter, and Life"
+].forEach((title,index)=>{
+  const chapter=index+1;
+  window.TLW_LESSONS.push({
+    id:'9-science-ch'+String(chapter).padStart(2,'0'),
+    grade:9,
+    subject:'Science',
+    title,
+    description:'NCERT Exploration · Science · Grade 9 · Chapter '+chapter,
+    emoji:'🔬',
+    concept:'Chapter '+chapter+': '+title,
+    example:'',
+    tip:'',
+    minutes:20,
+    sourceChapter:chapter,
+    sourcePdf:'iesc'+String(100+chapter)+'.pdf',
+    chapterStartPage:1,
+    originalPdfTitle:'NCERT Exploration - Grade 9 Science - Chapter '+chapter+': '+title,
+    questions:[]
+  });
+});
 add(9,'Social Science','Why Democracy Matters','Explore democratic principles.','🗳️','Democracy is a system in which people have a role in choosing government. Important principles include political equality, participation and accountability.','Regular elections give citizens a way to choose representatives.','Discuss why everyone’s voice should matter in public decisions.', ['A key feature of democracy is?',['Public participation','Rule by one person without choice','No accountability','No elections ever'],0], ['Why are free and fair elections important?',['To choose representatives','To change seasons','To grow plants','To set time'],0]);
 add(9,'Computer','Your First HTML Page','Learn how websites get structure.','🌐','HTML stands for HyperText Markup Language. It describes webpage structure using elements such as headings, paragraphs and lists.','A heading can be written with the h1 element. A paragraph can be written with p.','Make a simple page with one heading and one paragraph.', ['What does HTML describe?',['Webpage structure','Weather','Electric current','Food nutrients'],0], ['Which element is a top-level heading?',['h1','img','ul','em'],0]);
 // CLASS 10
