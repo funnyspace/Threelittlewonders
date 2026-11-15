@@ -3,6 +3,36 @@
 
 const lessons=window.TLW_LESSONS||[];
 
+const CLASS9_SCIENCE_PDFS=[
+  [1,'Exploration: Entering the World of Secondary Science','iesc101.pdf'],
+  [2,'Cell: The Building Block of Life','iesc102.pdf'],
+  [3,'Tissues in Action','iesc103.pdf'],
+  [4,'Describing Motion Around Us','iesc104.pdf'],
+  [5,'Exploring Mixtures and their Separation','iesc105.pdf'],
+  [6,'How Forces Affect Motion','iesc106.pdf'],
+  [7,'Work, Energy, and Simple Machines','iesc107.pdf'],
+  [8,'Journey Inside the Atom','iesc108.pdf'],
+  [9,'Atomic Foundations of Matter','iesc109.pdf'],
+  [10,'Sound Waves: Characteristics and Applications','iesc110.pdf'],
+  [11,'Reproduction: How Life Continues','iesc111.pdf'],
+  [12,'Patterns in Life: Diversity and Classification','iesc112.pdf'],
+  [13,'Earth as a System: Energy, Matter, and Life','iesc113.pdf']
+];
+
+CLASS9_SCIENCE_PDFS.forEach(([chapter,title,pdf])=>{
+  const lesson=lessons.find(item=>
+    item&&
+    item.grade===9&&
+    item.subject==='Science'&&
+    String(item.title||'').trim().toLowerCase()===title.toLowerCase()
+  );
+  if(!lesson)return;
+  lesson.sourceChapter=chapter;
+  lesson.sourcePdf=pdf;
+  lesson.chapterStartPage=1;
+  lesson.originalPdfTitle='NCERT Exploration - Grade 9 Science - Chapter '+chapter+': '+title;
+});
+
 const CLASS10_ECONOMICS_PDFS=[
   [1,'Development','jess201.pdf'],
   [2,'Sectors of the Indian Economy','jess202.pdf'],
@@ -287,6 +317,7 @@ lessons.forEach(lesson=>{
 window.TLW_CLASS10_MATHS_PDFS=CLASS10_MATHS_PDFS;
 window.TLW_CLASS10_ENGLISH_PDFS=CLASS10_ENGLISH_PDFS;
 window.TLW_CLASS10_HINDI_PDFS=CLASS10_HINDI_PDFS;
+window.TLW_CLASS9_SCIENCE_PDFS=CLASS9_SCIENCE_PDFS;
 window.TLW_CLASS10_ECONOMICS_PDFS=CLASS10_ECONOMICS_PDFS;
 window.TLW_CLASS10_POLITICAL_SCIENCE_PDFS=CLASS10_POLITICAL_SCIENCE_PDFS;
 window.TLW_CLASS10_HISTORY_PDFS=CLASS10_HISTORY_PDFS;
