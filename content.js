@@ -801,13 +801,9 @@ for (let grade=3; grade<=9; grade++) {
 /* Senior Secondary subject placeholders for Classes 11–12. */
 [
   ['English','📚'],
-  ['Hindi','📕'],
-  ['Maths','🔢'],
   ['Physics','⚛️'],
   ['Chemistry','🧪'],
-  ['Biology','🧬'],
-  ['Computer','💻'],
-  ['Physical Education','🏃']
+  ['Biology','🧬']
 ].forEach(([subject,emoji])=>{
   [11,12].forEach(grade=>{
     if(((grade===11||grade===12)&&['Biology','English','Physics','Chemistry'].includes(subject)))return;
