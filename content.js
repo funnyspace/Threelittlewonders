@@ -7,10 +7,14 @@ window.TLW_SUBJECTS = {
   'Hindi': { icon:'हिंदी', color:'#ffe9d8', label:'Hindi' },
   'Sanskrit': { icon:'सं', color:'#fff3dc', label:'Sanskrit' },
   'Science': { icon:'🔬', color:'#e7f5e9', label:'Science' },
+  'Physics': { icon:'⚛️', color:'#e8f0ff', label:'Physics' },
+  'Chemistry': { icon:'🧪', color:'#eef8ff', label:'Chemistry' },
+  'Biology': { icon:'🧬', color:'#e8f7ee', label:'Biology' },
   'EVS': { icon:'🌿', color:'#ecf7e3', label:'EVS' },
   'Social Science': { icon:'🌍', color:'#f2ebff', label:'Social Science' },
   'Computer': { icon:'💻', color:'#e9f6f9', label:'Computer' },
   'Health and Physical Education': { icon:'🏃', color:'#eef8e9', label:'Health and Physical Education' },
+  'Physical Education': { icon:'🏃', color:'#eef8e9', label:'Physical Education' },
   'General Knowledge': { icon:'🌟', color:'#fff5cc', label:'General Knowledge' }
 };
 window.TLW_LESSONS=[];
@@ -793,3 +797,32 @@ for (let grade=3; grade<=9; grade++) {
     questions:[]
   });
 });
+
+/* Senior Secondary subject placeholders for Classes 11–12. */
+[
+  ['English','📚'],
+  ['Hindi','📕'],
+  ['Maths','🔢'],
+  ['Physics','⚛️'],
+  ['Chemistry','🧪'],
+  ['Biology','🧬'],
+  ['Computer','💻'],
+  ['Physical Education','🏃']
+].forEach(([subject,emoji])=>{
+  [11,12].forEach(grade=>{
+    window.TLW_LESSONS.push({
+      id:grade+'-'+subject.toLowerCase().replace(/[^a-z]+/g,'-')+'-starter',
+      grade,
+      subject,
+      title:subject,
+      description:'Class '+grade+' · '+subject+' · Subject added',
+      emoji,
+      concept:subject+' has been added for Class '+grade+'. Chapters, topics and original PDFs can be added here chapter-wise.',
+      example:'',
+      tip:'',
+      minutes:10,
+      questions:[]
+    });
+  });
+});
+
