@@ -909,13 +909,40 @@ window.TLW_LESSONS.push({
   title:'Part II',
   description:'Class 12 · Chemistry · Part II',
   emoji:'🧪',
-  concept:'Chemistry Part II for Class 12. Chapters and original PDFs can be added here.',
+  concept:'NCERT Chemistry Part II for Class 12.',
   example:'',
   tip:'',
   minutes:10,
   sourceBookPart:2,
   isBookPart:true,
   questions:[]
+});
+[
+  [6,'Haloalkanes and Haloarenes','lech201.pdf'],
+  [7,'Alcohols, Phenols and Ethers','lech202.pdf'],
+  [8,'Aldehydes, Ketones and Carboxylic Acids','lech203.pdf'],
+  [9,'Amines','lech204.pdf'],
+  [10,'Biomolecules','lech205.pdf']
+].forEach(([chapter,title,pdf])=>{
+  window.TLW_LESSONS.push({
+    id:'12-chemistry-part2-unit'+String(chapter).padStart(2,'0'),
+    grade:12,
+    subject:'Chemistry',
+    title,
+    description:'NCERT Chemistry Part II · Class 12 · Unit '+chapter,
+    emoji:'🧪',
+    concept:'Unit '+chapter+': '+title,
+    example:'',
+    tip:'',
+    minutes:20,
+    sourceBookPart:2,
+    sourceChapter:chapter,
+    sourcePdf:pdf,
+    chapterStartPage:1,
+    sourcePdfVerified:true,
+    originalPdfTitle:'NCERT Chemistry Part II - Class XII - Unit '+chapter+': '+title,
+    questions:[]
+  });
 });
 
 /* Class 11 Chemistry: NCERT Chemistry Part I, Reprint 2026-27. */
