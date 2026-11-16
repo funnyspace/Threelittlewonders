@@ -810,7 +810,7 @@ for (let grade=3; grade<=9; grade++) {
   ['Physical Education','🏃']
 ].forEach(([subject,emoji])=>{
   [11,12].forEach(grade=>{
-    if((grade===11||grade===12)&&subject==='Biology')return;
+    if(((grade===11||grade===12)&&subject==='Biology')||(grade===12&&subject==='English'))return;
     window.TLW_LESSONS.push({
       id:grade+'-'+subject.toLowerCase().replace(/[^a-z]+/g,'-')+'-starter',
       grade,
@@ -865,6 +865,48 @@ for (let grade=3; grade<=9; grade++) {
     chapterStartPage:1,
     sourcePdfVerified:true,
     originalPdfTitle:'NCERT Biology Textbook for Class XI - Chapter '+chapter+': '+title,
+    questions:[]
+  });
+});
+
+
+
+/* Class 12 English: NCERT Flamingo, Reprint 2026-27.
+   Prose uses lefl101.pdf-lefl108.pdf; Poetry uses lefl111.pdf-lefl115.pdf.
+   lefl109.pdf and lefl110.pdf are not chapter entries in the verified Flamingo contents. */
+[
+  [1,'Prose',1,'The Last Lesson','lefl101.pdf'],
+  [2,'Prose',2,'Lost Spring','lefl102.pdf'],
+  [3,'Prose',3,'Deep Water','lefl103.pdf'],
+  [4,'Prose',4,'The Rattrap','lefl104.pdf'],
+  [5,'Prose',5,'Indigo','lefl105.pdf'],
+  [6,'Prose',6,'Poets and Pancakes','lefl106.pdf'],
+  [7,'Prose',7,'The Interview','lefl107.pdf'],
+  [8,'Prose',8,'Going Places','lefl108.pdf'],
+  [9,'Poetry',1,'My Mother at Sixty-six','lefl111.pdf'],
+  [10,'Poetry',2,'Keeping Quiet','lefl112.pdf'],
+  [11,'Poetry',3,'A Thing of Beauty','lefl113.pdf'],
+  [12,'Poetry',4,'A Roadside Stand','lefl114.pdf'],
+  [13,'Poetry',5,'Aunt Jennifer’s Tigers','lefl115.pdf']
+].forEach(([chapter,section,bookNumber,title,pdf])=>{
+  window.TLW_LESSONS.push({
+    id:'12-english-flamingo-'+section.toLowerCase()+'-'+String(bookNumber).padStart(2,'0'),
+    grade:12,
+    subject:'English',
+    title,
+    description:'NCERT Flamingo · Class 12 English · '+section+' '+bookNumber,
+    emoji:section==='Poetry'?'✒️':'📚',
+    concept:section+' '+bookNumber+': '+title,
+    example:'',
+    tip:'',
+    minutes:20,
+    sourceChapter:chapter,
+    sourceBookSection:section,
+    sourceBookNumber:bookNumber,
+    sourcePdf:pdf,
+    chapterStartPage:1,
+    sourcePdfVerified:true,
+    originalPdfTitle:'NCERT Flamingo - Class XII English - '+section+' '+bookNumber+': '+title,
     questions:[]
   });
 });
