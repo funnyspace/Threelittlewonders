@@ -810,7 +810,7 @@ for (let grade=3; grade<=9; grade++) {
   ['Physical Education','🏃']
 ].forEach(([subject,emoji])=>{
   [11,12].forEach(grade=>{
-    if(((grade===11||grade===12)&&subject==='Biology')||(grade===12&&subject==='English'))return;
+    if(((grade===11||grade===12)&&subject==='Biology')||((grade===11||grade===12)&&subject==='English'))return;
     window.TLW_LESSONS.push({
       id:grade+'-'+subject.toLowerCase().replace(/[^a-z]+/g,'-')+'-starter',
       grade,
@@ -824,6 +824,52 @@ for (let grade=3; grade<=9; grade++) {
       minutes:10,
       questions:[]
     });
+  });
+});
+
+
+
+/* Class 11 English: NCERT Hornbill, Reprint 2026-27.
+   Reading Skills units use kehb101.pdf-kehb106.pdf. Some units contain poems in the same original PDF.
+   Writing Skills use kehb111.pdf-kehb116.pdf. */
+[
+  [1,'Reading Skills',1,'The Portrait of a Lady','kehb101.pdf'],
+  [2,'Reading Skills',1,'A Photograph','kehb101.pdf'],
+  [3,'Reading Skills',2,'We’re Not Afraid to Die... if We Can All Be Together','kehb102.pdf'],
+  [4,'Reading Skills',3,'Discovering Tut: the Saga Continues','kehb103.pdf'],
+  [5,'Reading Skills',3,'The Laburnum Top','kehb103.pdf'],
+  [6,'Reading Skills',3,'The Voice of the Rain','kehb103.pdf'],
+  [7,'Reading Skills',4,'The Ailing Planet: the Green Movement’s Role','kehb104.pdf'],
+  [8,'Reading Skills',4,'Childhood','kehb104.pdf'],
+  [9,'Reading Skills',5,'The Adventure','kehb105.pdf'],
+  [10,'Reading Skills',6,'Silk Road','kehb106.pdf'],
+  [11,'Reading Skills',6,'Father to Son','kehb106.pdf'],
+  [12,'Writing Skills',1,'Note-making','kehb111.pdf'],
+  [13,'Writing Skills',2,'Summarising','kehb112.pdf'],
+  [14,'Writing Skills',3,'Sub-titling','kehb113.pdf'],
+  [15,'Writing Skills',4,'Essay-writing','kehb114.pdf'],
+  [16,'Writing Skills',5,'Letter-writing','kehb115.pdf'],
+  [17,'Writing Skills',6,'Creative Writing','kehb116.pdf']
+].forEach(([chapter,section,bookNumber,title,pdf])=>{
+  window.TLW_LESSONS.push({
+    id:'11-english-hornbill-'+section.toLowerCase().replace(/[^a-z]+/g,'-')+'-'+String(chapter).padStart(2,'0'),
+    grade:11,
+    subject:'English',
+    title,
+    description:'NCERT Hornbill · Class 11 English · '+section+' · '+title,
+    emoji:section==='Writing Skills'?'✍️':'📚',
+    concept:title,
+    example:'',
+    tip:'',
+    minutes:20,
+    sourceChapter:chapter,
+    sourceBookSection:section,
+    sourceBookNumber:bookNumber,
+    sourcePdf:pdf,
+    chapterStartPage:1,
+    sourcePdfVerified:true,
+    originalPdfTitle:'NCERT Hornbill - Class XI English - '+section+': '+title,
+    questions:[]
   });
 });
 
