@@ -810,7 +810,7 @@ for (let grade=3; grade<=9; grade++) {
   ['Physical Education','🏃']
 ].forEach(([subject,emoji])=>{
   [11,12].forEach(grade=>{
-    if(grade===11&&subject==='Biology')return;
+    if((grade===11||grade===12)&&subject==='Biology')return;
     window.TLW_LESSONS.push({
       id:grade+'-'+subject.toLowerCase().replace(/[^a-z]+/g,'-')+'-starter',
       grade,
@@ -865,6 +865,42 @@ for (let grade=3; grade<=9; grade++) {
     chapterStartPage:1,
     sourcePdfVerified:true,
     originalPdfTitle:'NCERT Biology Textbook for Class XI - Chapter '+chapter+': '+title,
+    questions:[]
+  });
+});
+
+/* Class 12 Biology: NCERT Biology Textbook for Class XII, Reprint 2026-27.
+   User requested lebo101.pdf through lebo112.pdf, corresponding to Chapters 1–12. */
+[
+  [1,'Sexual Reproduction in Flowering Plants'],
+  [2,'Human Reproduction'],
+  [3,'Reproductive Health'],
+  [4,'Principles of Inheritance and Variation'],
+  [5,'Molecular Basis of Inheritance'],
+  [6,'Evolution'],
+  [7,'Human Health and Disease'],
+  [8,'Microbes in Human Welfare'],
+  [9,'Biotechnology : Principles and Processes'],
+  [10,'Biotechnology and its Applications'],
+  [11,'Organisms and Populations'],
+  [12,'Ecosystem']
+].forEach(([chapter,title])=>{
+  window.TLW_LESSONS.push({
+    id:'12-biology-lebo-ch'+String(chapter).padStart(2,'0'),
+    grade:12,
+    subject:'Biology',
+    title,
+    description:'NCERT Biology Textbook for Class XII · Chapter '+chapter,
+    emoji:'🧬',
+    concept:'Chapter '+chapter+': '+title,
+    example:'',
+    tip:'',
+    minutes:20,
+    sourceChapter:chapter,
+    sourcePdf:'lebo'+String(100+chapter)+'.pdf',
+    chapterStartPage:1,
+    sourcePdfVerified:true,
+    originalPdfTitle:'NCERT Biology Textbook for Class XII - Chapter '+chapter+': '+title,
     questions:[]
   });
 });
