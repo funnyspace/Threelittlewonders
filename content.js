@@ -834,7 +834,6 @@ for (let grade=3; grade<=9; grade++) {
 /* Senior Secondary Physics and Chemistry book parts for Classes 11–12. */
 [
   [12,'Physics','⚛️'],
-  [12,'Chemistry','🧪']
 ].forEach(([grade,subject,emoji])=>{
   ['Part I','Part II'].forEach((part,index)=>{
     window.TLW_LESSONS.push({
@@ -857,6 +856,67 @@ for (let grade=3; grade<=9; grade++) {
 
 
 
+
+
+
+/* Class 12 Chemistry: NCERT Chemistry Part I, Reprint 2026-27. */
+window.TLW_LESSONS.push({
+  id:'12-chemistry-part-1',
+  grade:12,
+  subject:'Chemistry',
+  title:'Part I',
+  description:'Class 12 · Chemistry · Part I',
+  emoji:'🧪',
+  concept:'NCERT Chemistry Part I for Class 12.',
+  example:'',
+  tip:'',
+  minutes:10,
+  sourceBookPart:1,
+  isBookPart:true,
+  questions:[]
+});
+[
+  [1,'Solutions','lech101.pdf'],
+  [2,'Electrochemistry','lech102.pdf'],
+  [3,'Chemical Kinetics','lech103.pdf'],
+  [4,'The d- and f- Block Elements','lech104.pdf'],
+  [5,'Coordination Compounds','lech105.pdf']
+].forEach(([chapter,title,pdf])=>{
+  window.TLW_LESSONS.push({
+    id:'12-chemistry-part1-unit'+String(chapter).padStart(2,'0'),
+    grade:12,
+    subject:'Chemistry',
+    title,
+    description:'NCERT Chemistry Part I · Class 12 · Unit '+chapter,
+    emoji:'🧪',
+    concept:'Unit '+chapter+': '+title,
+    example:'',
+    tip:'',
+    minutes:20,
+    sourceBookPart:1,
+    sourceChapter:chapter,
+    sourcePdf:pdf,
+    chapterStartPage:1,
+    sourcePdfVerified:true,
+    originalPdfTitle:'NCERT Chemistry Part I - Class XII - Unit '+chapter+': '+title,
+    questions:[]
+  });
+});
+window.TLW_LESSONS.push({
+  id:'12-chemistry-part-2',
+  grade:12,
+  subject:'Chemistry',
+  title:'Part II',
+  description:'Class 12 · Chemistry · Part II',
+  emoji:'🧪',
+  concept:'Chemistry Part II for Class 12. Chapters and original PDFs can be added here.',
+  example:'',
+  tip:'',
+  minutes:10,
+  sourceBookPart:2,
+  isBookPart:true,
+  questions:[]
+});
 
 /* Class 11 Chemistry: NCERT Chemistry Part I, Reprint 2026-27. */
 window.TLW_LESSONS.push({
