@@ -833,7 +833,6 @@ for (let grade=3; grade<=9; grade++) {
 
 /* Senior Secondary Physics and Chemistry book parts for Classes 11–12. */
 [
-  [11,'Chemistry','🧪'],
   [12,'Physics','⚛️'],
   [12,'Chemistry','🧪']
 ].forEach(([grade,subject,emoji])=>{
@@ -856,6 +855,68 @@ for (let grade=3; grade<=9; grade++) {
 });
 
 
+
+
+
+/* Class 11 Chemistry: NCERT Chemistry Part I, Reprint 2026-27. */
+window.TLW_LESSONS.push({
+  id:'11-chemistry-part-1',
+  grade:11,
+  subject:'Chemistry',
+  title:'Part I',
+  description:'Class 11 · Chemistry · Part I',
+  emoji:'🧪',
+  concept:'NCERT Chemistry Part I for Class 11.',
+  example:'',
+  tip:'',
+  minutes:10,
+  sourceBookPart:1,
+  isBookPart:true,
+  questions:[]
+});
+[
+  [1,'Some Basic Concepts of Chemistry','kech101.pdf'],
+  [2,'Structure of Atom','kech102.pdf'],
+  [3,'Classification of Elements and Periodicity in Properties','kech103.pdf'],
+  [4,'Chemical Bonding and Molecular Structure','kech104.pdf'],
+  [5,'Thermodynamics','kech105.pdf'],
+  [6,'Equilibrium','kech106.pdf']
+].forEach(([chapter,title,pdf])=>{
+  window.TLW_LESSONS.push({
+    id:'11-chemistry-part1-unit'+String(chapter).padStart(2,'0'),
+    grade:11,
+    subject:'Chemistry',
+    title,
+    description:'NCERT Chemistry Part I · Class 11 · Unit '+chapter,
+    emoji:'🧪',
+    concept:'Unit '+chapter+': '+title,
+    example:'',
+    tip:'',
+    minutes:20,
+    sourceBookPart:1,
+    sourceChapter:chapter,
+    sourcePdf:pdf,
+    chapterStartPage:1,
+    sourcePdfVerified:true,
+    originalPdfTitle:'NCERT Chemistry Part I - Class XI - Unit '+chapter+': '+title,
+    questions:[]
+  });
+});
+window.TLW_LESSONS.push({
+  id:'11-chemistry-part-2',
+  grade:11,
+  subject:'Chemistry',
+  title:'Part II',
+  description:'Class 11 · Chemistry · Part II',
+  emoji:'🧪',
+  concept:'Chemistry Part II for Class 11. Chapters and original PDFs can be added here.',
+  example:'',
+  tip:'',
+  minutes:10,
+  sourceBookPart:2,
+  isBookPart:true,
+  questions:[]
+});
 
 /* Class 11 Physics: NCERT Physics Part I, Reprint 2026-27. */
 window.TLW_LESSONS.push({
