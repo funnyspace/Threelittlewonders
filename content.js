@@ -909,13 +909,38 @@ window.TLW_LESSONS.push({
   title:'Part II',
   description:'Class 11 · Chemistry · Part II',
   emoji:'🧪',
-  concept:'Chemistry Part II for Class 11. Chapters and original PDFs can be added here.',
+  concept:'NCERT Chemistry Part II for Class 11.',
   example:'',
   tip:'',
   minutes:10,
   sourceBookPart:2,
   isBookPart:true,
   questions:[]
+});
+[
+  [7,'Redox Reactions','kech201.pdf'],
+  [8,'Organic Chemistry – Some Basic Principles and Techniques','kech202.pdf'],
+  [9,'Hydrocarbons','kech203.pdf']
+].forEach(([chapter,title,pdf])=>{
+  window.TLW_LESSONS.push({
+    id:'11-chemistry-part2-unit'+String(chapter).padStart(2,'0'),
+    grade:11,
+    subject:'Chemistry',
+    title,
+    description:'NCERT Chemistry Part II · Class 11 · Unit '+chapter,
+    emoji:'🧪',
+    concept:'Unit '+chapter+': '+title,
+    example:'',
+    tip:'',
+    minutes:20,
+    sourceBookPart:2,
+    sourceChapter:chapter,
+    sourcePdf:pdf,
+    chapterStartPage:1,
+    sourcePdfVerified:true,
+    originalPdfTitle:'NCERT Chemistry Part II - Class XI - Unit '+chapter+': '+title,
+    questions:[]
+  });
 });
 
 /* Class 11 Physics: NCERT Physics Part I, Reprint 2026-27. */
