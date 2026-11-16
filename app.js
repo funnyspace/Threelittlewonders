@@ -16,13 +16,15 @@ const GRADE_GROUPS=[
  {key:'senior-secondary',label:'Senior Secondary',range:'Classes 11–12',icon:'🏫',grades:[11,12]}
 ];
 function load(){try{const v=JSON.parse(localStorage.getItem(STORE_KEY)||localStorage.getItem(LEGACY_STORE_KEY)||'{}');return {grade:Number.isInteger(v.grade)&&GRADE_LEVELS.includes(v.grade)?v.grade:3,completed:Array.isArray(v.completed)?[...new Set(v.completed.filter(x=>typeof x==='string'))]:[]}}catch{return {grade:3,completed:[]}}}
-let state=load(),subject='',query='',classChoicesOpen=true,currentTopicId='',currentSubtopicKey='',currentSubSubject='',currentLesson=null,currentQuestion=0,questionAnswered=false,currentQuizDifficulty='all',currentQuizQuestions=[],currentMistakeId='',currentPracticeSource='',currentFlashcardId='',returnFocus=null,toastTimer;
+let state=load(),subject='',query='',classChoicesOpen=true,currentTopicId='',currentSubtopicKey='',currentSubSubject='',currentBookPart=1,currentLesson=null,currentQuestion=0,questionAnswered=false,currentQuizDifficulty='all',currentQuizQuestions=[],currentMistakeId='',currentPracticeSource='',currentFlashcardId='',returnFocus=null,toastTimer;
 function persist(){
  try{localStorage.setItem(STORE_KEY,JSON.stringify(state))}catch{showToast('Progress cannot be saved in this browser.')}
  queueCloudLearningSync();
 }
 const gradeName=g=>g===-2?'Nursery':g===-1?'LKG':g===0?'UKG':`Class ${g}`;
 const subjectIcon=s=>SUBJECTS[s]?.icon||'📚';
+const isBookPartRecord=lesson=>!!(lesson&&lesson.isBookPart);
+const learningLessonsForGrade=grade=>LESSONS.filter(l=>l.grade===grade&&!isBookPartRecord(l));
 function emptyStudyData(){
  return {
   lastLessonId:'',
@@ -422,7 +424,7 @@ function chapterMastery(lesson){
 function lessonMastery(lesson){return chapterMastery(lesson)}
 function gradeTopicRows(grade){
  const rows=[];
- LESSONS.filter(l=>l.grade===grade).forEach(lesson=>{
+ learningLessonsForGrade(grade).forEach(lesson=>{
   const topics=chapterTopics(lesson);
   if(topics.length){
    topics.forEach(topic=>rows.push({lesson,topic,mastery:topicMastery(lesson,topic.key)}));
@@ -448,7 +450,7 @@ function dashboardTopicName(lesson){
 }
 function revisionRowsForGrade(grade){
  const rows=gradeTopicRows(grade);
- LESSONS.filter(l=>l.grade===grade).forEach(lesson=>{
+ learningLessonsForGrade(grade).forEach(lesson=>{
   const overview=studyData.topicStats[topicStatKey(lesson.id,'overview')];
   if(overview&&(overview.nextReviewAt||overview.lastStudied)){
    rows.push({lesson,topic:{key:'overview',title:lesson.title},mastery:topicMastery(lesson,'overview')});
@@ -655,7 +657,7 @@ function renderHomeLearningDashboard(){
  const started=rows.filter(row=>row.mastery>0);
  const weak=[...started].sort((a,b)=>a.mastery-b.mastery)[0]||null;
  const revise=revisionCandidates(grade);
- const gradeLessons=LESSONS.filter(l=>l.grade===grade);
+ const gradeLessons=learningLessonsForGrade(grade);
  const last=gradeLessons.find(l=>l.id===studyData.lastLessonId);
  const next=last||gradeLessons[0]||null;
  const first=String(account.displayName||'Student').trim().split(/\s+/)[0]||'Student';
@@ -719,7 +721,7 @@ function deterministicIndex(seed,length){
 }
 function challengePoolForGrade(grade,challengeOnly=false){
  const pool=[];
- LESSONS.filter(l=>l.grade===grade).forEach(lesson=>{
+ learningLessonsForGrade(grade).forEach(lesson=>{
   validQuestionsWithMeta(lesson).forEach(item=>{
    if(challengeOnly&&item.difficulty!=='challenge')return;
    pool.push({...item,lesson});
@@ -761,7 +763,7 @@ function badgeId(type,lessonId,topicKey=''){return type+':'+lessonId+':'+topicKe
 function syncAchievementBadges(grade){
  const existing=new Map((studyData.badges||[]).map(b=>[b.id,b]));
  const earned=[];
- LESSONS.filter(l=>l.grade===grade).forEach(lesson=>{
+ learningLessonsForGrade(grade).forEach(lesson=>{
   const topics=chapterTopics(lesson);
   if(topics.length){
    topics.forEach(topic=>{
@@ -1129,7 +1131,7 @@ function renderStudyDashboard(){
  const revise=revisionCandidates(grade);
  const mastered=rows.filter(row=>row.mastery>=80).length;
  const average=gradeMasteryAverage(grade);
- const gradeLessons=LESSONS.filter(l=>l.grade===grade);
+ const gradeLessons=learningLessonsForGrade(grade);
  const last=gradeLessons.find(l=>l.id===studyData.lastLessonId);
  const next=last||gradeLessons[0]||null;
  const first=String(account.displayName||'Student').trim().split(/\s+/)[0]||'Student';
@@ -1511,7 +1513,7 @@ function readAloudLesson(id,button){
  window.speechSynthesis.speak(utterance);
 }
 function showToast(msg){const t=$('toast');t.textContent=msg;t.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),2400)}
-function setGrade(g){if(!Number.isInteger(g)||!GRADE_LEVELS.includes(g))return;stopReadAloud();state.grade=g;subject='';query='';currentTopicId='';currentSubtopicKey='';classChoicesOpen=false;$('searchInput').value='';persist();renderAll();requestAnimationFrame(()=>$('classSubjectSection')?.scrollIntoView({behavior:'smooth',block:'start'}))}
+function setGrade(g){if(!Number.isInteger(g)||!GRADE_LEVELS.includes(g))return;stopReadAloud();state.grade=g;subject='';query='';currentTopicId='';currentSubtopicKey='';currentBookPart=1;classChoicesOpen=false;$('searchInput').value='';persist();renderAll();requestAnimationFrame(()=>$('classSubjectSection')?.scrollIntoView({behavior:'smooth',block:'start'}))}
 function renderGradeSelectors(){
  $('classSelect').innerHTML=GRADE_GROUPS.map(group=>`<optgroup label="${safe(group.label)}">${group.grades.map(g=>`<option value="${g}" ${state.grade===g?'selected':''}>${gradeName(g)}</option>`).join('')}</optgroup>`).join('');
  const classPicker=document.querySelector('.class-picker');
@@ -1824,7 +1826,7 @@ function renderTestSeriesClasses(){
  const host=$('testClassGrid');
  if(!host)return;
  host.innerHTML=GRADE_LEVELS.map(g=>{
-  const lessons=LESSONS.filter(l=>l.grade===g);
+  const lessons=learningLessonsForGrade(g);
   const subjects=new Set(lessons.map(l=>l.subject)).size;
   return '<article class="test-class-row">'+
    '<div class="test-class-info"><span class="test-class-icon" aria-hidden="true">📝</span><div><strong>'+safe(gradeName(g))+'</strong><small>'+subjects+' subjects</small></div></div>'+
@@ -1833,7 +1835,7 @@ function renderTestSeriesClasses(){
  }).join('');
 }
 function testLessonsForGrade(){
- return LESSONS.filter(l=>l.grade===testGrade);
+ return learningLessonsForGrade(testGrade);
 }
 function stopExamTimer(){
  if(examTimerId){clearInterval(examTimerId);examTimerId=null;}
@@ -1907,9 +1909,21 @@ function populateTestChapters(){
  const lessons=testLessonsForGrade().filter(l=>l.subject===subject);
  const select=$('testChapterSelect');
  if(!select)return;
- select.innerHTML='<option value="">All chapters</option>'+lessons.map((lesson,index)=>
-  '<option value="'+safe(lesson.id)+'">'+(index+1)+'. '+safe(lesson.title)+'</option>'
- ).join('');
+ const grouped=(testGrade===11||testGrade===12)&&['Physics','Chemistry'].includes(subject)&&lessons.some(l=>Number(l.sourceBookPart)>0);
+ if(grouped){
+  const parts=[...new Set(lessons.map(l=>Number(l.sourceBookPart)).filter(Boolean))].sort((a,b)=>a-b);
+  select.innerHTML='<option value="">All chapters</option>'+parts.map(part=>{
+   const label=part===1?'Part I':part===2?'Part II':'Part '+part;
+   const rows=lessons.filter(l=>Number(l.sourceBookPart)===part);
+   return '<optgroup label="'+label+'">'+rows.map((lesson,index)=>
+    '<option value="'+safe(lesson.id)+'">'+(Number.isInteger(lesson.sourceChapter)?lesson.sourceChapter:(index+1))+'. '+safe(lesson.title)+'</option>'
+   ).join('')+'</optgroup>';
+  }).join('');
+ }else{
+  select.innerHTML='<option value="">All chapters</option>'+lessons.map((lesson,index)=>
+   '<option value="'+safe(lesson.id)+'">'+(Number.isInteger(lesson.sourceChapter)?lesson.sourceChapter:(index+1))+'. '+safe(lesson.title)+'</option>'
+  ).join('');
+ }
  populateTestTopics();
  applyExamPresetScope();
 }
@@ -2819,6 +2833,24 @@ function renderClass10SocialScienceSubSubjects(){
 
  if(chapter?.sourcePdf)hydrateOriginalPdfViewer(chapter);
 }
+function seniorBookParts(grade,selectedSubject){
+ return LESSONS.filter(lesson=>
+  lesson&&lesson.grade===grade&&lesson.subject===selectedSubject&&isBookPartRecord(lesson)
+ ).sort((a,b)=>Number(a.sourceBookPart||0)-Number(b.sourceBookPart||0));
+}
+function renderBookPartSelector(parts,activePart){
+ if(!parts.length)return '';
+ return '<section class="book-part-selector" aria-label="Choose textbook part">'+
+  '<div class="book-part-selector-copy"><span>TEXTBOOK</span><strong>Choose Part I or Part II</strong></div>'+
+  '<div class="book-part-buttons">'+parts.map(part=>{
+   const number=Number(part.sourceBookPart||0);
+   const active=number===activePart;
+   return '<button type="button" class="book-part-button '+(active?'active':'')+'" data-book-part="'+number+'" aria-pressed="'+active+'">'+
+    '<span>BOOK</span><strong>'+safe(part.title)+'</strong>'+
+   '</button>';
+  }).join('')+'</div>'+
+ '</section>';
+}
 function renderCourses(){
  const lessonSection=$('lessonResultsSection');
  if(!subject){
@@ -2842,7 +2874,20 @@ function renderCourses(){
   renderClass10SocialScienceSubSubjects();
   return;
  }
- let lessons=LESSONS.filter(l=>l.grade===state.grade&&(allSubjects||l.subject===subject)&&(!query||[l.title,l.subject,l.description,l.concept].some(t=>t.toLowerCase().includes(query))));
+ const bookParts=!allSubjects?seniorBookParts(state.grade,subject):[];
+ const bookPartMode=bookParts.length>0;
+ if(bookPartMode){
+  const validParts=bookParts.map(part=>Number(part.sourceBookPart||0)).filter(Boolean);
+  if(!validParts.includes(currentBookPart))currentBookPart=validParts[0]||1;
+ }
+ const activeBookPart=bookPartMode?(bookParts.find(part=>Number(part.sourceBookPart)===currentBookPart)||bookParts[0]):null;
+ let lessons=LESSONS.filter(l=>
+  l.grade===state.grade&&
+  !isBookPartRecord(l)&&
+  (allSubjects||l.subject===subject)&&
+  (!bookPartMode||Number(l.sourceBookPart)===currentBookPart)&&
+  (!query||[l.title,l.subject,l.description,l.concept].some(t=>String(t||'').toLowerCase().includes(query)))
+ );
  if(state.grade===10&&subject==='Hindi'){
   const existingHindi=new Map(LESSONS.filter(l=>l.grade===10&&l.subject==='Hindi').map(l=>[String(l.title||'').toLowerCase(),l]));
   lessons=CLASS10_HINDI_CHAPTERS.map((chapter,i)=>{
@@ -2917,10 +2962,17 @@ function renderCourses(){
    };
   }).filter(l=>!query||[l.title,l.subject,l.description,l.concept].some(t=>String(t||'').toLowerCase().includes(query)));
  }
+ const bookPartSelector=bookPartMode?renderBookPartSelector(bookParts,currentBookPart):'';
  if(!lessons.length){
   currentTopicId='';
-  $('courseGrid').innerHTML='';
-  $('emptyState').hidden=false;
+  $('emptyState').hidden=true;
+  if(bookPartMode){
+   $('courseGrid').innerHTML=bookPartSelector+
+    '<section class="book-part-empty"><span aria-hidden="true">📘</span><h3>'+safe(activeBookPart?.title||'Selected book')+'</h3><p>No chapters have been added to this textbook part yet.</p></section>';
+  }else{
+   $('courseGrid').innerHTML='';
+   $('emptyState').hidden=false;
+  }
   return;
  }
  $('emptyState').hidden=true;
@@ -2955,13 +3007,16 @@ function renderCourses(){
  }
  if(!selected.sourcePdf&&!posterLesson&&!structuredLesson)topicStudyContent+='</section>';
  const richNote='';
+ const chapterListTitle=bookPartMode?(safe(activeBookPart?.title||'BOOK')+' · CHAPTERS'):'CHAPTERS';
+ const chapterContext=bookPartMode?(safe(subject)+' · '+safe(activeBookPart?.title||'')):'';
  $('courseGrid').innerHTML=`
+  ${bookPartSelector}
   <div class="topic-browser">
-   <aside class="topic-list-panel" aria-label="Chapters in ${safe(subject)}">
-    <div class="topic-list-header"><span>CHAPTERS</span><strong>${lessons.length}</strong></div>
+   <aside class="topic-list-panel" aria-label="Chapters in ${safe(subject)}${bookPartMode?' '+safe(activeBookPart?.title||''):''}">
+    <div class="topic-list-header"><span>${chapterListTitle}</span><strong>${lessons.length}</strong></div>
     <div class="topic-list">
      ${lessons.map((l,i)=>`<button type="button" class="topic-list-item ${l.id===selected.id?'active':''}" data-topic-id="${safe(l.id)}" aria-pressed="${l.id===selected.id}">
-       <span class="topic-list-number">${i+1}</span>
+       <span class="topic-list-number">${Number.isInteger(l.sourceChapter)?l.sourceChapter:(i+1)}</span>
        <span class="topic-list-copy">${allSubjects?'<small>'+safe(l.subject)+'</small>':''}<strong>${safe(l.title)}</strong></span>
        ${(()=>{const m=chapterMastery(l),s=topicStatusInfo(m);return '<span class="topic-list-mastery mastery-'+s.key+'" title="'+s.label+'">'+m+'%</span>'})()}
       </button>`).join('')}
@@ -2969,7 +3024,7 @@ function renderCourses(){
    </aside>
    <article class="topic-content-panel" aria-live="polite">
     <div class="topic-content-top topic-content-top-simple ${posterLesson?'poster-topic-heading':''}">
-     <div><span class="chapter-kicker">CHAPTER</span><h3 class="${posterLesson?'visually-hidden':''}">${safe(selected.title)}</h3></div>
+     <div>${chapterContext?'<span class="chapter-book-part">'+chapterContext+'</span>':''}<span class="chapter-kicker">CHAPTER</span><h3 class="${posterLesson?'visually-hidden':''}">${safe(selected.title)}</h3></div>
     </div>
     ${renderChapterJourney(selected)}
     ${renderChapterTopicNavigator(selected)}
@@ -3003,8 +3058,8 @@ function renderCourses(){
  if(selected.mathFigureAtlas)hydrateMathInlineFigures(selected);
 }
 function renderProgress(){
- const gradeLessons=LESSONS.filter(l=>l.grade===state.grade),doneGrade=gradeLessons.filter(l=>state.completed.includes(l.id)).length;
- const validCompleted=state.completed.filter(id=>LESSONS.some(l=>l.id===id));
+ const gradeLessons=learningLessonsForGrade(state.grade),doneGrade=gradeLessons.filter(l=>state.completed.includes(l.id)).length;
+ const validCompleted=state.completed.filter(id=>LESSONS.some(l=>l.id===id&&!isBookPartRecord(l)));
  const pct=gradeLessons.length?Math.round(doneGrade/gradeLessons.length*100):0;
  const stars=validCompleted.length*20;
  const account=dashboardAccount();$('navStars').textContent=account?(gradeMasteryAverage(Number(account.grade))+'%'):stars;
@@ -3253,10 +3308,10 @@ function installEvents(){
   requestAnimationFrame(()=>window.scrollTo({top:0,behavior:'smooth'}));
  }));
  $('classSelect').addEventListener('change',e=>setGrade(Number(e.target.value)));
- $('gradeShortcuts').addEventListener('click',e=>{const gradeBtn=e.target.closest('[data-grade]');if(gradeBtn){setGrade(Number(gradeBtn.dataset.grade));return;}const changeBtn=e.target.closest('[data-change-class]');if(changeBtn){classChoicesOpen=true;subject='';query='';currentTopicId='';$('searchInput').value='';renderAll();requestAnimationFrame(()=>$('gradeShortcuts')?.scrollIntoView({behavior:'smooth',block:'start'}));}});
- $('subjectFilters').addEventListener('click',e=>{const btn=e.target.closest('[data-subject]');if(btn){stopReadAloud();subject=btn.dataset.subject;query='';currentTopicId='';currentSubtopicKey='';$('searchInput').value='';renderSubjectFilters();renderCourses();requestAnimationFrame(()=>$('lessonResultsSection')?.scrollIntoView({behavior:'smooth',block:'start'}))}});
+ $('gradeShortcuts').addEventListener('click',e=>{const gradeBtn=e.target.closest('[data-grade]');if(gradeBtn){setGrade(Number(gradeBtn.dataset.grade));return;}const changeBtn=e.target.closest('[data-change-class]');if(changeBtn){classChoicesOpen=true;subject='';query='';currentTopicId='';currentBookPart=1;$('searchInput').value='';renderAll();requestAnimationFrame(()=>$('gradeShortcuts')?.scrollIntoView({behavior:'smooth',block:'start'}));}});
+ $('subjectFilters').addEventListener('click',e=>{const btn=e.target.closest('[data-subject]');if(btn){stopReadAloud();subject=btn.dataset.subject;query='';currentTopicId='';currentSubtopicKey='';currentBookPart=1;$('searchInput').value='';renderSubjectFilters();renderCourses();requestAnimationFrame(()=>$('lessonResultsSection')?.scrollIntoView({behavior:'smooth',block:'start'}))}});
  $('searchInput').addEventListener('input',e=>{query=e.target.value.trim().toLowerCase();renderCourses()});
- $('courseGrid').addEventListener('click',e=>{const socialSub=e.target.closest('[data-social-subject]');if(socialSub){currentSubSubject=socialSub.dataset.socialSubject||'';currentTopicId='';renderCourses();return;}const socialChapter=e.target.closest('[data-social-chapter]');if(socialChapter){currentTopicId=socialChapter.dataset.socialChapter||'';currentSubtopicKey='';renderCourses();return;}
+ $('courseGrid').addEventListener('click',e=>{const bookPart=e.target.closest('[data-book-part]');if(bookPart){currentBookPart=Number(bookPart.dataset.bookPart)||1;currentTopicId='';currentSubtopicKey='';currentFlashcardId='';renderCourses();return;}const socialSub=e.target.closest('[data-social-subject]');if(socialSub){currentSubSubject=socialSub.dataset.socialSubject||'';currentTopicId='';renderCourses();return;}const socialChapter=e.target.closest('[data-social-chapter]');if(socialChapter){currentTopicId=socialChapter.dataset.socialChapter||'';currentSubtopicKey='';renderCourses();return;}
  const step=e.target.closest('[data-chapter-step]');
  if(step){$('courseGrid')?.querySelector('[data-journey-section="'+step.dataset.chapterStep+'"]')?.scrollIntoView({behavior:'smooth',block:'start'});return;}
  const quick=e.target.closest('[data-quick-practice]');
