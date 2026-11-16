@@ -844,6 +844,7 @@ for (let grade=3; grade<=9; grade++) {
       tip:'',
       minutes:10,
       sourceBookPart:index+1,
+      isBookPart:true,
       questions:[]
     });
   });
