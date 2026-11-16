@@ -810,6 +810,7 @@ for (let grade=3; grade<=9; grade++) {
   ['Physical Education','🏃']
 ].forEach(([subject,emoji])=>{
   [11,12].forEach(grade=>{
+    if(grade===11&&subject==='Biology')return;
     window.TLW_LESSONS.push({
       id:grade+'-'+subject.toLowerCase().replace(/[^a-z]+/g,'-')+'-starter',
       grade,
@@ -826,3 +827,44 @@ for (let grade=3; grade<=9; grade++) {
   });
 });
 
+/* Class 11 Biology: NCERT Biology Textbook for Class XI, Reprint 2026-27. */
+[
+  [1,'The Living World'],
+  [2,'Biological Classification'],
+  [3,'Plant Kingdom'],
+  [4,'Animal Kingdom'],
+  [5,'Morphology of Flowering Plants'],
+  [6,'Anatomy of Flowering Plants'],
+  [7,'Structural Organisation in Animals'],
+  [8,'Cell: The Unit of Life'],
+  [9,'Biomolecules'],
+  [10,'Cell Cycle and Cell Division'],
+  [11,'Photosynthesis in Higher Plants'],
+  [12,'Respiration in Plants'],
+  [13,'Plant Growth and Development'],
+  [14,'Breathing and Exchange of Gases'],
+  [15,'Body Fluids and Circulation'],
+  [16,'Excretory Products and their Elimination'],
+  [17,'Locomotion and Movement'],
+  [18,'Neural Control and Coordination'],
+  [19,'Chemical Coordination and Integration']
+].forEach(([chapter,title])=>{
+  window.TLW_LESSONS.push({
+    id:'11-biology-kebo-ch'+String(chapter).padStart(2,'0'),
+    grade:11,
+    subject:'Biology',
+    title,
+    description:'NCERT Biology Textbook for Class XI · Chapter '+chapter,
+    emoji:'🧬',
+    concept:'Chapter '+chapter+': '+title,
+    example:'',
+    tip:'',
+    minutes:20,
+    sourceChapter:chapter,
+    sourcePdf:'kebo'+String(100+chapter)+'.pdf',
+    chapterStartPage:1,
+    sourcePdfVerified:true,
+    originalPdfTitle:'NCERT Biology Textbook for Class XI - Chapter '+chapter+': '+title,
+    questions:[]
+  });
+});
