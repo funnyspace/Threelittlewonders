@@ -909,13 +909,42 @@ window.TLW_LESSONS.push({
   title:'Part II',
   description:'Class 11 · Physics · Part II',
   emoji:'⚛️',
-  concept:'Physics Part II for Class 11. Chapters and original PDFs can be added here.',
+  concept:'NCERT Physics Part II for Class 11.',
   example:'',
   tip:'',
   minutes:10,
   sourceBookPart:2,
   isBookPart:true,
   questions:[]
+});
+[
+  [8,'Mechanical Properties of Solids','keph201.pdf'],
+  [9,'Mechanical Properties of Fluids','keph202.pdf'],
+  [10,'Thermal Properties of Matter','keph203.pdf'],
+  [11,'Thermodynamics','keph204.pdf'],
+  [12,'Kinetic Theory','keph205.pdf'],
+  [13,'Oscillations','keph206.pdf'],
+  [14,'Waves','keph207.pdf']
+].forEach(([chapter,title,pdf])=>{
+  window.TLW_LESSONS.push({
+    id:'11-physics-part2-ch'+String(chapter).padStart(2,'0'),
+    grade:11,
+    subject:'Physics',
+    title,
+    description:'NCERT Physics Part II · Class 11 · Chapter '+chapter,
+    emoji:'⚛️',
+    concept:'Chapter '+chapter+': '+title,
+    example:'',
+    tip:'',
+    minutes:20,
+    sourceBookPart:2,
+    sourceChapter:chapter,
+    sourcePdf:pdf,
+    chapterStartPage:1,
+    sourcePdfVerified:true,
+    originalPdfTitle:'NCERT Physics Part II - Class XI - Chapter '+chapter+': '+title,
+    questions:[]
+  });
 });
 
 /* Class 11 English: NCERT Hornbill, Reprint 2026-27.
