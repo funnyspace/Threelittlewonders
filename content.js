@@ -833,7 +833,6 @@ for (let grade=3; grade<=9; grade++) {
 
 /* Senior Secondary Physics and Chemistry book parts for Classes 11–12. */
 [
-  [11,'Physics','⚛️'],
   [11,'Chemistry','🧪'],
   [12,'Physics','⚛️'],
   [12,'Chemistry','🧪']
@@ -854,6 +853,69 @@ for (let grade=3; grade<=9; grade++) {
       questions:[]
     });
   });
+});
+
+
+
+/* Class 11 Physics: NCERT Physics Part I, Reprint 2026-27. */
+window.TLW_LESSONS.push({
+  id:'11-physics-part-1',
+  grade:11,
+  subject:'Physics',
+  title:'Part I',
+  description:'Class 11 · Physics · Part I',
+  emoji:'⚛️',
+  concept:'NCERT Physics Part I for Class 11.',
+  example:'',
+  tip:'',
+  minutes:10,
+  sourceBookPart:1,
+  isBookPart:true,
+  questions:[]
+});
+[
+  [1,'Units and Measurement','keph101.pdf'],
+  [2,'Motion in a Straight Line','keph102.pdf'],
+  [3,'Motion in a Plane','keph103.pdf'],
+  [4,'Laws of Motion','keph104.pdf'],
+  [5,'Work, Energy and Power','keph105.pdf'],
+  [6,'System of Particles and Rotational Motion','keph106.pdf'],
+  [7,'Gravitation','keph107.pdf']
+].forEach(([chapter,title,pdf])=>{
+  window.TLW_LESSONS.push({
+    id:'11-physics-part1-ch'+String(chapter).padStart(2,'0'),
+    grade:11,
+    subject:'Physics',
+    title,
+    description:'NCERT Physics Part I · Class 11 · Chapter '+chapter,
+    emoji:'⚛️',
+    concept:'Chapter '+chapter+': '+title,
+    example:'',
+    tip:'',
+    minutes:20,
+    sourceBookPart:1,
+    sourceChapter:chapter,
+    sourcePdf:pdf,
+    chapterStartPage:1,
+    sourcePdfVerified:true,
+    originalPdfTitle:'NCERT Physics Part I - Class XI - Chapter '+chapter+': '+title,
+    questions:[]
+  });
+});
+window.TLW_LESSONS.push({
+  id:'11-physics-part-2',
+  grade:11,
+  subject:'Physics',
+  title:'Part II',
+  description:'Class 11 · Physics · Part II',
+  emoji:'⚛️',
+  concept:'Physics Part II for Class 11. Chapters and original PDFs can be added here.',
+  example:'',
+  tip:'',
+  minutes:10,
+  sourceBookPart:2,
+  isBookPart:true,
+  questions:[]
 });
 
 /* Class 11 English: NCERT Hornbill, Reprint 2026-27.
