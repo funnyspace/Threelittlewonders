@@ -810,7 +810,7 @@ for (let grade=3; grade<=9; grade++) {
   ['Physical Education','🏃']
 ].forEach(([subject,emoji])=>{
   [11,12].forEach(grade=>{
-    if(((grade===11||grade===12)&&subject==='Biology')||((grade===11||grade===12)&&subject==='English'))return;
+    if(((grade===11||grade===12)&&['Biology','English','Physics','Chemistry'].includes(subject)))return;
     window.TLW_LESSONS.push({
       id:grade+'-'+subject.toLowerCase().replace(/[^a-z]+/g,'-')+'-starter',
       grade,
@@ -828,6 +828,33 @@ for (let grade=3; grade<=9; grade++) {
 });
 
 
+
+
+
+/* Senior Secondary Physics and Chemistry book parts for Classes 11–12. */
+[
+  [11,'Physics','⚛️'],
+  [11,'Chemistry','🧪'],
+  [12,'Physics','⚛️'],
+  [12,'Chemistry','🧪']
+].forEach(([grade,subject,emoji])=>{
+  ['Part I','Part II'].forEach((part,index)=>{
+    window.TLW_LESSONS.push({
+      id:grade+'-'+subject.toLowerCase()+'-part-'+(index+1),
+      grade,
+      subject,
+      title:part,
+      description:'Class '+grade+' · '+subject+' · '+part,
+      emoji,
+      concept:subject+' '+part+' for Class '+grade+'. Chapters and original PDFs can be added under this part.',
+      example:'',
+      tip:'',
+      minutes:10,
+      sourceBookPart:index+1,
+      questions:[]
+    });
+  });
+});
 
 /* Class 11 English: NCERT Hornbill, Reprint 2026-27.
    Reading Skills units use kehb101.pdf-kehb106.pdf. Some units contain poems in the same original PDF.
