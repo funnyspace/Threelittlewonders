@@ -870,7 +870,7 @@ for (let grade=3; grade<=9; grade++) {
 });
 
 /* Class 12 Biology: NCERT Biology Textbook for Class XII, Reprint 2026-27.
-   User requested lebo101.pdf through lebo112.pdf, corresponding to Chapters 1–12. */
+   Class 12 Biology chapter PDFs lebo101.pdf through lebo113.pdf, corresponding to Chapters 1–13. */
 [
   [1,'Sexual Reproduction in Flowering Plants'],
   [2,'Human Reproduction'],
@@ -883,7 +883,8 @@ for (let grade=3; grade<=9; grade++) {
   [9,'Biotechnology : Principles and Processes'],
   [10,'Biotechnology and its Applications'],
   [11,'Organisms and Populations'],
-  [12,'Ecosystem']
+  [12,'Ecosystem'],
+  [13,'Biodiversity and Conservation']
 ].forEach(([chapter,title])=>{
   window.TLW_LESSONS.push({
     id:'12-biology-lebo-ch'+String(chapter).padStart(2,'0'),
