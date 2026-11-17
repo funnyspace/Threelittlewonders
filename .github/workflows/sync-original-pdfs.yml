@@ -6,14 +6,7 @@ on:
       - main
     paths:
       - ".github/workflows/sync-original-pdfs.yml"
-      - "class1-english-mridang-content.js"
-      - "class1-hindi-sarangi-content.js"
-      - "class1-maths-joyful-content.js"
-      - "class2-english-mridang-content.js"
-      - "class2-hindi-sarangi-content.js"
-      - "class2-maths-joyful-content.js"
-      - "class3-english-santoor-content.js"
-      - "pdf-source-map.js"
+      - "**/*.js"
   workflow_dispatch:
 
 permissions:
@@ -26,34 +19,17 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Download original NCERT chapter PDFs
+      - name: Discover and download referenced NCERT PDFs
         shell: bash
         run: |
           set -u
           mkdir -p pdfs
 
-          files=()
+          mapfile -t files < <(
+            grep -RhoE --include='*.js' '[A-Za-z][A-Za-z0-9._()-]*[0-9][A-Za-z0-9._()-]*\.pdf' .               | sed -E 's/[[:space:]]*\([0-9]+\)(\.pdf)$/\1/I'               | sort -u
+          )
 
-          add_range() {
-            local prefix="$1"
-            local first="$2"
-            local last="$3"
-            local n
-            for n in $(seq "$first" "$last"); do
-              files+=("${prefix}${n}.pdf")
-            done
-          }
-
-          add_range aemr 101 109
-          add_range ahsr 101 119
-          add_range aejm 101 113
-          add_range bemr 101 113
-          add_range bhsr 101 126
-          add_range bejm 101 111
-          add_range cesa 101 112
-          add_range jemh 101 114
-          add_range jesc 101 113
-
+          echo "Referenced PDF files: ${#files[@]}"
           failed=()
 
           for file in "${files[@]}"; do
@@ -66,10 +42,7 @@ jobs:
             tmp="pdfs/$file.tmp"
 
             echo "Downloading $file"
-            if curl --insecure --fail --location --retry 3 --retry-delay 2 --connect-timeout 20 --max-time 180 \
-              --user-agent "Mozilla/5.0" \
-              --header "Accept: application/pdf,*/*" \
-              "$url" -o "$tmp"; then
+            if curl --insecure --fail --location --retry 3 --retry-delay 2 --connect-timeout 20 --max-time 180               --user-agent "Mozilla/5.0"               --header "Accept: application/pdf,*/*"               "$url" -o "$tmp"; then
               if [ "$(head -c 4 "$tmp" 2>/dev/null || true)" = "%PDF" ]; then
                 mv "$tmp" "pdfs/$file"
               else
@@ -84,7 +57,7 @@ jobs:
             fi
           done
 
-          echo "Downloaded PDF count:"
+          echo "Local PDF count:"
           find pdfs -maxdepth 1 -type f -name "*.pdf" | wc -l
 
           if [ "${#failed[@]}" -gt 0 ]; then
@@ -92,7 +65,7 @@ jobs:
             printf "%s\n" "${failed[@]}"
           fi
 
-      - name: Commit PDFs to the site
+      - name: Commit mirrored PDFs to the site
         shell: bash
         run: |
           git config user.name "github-actions[bot]"
@@ -105,4 +78,5 @@ jobs:
           fi
 
           git commit -m "Sync original NCERT chapter PDFs"
-          git push
+          git pull --rebase origin main
+          git push origin HEAD:main
