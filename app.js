@@ -1556,14 +1556,23 @@ function renderSubjectFilters(){
  $('subjectGradeName').textContent=gradeName(state.grade);
  $('subjectFilters').innerHTML=choices.map(s=>`<button class="subject-btn subject-choice ${subject===s?'active':''}" data-subject="${safe(s)}" aria-pressed="${subject===s}"><span class="subject-choice-icon" aria-hidden="true">${s==='All Subjects'?'✦':subjectIcon(s)}</span><span class="subject-choice-name">${safe(s)}</span></button>`).join('');
 }
+function sourcePdfFilename(lesson){
+ const source=String(lesson&&lesson.sourcePdf||'').trim();
+ if(!source||/^https?:\/\//i.test(source))return '';
+ return source.replace(/\s*\(\d+\)(?=\.pdf$)/i,'');
+}
 function sourcePdfUrl(lesson){
  const source=String(lesson&&lesson.sourcePdf||'').trim();
  if(!source)return '';
  if(/^https?:\/\//i.test(source))return source;
- const officialSource=source.replace(/\s*\(\d+\)(?=\.pdf$)/i,'');
- const bundled=new Set(['aemr101.pdf']);
- if(bundled.has(officialSource))return new URL('pdfs/'+encodeURIComponent(officialSource),document.baseURI).href;
- return 'https://ncert.nic.in/textbook/pdf/'+encodeURIComponent(officialSource);
+ const filename=sourcePdfFilename(lesson);
+ return new URL('pdfs/'+encodeURIComponent(filename),document.baseURI).href;
+}
+function originalNcertPdfUrl(lesson){
+ const source=String(lesson&&lesson.sourcePdf||'').trim();
+ if(!source)return '';
+ if(/^https?:\/\//i.test(source))return source;
+ return 'https://ncert.nic.in/textbook/pdf/'+encodeURIComponent(sourcePdfFilename(lesson));
 }
 function chapterTopics(lesson){
  if(Array.isArray(lesson&&lesson.topics)&&lesson.topics.length){
@@ -1644,10 +1653,20 @@ function renderChapterTopicNavigator(lesson){
  }).join('')+'</div></section>';
 }
 
+const PDFJS_VERSION='6.5.438';
+const PDFJS_MODULE_URL='https://cdn.jsdelivr.net/npm/pdfjs-dist@'+PDFJS_VERSION+'/build/pdf.min.mjs';
+const PDFJS_WORKER_URL='https://cdn.jsdelivr.net/npm/pdfjs-dist@'+PDFJS_VERSION+'/build/pdf.worker.min.mjs';
+const PDFJS_ASSET_BASE='https://cdn.jsdelivr.net/npm/pdfjs-dist@'+PDFJS_VERSION+'/';
+let pdfJsLibraryPromise=null;
 const originalPdfCache=new Map();
+const detectedBarcodeCache=new Map();
+
 function pdfBarcodeMasks(filename,pageNumber){
  const map=window.TLW_PDF_BARCODE_MASKS||{};
- return (map[filename]||[]).filter(item=>Number(item.page)===Number(pageNumber)&&Array.isArray(item.rect));
+ const raw=String(filename||'');
+ const normalised=raw.replace(/\s*\(\d+\)(?=\.pdf$)/i,'');
+ return [...(map[raw]||[]),...(raw===normalised?[]:(map[normalised]||[]))]
+  .filter(item=>Number(item.page)===Number(pageNumber)&&Array.isArray(item.rect));
 }
 async function detectRenderedBarcodes(canvas){
  const found=[];
@@ -1683,48 +1702,219 @@ async function detectRenderedBarcodes(canvas){
  }catch{}
  return found;
 }
+async function getPdfJsLibrary(){
+ if(!pdfJsLibraryPromise){
+  pdfJsLibraryPromise=import(PDFJS_MODULE_URL).then(pdfjs=>{
+   pdfjs.GlobalWorkerOptions.workerSrc=PDFJS_WORKER_URL;
+   return pdfjs;
+  }).catch(error=>{
+   pdfJsLibraryPromise=null;
+   throw error;
+  });
+ }
+ return pdfJsLibraryPromise;
+}
+async function getPdfDocument(url){
+ if(originalPdfCache.has(url))return originalPdfCache.get(url);
+ const promise=getPdfJsLibrary().then(pdfjs=>
+  pdfjs.getDocument({
+   url,
+   cMapUrl:PDFJS_ASSET_BASE+'cmaps/',
+   cMapPacked:true,
+   standardFontDataUrl:PDFJS_ASSET_BASE+'standard_fonts/',
+   wasmUrl:PDFJS_ASSET_BASE+'wasm/'
+  }).promise
+ ).catch(error=>{
+  originalPdfCache.delete(url);
+  throw error;
+ });
+ originalPdfCache.set(url,promise);
+ return promise;
+}
+async function maskRenderedPdfBarcodes(canvas,filename,pageNumber){
+ const key=String(filename||'')+'#'+pageNumber;
+ let detected=detectedBarcodeCache.get(key);
+ if(!detected){
+  detected=await detectRenderedBarcodes(canvas);
+  detectedBarcodeCache.set(key,detected);
+ }
+ const configured=pdfBarcodeMasks(filename,pageNumber).map(item=>item.rect);
+ const rects=[...configured,...detected];
+ if(!rects.length)return;
+ const ctx=canvas.getContext('2d');
+ ctx.save();
+ ctx.fillStyle='#fff';
+ rects.forEach(rect=>{
+  const [x,y,w,h]=rect.map(Number);
+  if([x,y,w,h].every(Number.isFinite)&&w>0&&h>0){
+   const pad=3;
+   const left=Math.max(0,x*canvas.width-pad);
+   const top=Math.max(0,y*canvas.height-pad);
+   const width=Math.min(canvas.width-left,w*canvas.width+pad*2);
+   const height=Math.min(canvas.height-top,h*canvas.height+pad*2);
+   ctx.fillRect(left,top,width,height);
+  }
+ });
+ ctx.restore();
+}
 function renderOriginalPdfPanel(lesson){
  const url=sourcePdfUrl(lesson);
  if(!url)return '';
  const topics=chapterTopics(lesson);
  const active=topics.find(t=>t.key===currentSubtopicKey)||null;
  const page=active&&Number.isInteger(active.page)?active.page:(Number.isInteger(lesson.chapterStartPage)?lesson.chapterStartPage:1);
- const pdfUrl=url+'#page='+page+'&view=FitH';
- return '<section class="original-pdf-panel full-fidelity-pdf">'+
-   '<div class="pdf-nav-bar">'+
+ const originalUrl=originalNcertPdfUrl(lesson);
+ return '<section class="original-pdf-panel full-fidelity-pdf pdfjs-viewer" data-pdfjs-viewer>'+
+  '<div class="pdf-nav-bar" role="toolbar" aria-label="PDF controls">'+
+   '<div class="pdf-nav-group pdf-page-nav">'+
     '<button type="button" data-original-pdf-prev aria-label="Previous PDF page">‹</button>'+
-    '<span data-original-pdf-page>Page '+page+'</span>'+
+    '<label class="pdf-page-control"><span>Page</span><input type="number" min="1" value="'+page+'" inputmode="numeric" data-pdfjs-page-input aria-label="PDF page number"><b data-pdfjs-page-count>/ …</b></label>'+
     '<button type="button" data-original-pdf-next aria-label="Next PDF page">›</button>'+
    '</div>'+
-   '<object class="original-pdf-object" data="'+safe(pdfUrl)+'" type="application/pdf" aria-label="'+safe(lesson.title)+' PDF">'+
-     '<embed class="original-pdf-embed" src="'+safe(pdfUrl)+'" type="application/pdf">'+
-     '<div class="pdf-object-fallback"><a href="'+safe(pdfUrl)+'" target="_blank" rel="noopener">Open original PDF</a></div>'+
-   '</object>'+
-  '</section>';
+   '<div class="pdf-nav-group pdf-zoom-nav">'+
+    '<button type="button" data-pdfjs-zoom-out aria-label="Zoom out">−</button>'+
+    '<span data-pdfjs-zoom-status>Fit</span>'+
+    '<button type="button" data-pdfjs-zoom-in aria-label="Zoom in">+</button>'+
+    '<button type="button" class="pdf-fit-button" data-pdfjs-fit-width>Fit width</button>'+
+   '</div>'+
+   (originalUrl?'<a class="pdf-original-link" href="'+safe(originalUrl)+'" target="_blank" rel="noopener noreferrer">Open original ↗</a>':'')+
+  '</div>'+
+  '<div class="pdfjs-stage" data-pdfjs-stage tabindex="0">'+
+   '<div class="pdf-loading" data-pdfjs-loading><span aria-hidden="true"></span><strong>Loading textbook page…</strong></div>'+
+   '<canvas class="original-pdf-canvas" data-pdfjs-canvas aria-label="'+safe(lesson.title)+' PDF page" hidden></canvas>'+
+   '<div class="pdfjs-error" data-pdfjs-error hidden role="alert"></div>'+
+  '</div>'+
+  '<div class="pdfjs-reader-status" data-pdfjs-reader-status aria-live="polite"></div>'+
+ '</section>';
 }
 function hydrateOriginalPdfViewer(lesson){
- const panel=$('courseGrid')?.querySelector('.original-pdf-panel');
+ const panel=$('courseGrid')?.querySelector('[data-pdfjs-viewer]');
  if(!panel||!lesson?.sourcePdf)return;
  const topics=chapterTopics(lesson);
  const active=topics.find(t=>t.key===currentSubtopicKey)||null;
  let page=active&&Number.isInteger(active.page)?active.page:(Number.isInteger(lesson.chapterStartPage)?lesson.chapterStartPage:1);
+ let pdfDoc=null;
+ let renderTask=null;
+ let renderSerial=0;
+ let scaleMode='fit-width';
+ let manualScale=1;
+ let currentScale=1;
+
  const url=sourcePdfUrl(lesson);
- const object=panel.querySelector('.original-pdf-object');
- const embed=panel.querySelector('.original-pdf-embed');
- const status=panel.querySelector('[data-original-pdf-page]');
+ const originalUrl=originalNcertPdfUrl(lesson);
+ const filename=sourcePdfFilename(lesson)||String(lesson.sourcePdf||'').split('/').pop()||'';
+ const canvas=panel.querySelector('[data-pdfjs-canvas]');
+ const stage=panel.querySelector('[data-pdfjs-stage]');
+ const loading=panel.querySelector('[data-pdfjs-loading]');
+ const errorBox=panel.querySelector('[data-pdfjs-error]');
+ const readerStatus=panel.querySelector('[data-pdfjs-reader-status]');
+ const input=panel.querySelector('[data-pdfjs-page-input]');
+ const count=panel.querySelector('[data-pdfjs-page-count]');
+ const zoomStatus=panel.querySelector('[data-pdfjs-zoom-status]');
  const prev=panel.querySelector('[data-original-pdf-prev]');
  const next=panel.querySelector('[data-original-pdf-next]');
- function go(target){
-  page=Math.max(1,target);
-  const src=url+'#page='+page+'&view=FitH';
-  if(object)object.data=src;
-  if(embed)embed.src=src;
-  if(status)status.textContent='Page '+page;
-  if(prev)prev.disabled=page<=1;
+ const zoomIn=panel.querySelector('[data-pdfjs-zoom-in]');
+ const zoomOut=panel.querySelector('[data-pdfjs-zoom-out]');
+ const fitWidth=panel.querySelector('[data-pdfjs-fit-width]');
+
+ function showLoading(message='Loading textbook page…'){
+  if(loading){loading.hidden=false;const strong=loading.querySelector('strong');if(strong)strong.textContent=message;}
+  if(canvas)canvas.hidden=true;
+  if(errorBox)errorBox.hidden=true;
  }
+ function showError(error){
+  if(loading)loading.hidden=true;
+  if(canvas)canvas.hidden=true;
+  if(!errorBox)return;
+  const fallback=originalUrl?'<a href="'+safe(originalUrl)+'" target="_blank" rel="noopener noreferrer">Open the original NCERT PDF ↗</a>':'';
+  errorBox.innerHTML='<strong>PDF.js could not load this chapter.</strong><p>The local textbook copy may still be syncing. Refresh shortly or use the original source.</p>'+fallback;
+  errorBox.hidden=false;
+  if(readerStatus)readerStatus.textContent='PDF unavailable in the in-page reader.';
+  console.error('PDF.js viewer failed',error);
+ }
+ function syncControls(){
+  const total=pdfDoc?.numPages||0;
+  if(input){input.value=String(page);input.max=total?String(total):'';}
+  if(count)count.textContent=total?'/ '+total:'/ …';
+  if(prev)prev.disabled=page<=1;
+  if(next)next.disabled=!!total&&page>=total;
+  if(zoomStatus)zoomStatus.textContent=(scaleMode==='fit-width'?'Fit ':'')+Math.round(currentScale*100)+'%';
+ }
+ async function renderPage(){
+  const serial=++renderSerial;
+  showLoading(pdfDoc?'Rendering page '+page+'…':'Loading textbook…');
+  try{
+   if(!pdfDoc)pdfDoc=await getPdfDocument(url);
+   if(serial!==renderSerial||!panel.isConnected)return;
+   page=Math.min(Math.max(1,page),pdfDoc.numPages);
+   const pdfPage=await pdfDoc.getPage(page);
+   if(serial!==renderSerial||!panel.isConnected)return;
+
+   const baseViewport=pdfPage.getViewport({scale:1});
+   const availableWidth=Math.max(260,(stage?.clientWidth||baseViewport.width)-24);
+   currentScale=scaleMode==='fit-width'
+    ? Math.max(.35,Math.min(2.5,availableWidth/baseViewport.width))
+    : Math.max(.35,Math.min(3,manualScale));
+
+   const outputScale=Math.min(2,Math.max(1,window.devicePixelRatio||1));
+   const renderViewport=pdfPage.getViewport({scale:currentScale*outputScale});
+   const cssWidth=Math.round(baseViewport.width*currentScale);
+   const cssHeight=Math.round(baseViewport.height*currentScale);
+   const ctx=canvas.getContext('2d',{alpha:false});
+
+   if(renderTask){try{renderTask.cancel();}catch{}}
+   canvas.width=Math.max(1,Math.floor(renderViewport.width));
+   canvas.height=Math.max(1,Math.floor(renderViewport.height));
+   canvas.style.width=cssWidth+'px';
+   canvas.style.height=cssHeight+'px';
+   ctx.fillStyle='#fff';
+   ctx.fillRect(0,0,canvas.width,canvas.height);
+
+   renderTask=pdfPage.render({canvasContext:ctx,viewport:renderViewport,background:'rgb(255,255,255)'});
+   await renderTask.promise;
+   if(serial!==renderSerial||!panel.isConnected)return;
+
+   await maskRenderedPdfBarcodes(canvas,filename,page);
+   if(serial!==renderSerial||!panel.isConnected)return;
+
+   canvas.hidden=false;
+   if(loading)loading.hidden=true;
+   if(errorBox)errorBox.hidden=true;
+   syncControls();
+   if(readerStatus)readerStatus.textContent='Page '+page+' of '+pdfDoc.numPages+' rendered with PDF.js.';
+  }catch(error){
+   if(error?.name==='RenderingCancelledException')return;
+   showError(error);
+  }
+ }
+ function go(target){
+  const total=pdfDoc?.numPages||Number.MAX_SAFE_INTEGER;
+  const nextPage=Math.min(Math.max(1,Number(target)||1),total);
+  if(nextPage===page&&pdfDoc){syncControls();return;}
+  page=nextPage;
+  renderPage();
+ }
+ function zoomBy(factor){
+  if(scaleMode==='fit-width')manualScale=currentScale;
+  scaleMode='manual';
+  manualScale=Math.max(.35,Math.min(3,manualScale*factor));
+  renderPage();
+ }
+
  prev?.addEventListener('click',()=>go(page-1));
  next?.addEventListener('click',()=>go(page+1));
- if(prev)prev.disabled=page<=1;
+ input?.addEventListener('change',()=>go(input.value));
+ input?.addEventListener('keydown',event=>{if(event.key==='Enter'){event.preventDefault();go(input.value);}});
+ zoomIn?.addEventListener('click',()=>zoomBy(1.2));
+ zoomOut?.addEventListener('click',()=>zoomBy(1/1.2));
+ fitWidth?.addEventListener('click',()=>{scaleMode='fit-width';renderPage();});
+ stage?.addEventListener('keydown',event=>{
+  if(event.key==='PageDown'||event.key==='ArrowRight'){event.preventDefault();go(page+1);}
+  if(event.key==='PageUp'||event.key==='ArrowLeft'){event.preventDefault();go(page-1);}
+ });
+
+ syncControls();
+ renderPage();
 }
 
 let testGrade=null;
