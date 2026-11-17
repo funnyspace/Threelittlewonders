@@ -878,13 +878,13 @@ function renderChapterJourney(lesson){
  const steps=[
   {n:1,key:'learn',icon:'📖',title:'Learn',sub:'Original NCERT PDF'},
   {n:2,key:'understand',icon:'▶',title:'Understand',sub:'Video · Read Aloud · illustrations'},
-  {n:3,key:'practice',icon:'🧩',title:'Quick Practice',sub:'Up to 5 verified questions'},
-  {n:4,key:'test',icon:'📝',title:'Chapter Test',sub:'MCQ / Descriptive'},
+  {n:3,key:'practice',icon:'🧩',title:'Practice Mode',sub:'Hints · instant feedback · retry freely'},
+  {n:4,key:'test',icon:'📝',title:'Exam Mode',sub:'Timer · review flags · score & analysis'},
   {n:5,key:'revise',icon:'🔁',title:'Revise',sub:'Flashcards · mistakes · weak topics'},
   {n:6,key:'mastered',icon:'🏆',title:'Mastered',sub:mastery+'% chapter mastery'}
  ];
  return '<nav class="chapter-learning-path" aria-label="Chapter learning path">'+
-  '<div class="chapter-learning-path-head"><span>LEARN → PRACTICE → TEST → REVISE</span><strong>Your chapter path</strong></div>'+
+  '<div class="chapter-learning-path-head"><span>LEARN → PRACTICE → EXAM → REVISE</span><strong>Your chapter path</strong></div>'+
   '<div class="chapter-learning-steps">'+steps.map(step=>
    '<button type="button" class="chapter-learning-step step-'+safe(status[step.key])+'" data-chapter-step="'+step.key+'">'+
     '<b>'+step.n+'</b><i aria-hidden="true">'+step.icon+'</i><span><strong>'+safe(step.title)+'</strong><small>'+safe(step.sub)+'</small></span>'+
@@ -922,18 +922,21 @@ function openQuickPractice(lesson){
  returnFocus=document.activeElement;
  $('lessonModal').hidden=false;
  document.body.classList.add('modal-open');
- $('lessonTitle').textContent='Quick Practice · '+lesson.title;
+ $('lessonTitle').textContent='Practice Mode · '+lesson.title;
  $('modalSubjectIcon').textContent=subjectIcon(lesson.subject);
- $('modalMeta').textContent=gradeName(lesson.grade).toUpperCase()+' · QUICK PRACTICE · '+questions.length+' QUESTIONS';
+ $('modalMeta').textContent=gradeName(lesson.grade).toUpperCase()+' · PRACTICE MODE · NO MARKS · '+questions.length+' QUESTIONS';
  showQuiz();
  $('closeLesson').focus();
 }
 function renderQuickPracticeSection(lesson){
  const count=Math.min(5,validLessonQuestions(lesson).length);
- return '<section class="chapter-journey-section" id="chapter-step-practice" data-journey-section="practice">'+
-  journeySectionHead(3,'🧩','Quick Practice','Short retrieval practice before the chapter test')+
-  '<div class="quick-practice-card"><div><strong>'+(count?count+' question'+(count===1?'':'s'):'No questions yet')+'</strong><p>'+(count?'A focused set from the verified chapter question bank.':'Verified questions must be added before Quick Practice is enabled.')+'</p></div>'+
-  '<button type="button" class="btn btn-primary" data-quick-practice="'+safe(lesson.id)+'" '+(count?'':'disabled')+'>Start Quick Practice</button></div>'+
+ return '<section class="chapter-journey-section practice-mode-section" id="chapter-step-practice" data-journey-section="practice">'+
+  journeySectionHead(3,'🧩','Practice Mode','Learn without marks pressure. Use hints, get instant explanations and retry freely.')+
+  '<div class="mode-principles practice-mode-principles" aria-label="Practice Mode features">'+
+   '<span>🧠 No marks</span><span>💡 Hints available</span><span>⚡ Instant explanation</span><span>🔁 Unlimited retries</span>'+
+  '</div>'+
+  '<div class="quick-practice-card practice-mode-card"><div><strong>'+(count?count+' verified question'+(count===1?'':'s'):'No questions yet')+'</strong><p>'+(count?'Focus on understanding. Wrong answers are part of learning and never reduce a score.':'Verified questions must be added before Practice Mode is enabled.')+'</p></div>'+
+  '<button type="button" class="btn btn-primary" data-quick-practice="'+safe(lesson.id)+'" '+(count?'':'disabled')+'>Start Practice Mode</button></div>'+
   renderDifficultySelector(lesson)+
  '</section>';
 }
@@ -958,11 +961,14 @@ function openChapterTestFromLesson(lesson,mode='objective'){
 }
 function renderChapterTestSection(lesson){
  const count=validLessonQuestions(lesson).length;
- return '<section class="chapter-journey-section" id="chapter-step-test" data-journey-section="test">'+
-  journeySectionHead(4,'📝','Chapter Test','Check what you can retrieve and apply')+
+ return '<section class="chapter-journey-section exam-mode-section" id="chapter-step-test" data-journey-section="test">'+
+  journeySectionHead(4,'📝','Exam Mode','Simulate assessment conditions. No hints or answer feedback until submission.')+
+  '<div class="mode-principles exam-mode-principles" aria-label="Exam Mode features">'+
+   '<span>⏱ Timed</span><span>🙈 Answers hidden</span><span>☆ Mark for review</span><span>🧭 Question navigator</span><span>📊 Score & analysis</span>'+
+  '</div>'+
   '<div class="chapter-test-actions">'+
-   '<button type="button" class="btn btn-primary" data-chapter-test="objective" '+(count?'':'disabled')+'>MCQ Chapter Test</button>'+
-   '<button type="button" class="btn btn-secondary" data-chapter-test="descriptive">Descriptive Chapter Test</button>'+
+   '<button type="button" class="btn btn-primary" data-chapter-test="objective" '+(count?'':'disabled')+'>Start MCQ Exam Mode</button>'+
+   '<button type="button" class="btn btn-secondary" data-chapter-test="descriptive">Open Descriptive Practice</button>'+
   '</div>'+
  '</section>';
 }
@@ -1106,9 +1112,9 @@ function finishPracticeSession(){
  if(!currentLesson)return;
  stage('Complete');
  const source=currentPracticeSource;
- const label=source==='quick-practice'?'Quick Practice':source==='daily-challenge'?'Daily Challenge':source==='mystery-challenge'?'Mystery Challenge':'Practice';
- $('lessonBody').innerHTML='<div class="celebrate practice-finish"><div class="celebrate-emoji" aria-hidden="true">✅</div><h3>'+safe(label)+' complete</h3><p>Your answers have updated mastery and Smart Revision. Keep using retrieval practice to strengthen the topic.</p></div>';
- footer('Practice updates mastery, not chapter completion.','Back to chapter',()=>{closeLesson();renderCourses();});
+ const label=source==='quick-practice'?'Practice Mode':source==='daily-challenge'?'Daily Challenge':source==='mystery-challenge'?'Mystery Challenge':'Practice';
+ $('lessonBody').innerHTML='<div class="celebrate practice-finish"><div class="celebrate-emoji" aria-hidden="true">✅</div><h3>'+safe(label)+' complete</h3><p>No score was recorded. Your attempts only help update mastery, mistakes and Smart Revision so you know what to practise next.</p></div>';
+ footer('Practice is for learning, not marks.','Back to chapter',()=>{closeLesson();renderCourses();});
 }
 function renderStudyDashboard(){
  const account=dashboardAccount(),guest=$('learningGuestView'),dashboard=$('studyDashboard');
@@ -2813,7 +2819,7 @@ function renderTestPaper(){
   return;
  }
  const difficultyLabel=difficulty==='all'?'Mixed difficulty':(DIFFICULTY_LEVELS[difficulty]?.icon+' '+DIFFICULTY_LEVELS[difficulty]?.label);
- const bankNote='<p class="exam-empty-bank">This MCQ exam uses '+items.length+' verified question'+(items.length===1?'':'s')+'. Each question carries 1 mark. No questions are invented to reach a fixed marks total.</p>';
+ const bankNote='<div class="exam-rules-strip"><strong>EXAM MODE</strong><span>⏱ Timer running</span><span>🙈 No hints or answer feedback before submit</span><span>☆ Mark questions for review</span><span>📊 Score and analysis after submit</span></div><p class="exam-empty-bank">This MCQ exam uses '+items.length+' verified question'+(items.length===1?'':'s')+'. Each question carries 1 mark. No questions are invented to reach a fixed marks total.</p>';
  panel.hidden=false;
  panel.innerHTML='<section class="exam-mode-shell">'+
   '<div class="exam-live-bar">'+
@@ -3335,6 +3341,29 @@ function showLearn(){
 function currentQuizItem(){
  return currentQuizQuestions[currentQuestion]||null;
 }
+function practiceHintForQuestion(lesson,question){
+ const explicit=String(question?.hint||'').trim();
+ if(explicit)return explicit;
+ const topic=chapterTopics(lesson).find(t=>t.key===currentSubtopicKey);
+ const focus=topic?.title||lesson?.title||'this concept';
+ return 'Hint: think about the key rule, definition or relationship in '+focus+'. Eliminate choices that conflict with that idea before choosing again.';
+}
+function revealPracticeHint(){
+ if(!currentLesson)return;
+ const item=currentQuizItem();
+ if(!item)return;
+ const hint=$('quizHint');
+ if(!hint)return;
+ hint.textContent=practiceHintForQuestion(currentLesson,item.question);
+ hint.hidden=false;
+ const button=$('quizHintButton');
+ if(button){button.disabled=true;button.textContent='Hint shown';}
+}
+function retryCurrentPracticeQuestion(){
+ if(!currentLesson)return;
+ questionAnswered=false;
+ showQuiz();
+}
 function showQuiz(){
  if(!currentLesson)return;
  stage('Quiz');
@@ -3353,6 +3382,7 @@ function showQuiz(){
   '<div class="answer-grid">'+q.options.map((op,i)=>'<button class="answer-option" data-answer="'+i+'">'+String.fromCharCode(65+i)+'. '+safe(op)+'</button>').join('')+'</div>'+
   '<div id="quizFeedback" aria-live="polite"></div>';
  $('lessonBody').querySelectorAll('[data-answer]').forEach(btn=>btn.addEventListener('click',()=>answer(Number(btn.dataset.answer))));
+ $('quizHintButton')?.addEventListener('click',revealPracticeHint);
  footer('Think first, then check the explanation.','Next question',()=>{});
  $('modalAction').disabled=true;
  $('modalAction').style.opacity='.5';
@@ -3387,6 +3417,7 @@ function bindQuizFeedbackActions(){
  $('quizFeedback')?.querySelector('[data-feedback-review]')?.addEventListener('click',reviewCurrentQuizConcept);
  $('quizFeedback')?.querySelector('[data-feedback-video]')?.addEventListener('click',watchCurrentQuizVideo);
  $('quizFeedback')?.querySelector('[data-feedback-similar]')?.addEventListener('click',trySimilarQuizQuestion);
+ $('quizFeedback')?.querySelector('[data-feedback-retry]')?.addEventListener('click',retryCurrentPracticeQuestion);
  $('quizFeedback')?.querySelectorAll('[data-confidence]').forEach(button=>button.addEventListener('click',()=>{
   if(!currentLesson)return;
   if(button.dataset.confidence==='confident')scheduleRevision(currentLesson.id,currentSubtopicKey||'overview','correct','confident');
