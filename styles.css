@@ -2140,3 +2140,38 @@ button.home-smart-card{width:100%;font:inherit;cursor:pointer}
 @media(max-width:900px){
  .social-chapter-browser{grid-template-columns:1fr}
 }
+
+/* Practice Mode vs Exam Mode */
+.mode-principles{
+ display:flex;flex-wrap:wrap;gap:7px;margin:10px 0 12px
+}
+.mode-principles span{
+ display:inline-flex;align-items:center;min-height:30px;padding:6px 9px;border-radius:999px;
+ font-size:9px;font-weight:900;letter-spacing:.15px
+}
+.practice-mode-principles span{background:#eef7f1;color:#2e6948;border:1px solid #d8eadf}
+.exam-mode-principles span{background:#fff2ee;color:#8a4a35;border:1px solid #f0d9d0}
+.practice-mode-section{border-left:3px solid #6aaf82}
+.exam-mode-section{border-left:3px solid #d56b4b}
+.practice-question-tools{margin:12px 0 4px}
+.practice-hint-button{
+ border:1px solid #e2d8b5;background:#fff9e9;color:#786127;border-radius:999px;
+ padding:7px 11px;font-size:10px;font-weight:900
+}
+.practice-hint-button:hover:not(:disabled){background:#fff1c9}
+.practice-hint-button:disabled{opacity:.65;cursor:default}
+.practice-hint{
+ margin-top:8px;padding:10px 12px;border:1px solid #eadfbf;border-radius:10px;
+ background:#fffaf0;color:#6f633e;font-size:11px;line-height:1.65
+}
+.exam-rules-strip{
+ display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:10px 12px;
+ background:#fff7f4;border-bottom:1px solid #edd9d1;color:#765548;font-size:9px;font-weight:800
+}
+.exam-rules-strip strong{color:#a54d31;letter-spacing:.8px}
+.exam-rules-strip span{padding:4px 7px;border-radius:999px;background:#fff;border:1px solid #eeded8}
+@media(max-width:620px){
+ .mode-principles{display:grid;grid-template-columns:1fr 1fr}
+ .mode-principles span{justify-content:center;text-align:center}
+ .exam-rules-strip{align-items:flex-start;flex-direction:column}
+}
