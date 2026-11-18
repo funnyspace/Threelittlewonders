@@ -2340,3 +2340,12 @@ button.home-smart-card{width:100%;font:inherit;cursor:pointer}
 @media(max-width:720px){
   .understand-topic-area{margin-bottom:10px}
 }
+
+
+/* Explore Courses: course-only layout */
+.explore-class-only{display:flex;justify-content:flex-end;margin-bottom:4px}
+.course-only-heading{margin:8px 0 6px}
+.course-only-heading .kicker{margin-bottom:3px}
+@media(max-width:780px){
+  .explore-class-only{justify-content:flex-start}
+}
