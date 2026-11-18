@@ -899,8 +899,9 @@ function journeySectionHead(number,icon,title,subtitle){
 function renderUnderstandSection(lesson){
  const topics=chapterTopics(lesson);
  const active=topics.find(t=>t.key===currentSubtopicKey)||topics[0]||null;
- return '<section class="chapter-journey-section" id="chapter-step-understand" data-journey-section="understand">'+
-  journeySectionHead(2,'▶','Understand','Video, Read Aloud and visual revision')+
+ return '<section class="chapter-journey-section understand-section" id="chapter-step-understand" data-journey-section="understand">'+
+  journeySectionHead(2,'▶','Understand','Topics, video, Read Aloud and visual revision')+
+  '<div class="understand-topic-area">'+renderChapterTopicNavigator(lesson)+'</div>'+
   '<div class="understand-actions">'+
    '<button type="button" class="btn btn-secondary" data-understand-video '+(!active?'disabled':'')+'>▶ Watch topic video</button>'+
    '<button type="button" class="btn btn-secondary read-aloud-btn" data-read-aloud="'+safe(lesson.id)+'">🔊 Read Aloud</button>'+
@@ -2934,20 +2935,50 @@ function submitTestPaper(){submitExamPaper(false);}
 
 function renderClass9SocialScienceSubParts(){
  const all=Array.isArray(window.TLW_CLASS9_SOCIAL_SCIENCE_SUBPARTS)?window.TLW_CLASS9_SOCIAL_SCIENCE_SUBPARTS:[];
- const items=all.filter(item=>!query||[item.title,item.shortTitle].some(value=>String(value||'').toLowerCase().includes(query)));
+ const items=all.filter(item=>!query||[item.title,item.shortTitle].some(value=>String(value||'').toLowerCase().includes(query))||
+  LESSONS.some(lesson=>lesson.grade===9&&lesson.subject==='Social Science'&&lesson.subSubject===item.key&&[lesson.title,lesson.description].some(v=>String(v||'').toLowerCase().includes(query))));
  if(!currentSubSubject||!items.some(item=>item.key===currentSubSubject))currentSubSubject=items[0]?.key||'';
  const selected=items.find(item=>item.key===currentSubSubject)||items[0]||null;
  $('emptyState').hidden=!!items.length;
  if(!items.length){$('courseGrid').innerHTML='';return;}
+
  const chapters=LESSONS.filter(lesson=>
   lesson.grade===9&&
   lesson.subject==='Social Science'&&
   lesson.subSubject===selected.key&&
   (!query||[lesson.title,lesson.description,lesson.concept].some(v=>String(v||'').toLowerCase().includes(query)))
  );
- const chapterHtml=chapters.length
-  ? '<div class="social-subject-empty">'+chapters.length+' chapter'+(chapters.length===1?'':'s')+' added.</div>'
+ if(chapters.length&&!chapters.some(chapter=>chapter.id===currentTopicId))currentTopicId=chapters[0].id;
+ const chapter=chapters.find(item=>item.id===currentTopicId)||chapters[0]||null;
+
+ const chapterHtml=chapter
+  ? '<div class="social-chapter-browser">'+
+      '<aside class="social-chapter-list">'+
+       '<div class="topic-list-header"><span>CHAPTERS</span><strong>'+chapters.length+'</strong></div>'+
+       chapters.map((item,i)=>
+        '<button type="button" class="topic-list-item '+(item.id===chapter.id?'active':'')+'" data-social-chapter="'+safe(item.id)+'" aria-pressed="'+(item.id===chapter.id)+'">'+
+         '<span class="topic-list-number">'+(Number.isInteger(item.sourceChapter)?item.sourceChapter:(i+1))+'</span>'+
+         '<span class="topic-list-copy"><strong>'+safe(item.title)+'</strong></span>'+
+         '<span class="topic-list-mastery">'+chapterMastery(item)+'%</span>'+
+        '</button>'
+       ).join('')+
+      '</aside>'+
+      '<article class="topic-content-panel">'+
+       '<div class="topic-content-top topic-content-top-simple"><div><span class="chapter-kicker">CHAPTER '+(chapter.sourceChapter||'')+'</span><h3>'+safe(chapter.title)+'</h3></div></div>'+
+       renderChapterJourney(chapter)+
+       '<section class="chapter-journey-section" id="chapter-step-learn" data-journey-section="learn">'+
+        journeySectionHead(1,'📖','Learn',chapter.sourcePdf?'Original NCERT PDF':'Lesson content')+
+        (chapter.sourcePdf?renderOriginalPdfPanel(chapter):'<div class="topic-main-rich"><p>'+safe(chapter.concept||chapter.description||'')+'</p></div>')+
+       '</section>'+
+       renderUnderstandSection(chapter)+
+       renderQuickPracticeSection(chapter)+
+       renderChapterTestSection(chapter)+
+       renderReviseSection(chapter)+
+       renderMasteredSection(chapter)+
+      '</article>'+
+    '</div>'
   : '<div class="social-subject-empty">Chapter list will appear here.</div>';
+
  $('courseGrid').innerHTML=
   '<section class="social-subject-browser">'+
    '<div class="social-subject-intro"><span>CLASS 9 SOCIAL SCIENCE</span><h3>Choose a part</h3><p>Social Science is organised into two parts. Select one to view its chapters.</p></div>'+
@@ -2964,6 +2995,8 @@ function renderClass9SocialScienceSubParts(){
     chapterHtml+
    '</article>'+
   '</section>';
+
+ if(chapter?.sourcePdf)hydrateOriginalPdfViewer(chapter);
 }
 function renderClass10SocialScienceSubSubjects(){
  const all=Array.isArray(window.TLW_CLASS10_SOCIAL_SCIENCE_SUBSUBJECTS)?window.TLW_CLASS10_SOCIAL_SCIENCE_SUBSUBJECTS:[];
@@ -3249,7 +3282,6 @@ function renderCourses(){
      <div>${chapterContext?'<span class="chapter-book-part">'+chapterContext+'</span>':''}<span class="chapter-kicker">CHAPTER</span><h3 class="${posterLesson?'visually-hidden':''}">${safe(selected.title)}</h3></div>
     </div>
     ${renderChapterJourney(selected)}
-    ${renderChapterTopicNavigator(selected)}
     <section class="chapter-journey-section" id="chapter-step-learn" data-journey-section="learn">
      ${journeySectionHead(1,'📖','Learn',selected.sourcePdf?'Original NCERT PDF':'Lesson content')}
      ${renderOriginalPdfPanel(selected)}
