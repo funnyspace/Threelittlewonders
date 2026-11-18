@@ -5,6 +5,7 @@ const SUBJECTS=window.TLW_SUBJECTS||{};
 const STORE_KEY='Threelittlewonders-progress-v1';
 const LEGACY_STORE_KEY='threeelittlewonders-progress-v1';
 const STUDY_STORE_KEY='Threelittlewonders-study-dashboard-v1';
+const UI_STORE_KEY='Threelittlewonders-learning-context-v1';
 const $=id=>document.getElementById(id);
 const safe=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const GRADE_LEVELS=[-2,-1,0,...Array.from({length:10},(_,i)=>i+1)];
@@ -15,7 +16,37 @@ const GRADE_GROUPS=[
  {key:'secondary',label:'Secondary',range:'Classes 9–10',icon:'🎓',grades:[9,10]},
 ];
 function load(){try{const v=JSON.parse(localStorage.getItem(STORE_KEY)||localStorage.getItem(LEGACY_STORE_KEY)||'{}');return {grade:Number.isInteger(v.grade)&&GRADE_LEVELS.includes(v.grade)?v.grade:3,completed:Array.isArray(v.completed)?[...new Set(v.completed.filter(x=>typeof x==='string'))]:[]}}catch{return {grade:3,completed:[]}}}
-let state=load(),subject='',query='',classChoicesOpen=true,currentTopicId='',currentSubtopicKey='',currentSubSubject='',currentBookPart=1,currentLesson=null,currentQuestion=0,questionAnswered=false,currentQuizDifficulty='all',currentQuizQuestions=[],currentMistakeId='',currentPracticeSource='',currentFlashcardId='',returnFocus=null,toastTimer;
+function loadLearningContext(grade){
+ try{
+  const raw=JSON.parse(sessionStorage.getItem(UI_STORE_KEY)||'{}');
+  if(Number(raw.grade)!==Number(grade))return {};
+  return raw&&typeof raw==='object'?raw:{};
+ }catch{return {};}
+}
+let state=load();
+const restoredUi=loadLearningContext(state.grade);
+let subject=typeof restoredUi.subject==='string'?restoredUi.subject:'',
+ query=typeof restoredUi.query==='string'?restoredUi.query:'',
+ classChoicesOpen=typeof restoredUi.classChoicesOpen==='boolean'?restoredUi.classChoicesOpen:!restoredUi.subject,
+ currentTopicId=typeof restoredUi.currentTopicId==='string'?restoredUi.currentTopicId:'',
+ currentSubtopicKey=typeof restoredUi.currentSubtopicKey==='string'?restoredUi.currentSubtopicKey:'',
+ currentSubSubject=typeof restoredUi.currentSubSubject==='string'?restoredUi.currentSubSubject:'',
+ currentBookPart=Number.isInteger(restoredUi.currentBookPart)&&restoredUi.currentBookPart>0?restoredUi.currentBookPart:1,
+ currentLesson=null,currentQuestion=0,questionAnswered=false,currentQuizDifficulty='all',currentQuizQuestions=[],currentMistakeId='',currentPracticeSource='',currentFlashcardId='',returnFocus=null,toastTimer;
+function persistLearningContext(){
+ try{
+  sessionStorage.setItem(UI_STORE_KEY,JSON.stringify({
+   grade:state.grade,
+   subject,
+   query,
+   classChoicesOpen,
+   currentTopicId,
+   currentSubtopicKey,
+   currentSubSubject,
+   currentBookPart
+  }));
+ }catch{}
+}
 function persist(){
  try{localStorage.setItem(STORE_KEY,JSON.stringify(state))}catch{showToast('Progress cannot be saved in this browser.')}
  queueCloudLearningSync();
@@ -1519,7 +1550,7 @@ function readAloudLesson(id,button){
  window.speechSynthesis.speak(utterance);
 }
 function showToast(msg){const t=$('toast');t.textContent=msg;t.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),2400)}
-function setGrade(g){if(!Number.isInteger(g)||!GRADE_LEVELS.includes(g))return;stopReadAloud();state.grade=g;subject='';query='';currentTopicId='';currentSubtopicKey='';currentBookPart=1;classChoicesOpen=false;$('searchInput').value='';persist();renderAll();requestAnimationFrame(()=>$('classSubjectSection')?.scrollIntoView({behavior:'smooth',block:'start'}))}
+function setGrade(g){if(!Number.isInteger(g)||!GRADE_LEVELS.includes(g))return;stopReadAloud();state.grade=g;subject='';query='';currentTopicId='';currentSubtopicKey='';currentSubSubject='';currentBookPart=1;classChoicesOpen=false;$('searchInput').value='';persist();persistLearningContext();renderAll();requestAnimationFrame(()=>$('classSubjectSection')?.scrollIntoView({behavior:'smooth',block:'start'}))}
 function renderGradeSelectors(){
  $('classSelect').innerHTML=GRADE_GROUPS.map(group=>`<optgroup label="${safe(group.label)}">${group.grades.map(g=>`<option value="${g}" ${state.grade===g?'selected':''}>${gradeName(g)}</option>`).join('')}</optgroup>`).join('');
  const classPicker=document.querySelector('.class-picker');
@@ -2994,6 +3025,7 @@ function renderClass9SocialScienceSubParts(){
    '</article>'+
   '</section>';
 
+ persistLearningContext();
  if(chapter?.sourcePdf)hydrateOriginalPdfViewer(chapter);
 }
 function renderClass10SocialScienceSubSubjects(){
@@ -3059,6 +3091,7 @@ function renderClass10SocialScienceSubSubjects(){
    '</article>'+
   '</section>';
 
+ persistLearningContext();
  if(chapter?.sourcePdf)hydrateOriginalPdfViewer(chapter);
 }
 function seniorBookParts(grade,selectedSubject){
@@ -3282,6 +3315,7 @@ function renderCourses(){
    if(posterLoading?.isConnected)posterLoading.textContent='The visual lesson could not load. Please refresh the page.';
   });
  }
+ persistLearningContext();
  if(selected.sourcePdf)hydrateOriginalPdfViewer(selected);
  if(selected.mathFigureAtlas)hydrateMathInlineFigures(selected);
 }
@@ -3300,6 +3334,7 @@ function renderProgress(){
 }
 function renderAll(){
  document.body.classList.remove('senior-study-mode');
+ const searchInput=$('searchInput');if(searchInput&&searchInput.value!==query)searchInput.value=query;
  renderGradeSelectors();
  renderSubjectFilters();
  const subjectSection=$('classSubjectSection');
@@ -3580,10 +3615,10 @@ function installEvents(){
   requestAnimationFrame(()=>window.scrollTo({top:0,behavior:'smooth'}));
  }));
  $('classSelect').addEventListener('change',e=>setGrade(Number(e.target.value)));
- $('gradeShortcuts').addEventListener('click',e=>{const gradeBtn=e.target.closest('[data-grade]');if(gradeBtn){setGrade(Number(gradeBtn.dataset.grade));return;}const changeBtn=e.target.closest('[data-change-class]');if(changeBtn){classChoicesOpen=true;subject='';query='';currentTopicId='';currentBookPart=1;$('searchInput').value='';renderAll();requestAnimationFrame(()=>$('gradeShortcuts')?.scrollIntoView({behavior:'smooth',block:'start'}));}});
- $('subjectFilters').addEventListener('click',e=>{const btn=e.target.closest('[data-subject]');if(btn){stopReadAloud();subject=btn.dataset.subject;query='';currentTopicId='';currentSubtopicKey='';currentBookPart=1;$('searchInput').value='';renderSubjectFilters();renderCourses();requestAnimationFrame(()=>$('lessonResultsSection')?.scrollIntoView({behavior:'smooth',block:'start'}))}});
- $('searchInput').addEventListener('input',e=>{query=e.target.value.trim().toLowerCase();renderCourses()});
- $('courseGrid').addEventListener('click',e=>{const bookPart=e.target.closest('[data-book-part]');if(bookPart){currentBookPart=Number(bookPart.dataset.bookPart)||1;currentTopicId='';currentSubtopicKey='';currentFlashcardId='';renderCourses();return;}const socialSub=e.target.closest('[data-social-subject]');if(socialSub){currentSubSubject=socialSub.dataset.socialSubject||'';currentTopicId='';renderCourses();return;}const socialChapter=e.target.closest('[data-social-chapter]');if(socialChapter){currentTopicId=socialChapter.dataset.socialChapter||'';currentSubtopicKey='';renderCourses();return;}
+ $('gradeShortcuts').addEventListener('click',e=>{const gradeBtn=e.target.closest('[data-grade]');if(gradeBtn){setGrade(Number(gradeBtn.dataset.grade));return;}const changeBtn=e.target.closest('[data-change-class]');if(changeBtn){classChoicesOpen=true;subject='';query='';currentTopicId='';currentSubtopicKey='';currentSubSubject='';currentBookPart=1;$('searchInput').value='';persistLearningContext();renderAll();requestAnimationFrame(()=>$('gradeShortcuts')?.scrollIntoView({behavior:'smooth',block:'start'}));}});
+ $('subjectFilters').addEventListener('click',e=>{const btn=e.target.closest('[data-subject]');if(btn){stopReadAloud();subject=btn.dataset.subject;query='';currentTopicId='';currentSubtopicKey='';currentSubSubject='';currentBookPart=1;classChoicesOpen=false;$('searchInput').value='';persistLearningContext();renderSubjectFilters();renderCourses();requestAnimationFrame(()=>$('lessonResultsSection')?.scrollIntoView({behavior:'smooth',block:'start'}))}});
+ $('searchInput').addEventListener('input',e=>{query=e.target.value.trim().toLowerCase();persistLearningContext();renderCourses()});
+ $('courseGrid').addEventListener('click',e=>{const bookPart=e.target.closest('[data-book-part]');if(bookPart){currentBookPart=Number(bookPart.dataset.bookPart)||1;currentTopicId='';currentSubtopicKey='';currentFlashcardId='';persistLearningContext();renderCourses();return;}const socialSub=e.target.closest('[data-social-subject]');if(socialSub){currentSubSubject=socialSub.dataset.socialSubject||'';currentTopicId='';currentSubtopicKey='';persistLearningContext();renderCourses();return;}const socialChapter=e.target.closest('[data-social-chapter]');if(socialChapter){currentTopicId=socialChapter.dataset.socialChapter||'';currentSubtopicKey='';persistLearningContext();renderCourses();return;}
  const step=e.target.closest('[data-chapter-step]');
  if(step){$('courseGrid')?.querySelector('[data-journey-section="'+step.dataset.chapterStep+'"]')?.scrollIntoView({behavior:'smooth',block:'start'});return;}
  const quick=e.target.closest('[data-quick-practice]');
@@ -3598,7 +3633,7 @@ function installEvents(){
  if(rating){const lesson=LESSONS.find(l=>l.id===currentTopicId);const card=lesson?flashcardsForLesson(lesson).find(c=>c.id===rating.dataset.flashcardId):null;if(lesson&&card)rateFlashcard(lesson,card,rating.dataset.flashcardRate);return;}
  const dashboardLink=e.target.closest('[data-open-learning-dashboard]');
  if(dashboardLink){window.location.hash='#my-learning';return;}
-const video=e.target.closest('[data-topic-video]');if(video){const lesson=LESSONS.find(l=>l.id===currentTopicId);const topic=lesson?chapterTopics(lesson).find(t=>t.key===video.dataset.topicVideo):null;if(lesson&&topic)openTopicVideo(lesson,topic);return;}const sprite=e.target.closest('[data-pdf-sprite]');if(sprite){openPdfFigureSprite(sprite);return;}const figure=e.target.closest('[data-pdf-image]');if(figure){openPdfFigure(figure.dataset.pdfImage,figure.dataset.pdfCaption);return;}const topic=e.target.closest('[data-topic-id]');if(topic){stopReadAloud();currentTopicId=topic.dataset.topicId;currentSubtopicKey='';currentFlashcardId='';touchStudyLesson(currentTopicId);renderCourses();return;}const subtopic=e.target.closest('[data-subtopic-key]');if(subtopic){stopReadAloud();currentSubtopicKey=subtopic.dataset.subtopicKey;touchStudyLesson(currentTopicId,currentSubtopicKey);if(subtopic.dataset.pageUnverified==='true')showToast('This topic is listed, but its PDF page has not been verified yet. No page number was guessed.');renderCourses();return;}const aloud=e.target.closest('[data-read-aloud]');if(aloud){readAloudLesson(aloud.dataset.readAloud,aloud);return;}const quiz=e.target.closest('[data-start-quiz]');if(quiz)openLesson(quiz.dataset.startQuiz,quiz.dataset.quizDifficulty||'all');});
+const video=e.target.closest('[data-topic-video]');if(video){const lesson=LESSONS.find(l=>l.id===currentTopicId);const topic=lesson?chapterTopics(lesson).find(t=>t.key===video.dataset.topicVideo):null;if(lesson&&topic)openTopicVideo(lesson,topic);return;}const sprite=e.target.closest('[data-pdf-sprite]');if(sprite){openPdfFigureSprite(sprite);return;}const figure=e.target.closest('[data-pdf-image]');if(figure){openPdfFigure(figure.dataset.pdfImage,figure.dataset.pdfCaption);return;}const topic=e.target.closest('[data-topic-id]');if(topic){stopReadAloud();currentTopicId=topic.dataset.topicId;currentSubtopicKey='';currentFlashcardId='';touchStudyLesson(currentTopicId);persistLearningContext();renderCourses();return;}const subtopic=e.target.closest('[data-subtopic-key]');if(subtopic){stopReadAloud();currentSubtopicKey=subtopic.dataset.subtopicKey;touchStudyLesson(currentTopicId,currentSubtopicKey);persistLearningContext();if(subtopic.dataset.pageUnverified==='true')showToast('This topic is listed, but its PDF page has not been verified yet. No page number was guessed.');renderCourses();return;}const aloud=e.target.closest('[data-read-aloud]');if(aloud){readAloudLesson(aloud.dataset.readAloud,aloud);return;}const quiz=e.target.closest('[data-start-quiz]');if(quiz)openLesson(quiz.dataset.startQuiz,quiz.dataset.quizDifficulty||'all');});
  $('testClassGrid')?.addEventListener('click',e=>{const button=e.target.closest('[data-test-grade]');if(button)openTestBuilder(Number(button.dataset.testGrade));});
  $('testChangeClassBtn')?.addEventListener('click',()=>{resetTestPaper();const scope=$('testScopeControls');if(scope)scope.hidden=true;$('testBuilder').hidden=true;$('testClassGrid')?.scrollIntoView({behavior:'smooth',block:'start'});});
  $('testModeChoice')?.addEventListener('click',e=>{const button=e.target.closest('[data-test-mode]');if(button)chooseTestMode(button.dataset.testMode);});
@@ -3689,7 +3724,7 @@ const video=e.target.closest('[data-topic-video]');if(video){const lesson=LESSON
  });
  window.addEventListener('hashchange',renderHomeLearningDashboard);
  document.addEventListener('visibilitychange',()=>{if(!document.hidden)renderHomeLearningDashboard();});
- $('clearFiltersBtn').addEventListener('click',()=>{query='';$('searchInput').value='';renderCourses()});
+ $('clearFiltersBtn').addEventListener('click',()=>{query='';$('searchInput').value='';persistLearningContext();renderCourses()});
  $('continueBtn').addEventListener('click',continueLearning);
  $('closeLesson').addEventListener('click',closeLesson);
  $('lessonModal').addEventListener('click',e=>{if(e.target===$('lessonModal'))closeLesson()});
