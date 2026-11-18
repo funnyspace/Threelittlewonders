@@ -1530,21 +1530,28 @@ function renderGradeSelectors(){
  if(exploreHeading)exploreHeading.hidden=!classChoicesOpen;
  if(classChoicesOpen){
   $('gradeShortcuts').classList.remove('selected-class-only');
-  $('gradeShortcuts').classList.add('class-hierarchy');
-  $('gradeShortcuts').innerHTML=`<div class="learning-stage-list">${GRADE_GROUPS.map((group,index)=>`
-   <section class="learning-stage-card learning-stage-${safe(group.key)}" aria-labelledby="stage-${safe(group.key)}">
-    <div class="learning-stage-heading">
-     <span class="learning-stage-step" aria-hidden="true">${index+1}</span>
-     <span class="learning-stage-icon" aria-hidden="true">${group.icon}</span>
-     <div><span class="learning-stage-kicker">Learning stage</span><h3 id="stage-${safe(group.key)}">${safe(group.label)}</h3><p>${safe(group.range)}</p></div>
-    </div>
-    <div class="learning-stage-classes" role="group" aria-label="${safe(group.label)} classes">
-     ${group.grades.map(g=>`<button class="grade-chip ${state.grade===g?'selected':''}" data-grade="${g}" aria-pressed="${state.grade===g}">${gradeName(g)}</button>`).join('')}
-    </div>
-   </section>`).join('')}</div>`;
+  $('gradeShortcuts').classList.add('class-hierarchy','vertical-class-hierarchy');
+  const rows=GRADE_LEVELS.map((g,index)=>{
+   const group=GRADE_GROUPS.find(item=>item.grades.includes(g));
+   const previous=index>0?GRADE_GROUPS.find(item=>item.grades.includes(GRADE_LEVELS[index-1])):null;
+   const newStage=!previous||previous.key!==group?.key;
+   const subjects=[...new Set(LESSONS.filter(lesson=>lesson.grade===g).map(lesson=>lesson.subject))];
+   return (newStage?'<div class="vertical-stage-divider"><span aria-hidden="true">'+safe(group?.icon||'📚')+'</span><div><strong>'+safe(group?.label||'Learning stage')+'</strong><small>'+safe(group?.range||'')+'</small></div></div>':'')+
+    '<button type="button" class="grade-chip vertical-class-row '+(state.grade===g?'selected':'')+'" data-grade="'+g+'" aria-pressed="'+(state.grade===g)+'">'+
+     '<span class="vertical-class-order" aria-hidden="true">'+(index+1)+'</span>'+
+     '<span class="vertical-class-name"><strong>'+safe(gradeName(g))+'</strong><small>'+subjects.length+' subject'+(subjects.length===1?'':'s')+' available</small></span>'+
+     '<span class="vertical-class-stage">'+safe(group?.label||'')+'</span>'+
+     '<span class="vertical-class-arrow" aria-hidden="true">→</span>'+
+    '</button>';
+  }).join('');
+  $('gradeShortcuts').innerHTML='<section class="smart-class-picker" aria-label="Choose your class">'+
+   '<div class="explore-flow" aria-label="Learning setup steps"><span class="active"><b>1</b>Class</span><span><b>2</b>Subject</span><span><b>3</b>Learn</span></div>'+
+   '<div class="smart-class-intro"><span>STEP 1</span><div><strong>Choose your class</strong><small>Classes are arranged in learning order. Select one to see its subjects.</small></div></div>'+
+   '<div class="vertical-class-list">'+rows+'</div>'+
+  '</section>';
  }else{
   const group=GRADE_GROUPS.find(group=>group.grades.includes(state.grade));
-  $('gradeShortcuts').classList.remove('class-hierarchy');
+  $('gradeShortcuts').classList.remove('class-hierarchy','vertical-class-hierarchy');
   $('gradeShortcuts').classList.add('selected-class-only');
   $('gradeShortcuts').innerHTML=`<div class="selected-class-display">
     <div class="selected-class-copy">
@@ -3335,9 +3342,9 @@ function renderAll(){
   const title=subjectSection.querySelector('.class-subject-heading h3');
   const copy=subjectSection.querySelector('.class-subject-heading p');
   const kicker=subjectSection.querySelector('.class-subject-heading .kicker');
-  if(title)title.textContent=seniorStudy?'Choose your subject':'Choose a subject';
-  if(copy)copy.textContent=seniorStudy?'Open the syllabus, textbook, practice, assessment and revision workspace.':'Select a subject below to see its interactive lessons.';
-  if(kicker)kicker.textContent=seniorStudy?'STUDY MODE · SUBJECTS':'✦ SUBJECTS';
+  if(title)title.textContent='Choose your subject';
+  if(copy)copy.textContent=seniorStudy?'Open the syllabus, textbook, practice, assessment and revision workspace.':'Pick one subject to see chapters and learning activities.';
+  if(kicker)kicker.textContent=seniorStudy?'STEP 2 · STUDY MODE':'STEP 2 · CHOOSE SUBJECT';
  }
  const starter=document.querySelector('.starter-heading');
  if(starter){
