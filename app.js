@@ -1564,6 +1564,20 @@ function renderGradeSelectors(){
    <div class="explore-grade-list">${group.grades.map(g=>`<button type="button" class="explore-grade-button ${state.grade===g?'selected':''}" data-grade="${g}" aria-pressed="${state.grade===g}"><span class="explore-grade-dot" aria-hidden="true"></span><strong>${gradeName(g)}</strong></button>`).join('')}</div>
   </details>`;
  }).join('')}</div>`;
+ renderMobileClassNavigation();
+}
+function renderMobileClassNavigation(){
+ const host=$('mobileClassNav');
+ if(!host)return;
+ host.innerHTML=GRADE_GROUPS.map(group=>{
+  const active=group.grades.includes(state.grade);
+  return '<details class="mobile-class-group" '+(active?'open':'')+'>'+
+   '<summary><span>'+group.icon+'</span><strong>'+safe(group.label)+'</strong><i aria-hidden="true">⌄</i></summary>'+
+   '<div>'+group.grades.map(g=>
+    '<button type="button" class="mobile-class-button '+(state.grade===g?'selected':'')+'" data-mobile-grade="'+g+'" aria-pressed="'+(state.grade===g)+'">'+gradeName(g)+'</button>'
+   ).join('')+'</div>'+
+  '</details>';
+ }).join('');
 }
 function renderSubjectFilters(){
  const subjects=[...new Set(LESSONS.filter(x=>x.grade===state.grade&&!isBookPartRecord(x)).map(x=>x.subject))];
@@ -3765,6 +3779,28 @@ const video=e.target.closest('[data-topic-video]');if(video){const lesson=LESSON
  $('topicVideoClose')?.addEventListener('click',closeTopicVideo);
  $('topicVideoModal')?.addEventListener('click',e=>{if(e.target===$('topicVideoModal'))closeTopicVideo();});
  window.addEventListener('keydown',e=>{if(e.key==='Escape'){if($('topicVideoModal')&&!$('topicVideoModal').hidden){closeTopicVideo();return;}const viewer=$('pdfFigureViewer');if(viewer&&!viewer.hidden){closePdfFigure();return;}if(!$('lessonModal').hidden)closeLesson();}});
+ $('navSearchButton')?.addEventListener('click',()=>{
+  window.location.hash='#explore';
+  requestAnimationFrame(()=>{
+   if(subject){
+    $('searchInput')?.focus();
+    $('searchInput')?.scrollIntoView({behavior:'smooth',block:'center'});
+   }else{
+    $('classSubjectSection')?.scrollIntoView({behavior:'smooth',block:'start'});
+    showToast('Choose a subject, then search its chapters.');
+   }
+  });
+ });
+ $('mobileClassNav')?.addEventListener('click',e=>{
+  const button=e.target.closest('[data-mobile-grade]');
+  if(!button)return;
+  setGrade(Number(button.dataset.mobileGrade));
+  window.location.hash='#explore';
+  const menu=$('mobileMenu');
+  if(menu)menu.hidden=true;
+  $('mobileMenuBtn')?.setAttribute('aria-expanded','false');
+  if($('mobileMenuBtn'))$('mobileMenuBtn').textContent='☰';
+ });
  $('mobileMenuBtn').addEventListener('click',()=>{const menu=$('mobileMenu');menu.hidden=!menu.hidden;$('mobileMenuBtn').setAttribute('aria-expanded',String(!menu.hidden));$('mobileMenuBtn').textContent=menu.hidden?'☰':'✕'});
  $('mobileMenu').addEventListener('click',e=>{if(e.target.closest('a')){$('mobileMenu').hidden=true;$('mobileMenuBtn').setAttribute('aria-expanded','false');$('mobileMenuBtn').textContent='☰'}});
 }
