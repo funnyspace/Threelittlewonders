@@ -2132,7 +2132,12 @@ function hydrateOriginalPdfViewer(lesson){
    showError(error);
   }
  }
+ function flushPendingNote(){
+  clearTimeout(noteSaveTimer);
+  saveCurrentNote();
+ }
  function go(target){
+  flushPendingNote();
   const total=pdfDoc?.numPages||Number.MAX_SAFE_INTEGER;
   const nextPage=Math.min(Math.max(1,Number(target)||1),total);
   if(nextPage===page&&pdfDoc){syncControls();return;}
@@ -2142,6 +2147,7 @@ function hydrateOriginalPdfViewer(lesson){
   renderSpread();
  }
  function zoomBy(factor){
+  flushPendingNote();
   if(scaleMode==='fit-width')manualScale=currentScale;
   scaleMode='manual';
   manualScale=Math.max(.28,Math.min(3,manualScale*factor));
@@ -2232,7 +2238,7 @@ function hydrateOriginalPdfViewer(lesson){
  input?.addEventListener('keydown',event=>{if(event.key==='Enter'){event.preventDefault();go(input.value);}});
  zoomIn?.addEventListener('click',()=>zoomBy(1.2));
  zoomOut?.addEventListener('click',()=>zoomBy(1/1.2));
- fitWidth?.addEventListener('click',()=>{scaleMode='fit-width';renderSpread();});
+ fitWidth?.addEventListener('click',()=>{flushPendingNote();scaleMode='fit-width';renderSpread();});
  readButton?.addEventListener('click',readVisiblePages);
  highlightButton?.addEventListener('click',()=>setHighlightMode(!highlightMode));
  clearHighlightsButton?.addEventListener('click',()=>{
