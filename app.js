@@ -1310,8 +1310,10 @@ let activeSpeech=null;
 function stopReadAloud(){
  if('speechSynthesis' in window)window.speechSynthesis.cancel();
  activeSpeech=null;
- const btn=document.querySelector('[data-read-aloud].speaking');
- if(btn){btn.classList.remove('speaking');btn.innerHTML='🔊 Read Aloud';}
+ document.querySelectorAll('[data-read-aloud].speaking,[data-pdfjs-read-aloud].speaking').forEach(btn=>{
+  btn.classList.remove('speaking');
+  btn.innerHTML=btn.hasAttribute('data-pdfjs-read-aloud')?'🔊 Read aloud':'🔊 Read Aloud';
+ });
 }
 function lessonSpeechLanguage(lesson){
  if(lesson.subject==='Hindi'||lesson.subject==='Sanskrit')return 'hi-IN';
@@ -1794,6 +1796,8 @@ async function maskRenderedPdfBarcodes(canvas,filename,pageNumber){
  });
  ctx.restore();
 }
+const PDF_ANNOTATION_STORE_KEY='Threelittlewonders-pdf-annotations-v1';
+
 function renderOriginalPdfPanel(lesson){
  const url=sourcePdfUrl(lesson);
  if(!url)return '';
@@ -1801,26 +1805,49 @@ function renderOriginalPdfPanel(lesson){
  const active=topics.find(t=>t.key===currentSubtopicKey)||null;
  const page=active&&Number.isInteger(active.page)?active.page:(Number.isInteger(lesson.chapterStartPage)?lesson.chapterStartPage:1);
  const originalUrl=originalNcertPdfUrl(lesson);
- return '<section class="original-pdf-panel full-fidelity-pdf pdfjs-viewer" data-pdfjs-viewer>'+
+ return '<section class="original-pdf-panel full-fidelity-pdf pdfjs-viewer pdf-spread-landscape" data-pdfjs-viewer>'+
   '<div class="pdf-nav-bar" role="toolbar" aria-label="PDF controls">'+
    '<div class="pdf-nav-group pdf-page-nav">'+
-    '<button type="button" data-original-pdf-prev aria-label="Previous PDF page">‹</button>'+
-    '<label class="pdf-page-control"><span>Page</span><input type="number" min="1" value="'+page+'" inputmode="numeric" data-pdfjs-page-input aria-label="PDF page number"><b data-pdfjs-page-count>/ …</b></label>'+
-    '<button type="button" data-original-pdf-next aria-label="Next PDF page">›</button>'+
+    '<button type="button" data-original-pdf-prev aria-label="Previous two PDF pages">‹</button>'+
+    '<label class="pdf-page-control"><span>Page</span><input type="number" min="1" value="'+page+'" inputmode="numeric" data-pdfjs-page-input aria-label="First PDF page in spread"><b data-pdfjs-page-count>/ …</b></label>'+
+    '<button type="button" data-original-pdf-next aria-label="Next two PDF pages">›</button>'+
    '</div>'+
    '<div class="pdf-nav-group pdf-zoom-nav">'+
     '<button type="button" data-pdfjs-zoom-out aria-label="Zoom out">−</button>'+
     '<span data-pdfjs-zoom-status>Fit</span>'+
     '<button type="button" data-pdfjs-zoom-in aria-label="Zoom in">+</button>'+
-    '<button type="button" class="pdf-fit-button" data-pdfjs-fit-width>Fit width</button>'+
+    '<button type="button" class="pdf-fit-button" data-pdfjs-fit-width>Fit spread</button>'+
+   '</div>'+
+   '<div class="pdf-nav-group pdf-tool-nav">'+
+    '<button type="button" class="pdf-tool-button" data-pdfjs-read-aloud aria-label="Read visible PDF pages aloud">🔊 Read aloud</button>'+
+    '<button type="button" class="pdf-tool-button" data-pdfjs-highlight aria-pressed="false" aria-label="Highlight on PDF pages">🖍 Highlight</button>'+
+    '<button type="button" class="pdf-tool-button" data-pdfjs-clear-highlights aria-label="Clear highlights on visible pages">Clear marks</button>'+
+    '<button type="button" class="pdf-tool-button" data-pdfjs-notes aria-expanded="false" aria-label="Open PDF notes">📝 Notes</button>'+
    '</div>'+
    (originalUrl?'<a class="pdf-original-link" href="'+safe(originalUrl)+'" target="_blank" rel="noopener noreferrer">Open original ↗</a>':'')+
   '</div>'+
   '<div class="pdfjs-stage" data-pdfjs-stage tabindex="0">'+
-   '<div class="pdf-loading" data-pdfjs-loading><span aria-hidden="true"></span><strong>Loading textbook page…</strong></div>'+
-   '<canvas class="original-pdf-canvas" data-pdfjs-canvas aria-label="'+safe(lesson.title)+' PDF page" hidden></canvas>'+
+   '<div class="pdf-loading" data-pdfjs-loading><span aria-hidden="true"></span><strong>Loading textbook pages…</strong></div>'+
+   '<div class="pdfjs-spread" data-pdfjs-spread hidden>'+
+    '<div class="pdfjs-page-shell" data-pdfjs-page-slot="0" hidden>'+
+     '<span class="pdf-page-label" data-pdfjs-page-label>Page</span>'+
+     '<canvas class="original-pdf-canvas" data-pdfjs-canvas aria-label="'+safe(lesson.title)+' PDF left page"></canvas>'+
+     '<div class="pdf-annotation-layer" data-pdfjs-annotation-layer aria-label="PDF highlight layer"></div>'+
+    '</div>'+
+    '<div class="pdfjs-page-shell" data-pdfjs-page-slot="1" hidden>'+
+     '<span class="pdf-page-label" data-pdfjs-page-label>Page</span>'+
+     '<canvas class="original-pdf-canvas" data-pdfjs-canvas aria-label="'+safe(lesson.title)+' PDF right page"></canvas>'+
+     '<div class="pdf-annotation-layer" data-pdfjs-annotation-layer aria-label="PDF highlight layer"></div>'+
+    '</div>'+
+   '</div>'+
    '<div class="pdfjs-error" data-pdfjs-error hidden role="alert"></div>'+
   '</div>'+
+  '<aside class="pdf-notes-panel" data-pdfjs-notes-panel hidden aria-label="PDF notes">'+
+   '<div class="pdf-notes-head"><div><span>PDF NOTES</span><strong>Notes for this textbook</strong></div><button type="button" data-pdfjs-notes-close aria-label="Close notes">×</button></div>'+
+   '<label class="pdf-note-page-control"><span>Note for</span><select data-pdfjs-note-page aria-label="Choose PDF page for note"></select></label>'+
+   '<textarea data-pdfjs-note-text rows="6" placeholder="Write your note for this page. It is saved automatically in this browser."></textarea>'+
+   '<div class="pdf-notes-footer"><span data-pdfjs-note-status>Saved locally</span><button type="button" data-pdfjs-note-clear>Clear note</button></div>'+
+  '</aside>'+
   '<div class="pdfjs-reader-status" data-pdfjs-reader-status aria-live="polite"></div>'+
  '</section>';
 }
@@ -1831,17 +1858,22 @@ function hydrateOriginalPdfViewer(lesson){
  const active=topics.find(t=>t.key===currentSubtopicKey)||null;
  let page=active&&Number.isInteger(active.page)?active.page:(Number.isInteger(lesson.chapterStartPage)?lesson.chapterStartPage:1);
  let pdfDoc=null;
- let renderTask=null;
+ let renderTasks=[null,null];
  let renderSerial=0;
  let scaleMode='fit-width';
  let manualScale=1;
  let currentScale=1;
+ let highlightMode=false;
+ let notePage=page;
+ let noteSaveTimer=0;
 
  const url=sourcePdfUrl(lesson);
  const originalUrl=originalNcertPdfUrl(lesson);
  const filename=sourcePdfFilename(lesson)||String(lesson.sourcePdf||'').split('/').pop()||'';
- const canvas=panel.querySelector('[data-pdfjs-canvas]');
+ const annotationKey=filename||url;
  const stage=panel.querySelector('[data-pdfjs-stage]');
+ const spread=panel.querySelector('[data-pdfjs-spread]');
+ const slots=[...panel.querySelectorAll('[data-pdfjs-page-slot]')];
  const loading=panel.querySelector('[data-pdfjs-loading]');
  const errorBox=panel.querySelector('[data-pdfjs-error]');
  const readerStatus=panel.querySelector('[data-pdfjs-reader-status]');
@@ -1853,15 +1885,48 @@ function hydrateOriginalPdfViewer(lesson){
  const zoomIn=panel.querySelector('[data-pdfjs-zoom-in]');
  const zoomOut=panel.querySelector('[data-pdfjs-zoom-out]');
  const fitWidth=panel.querySelector('[data-pdfjs-fit-width]');
+ const readButton=panel.querySelector('[data-pdfjs-read-aloud]');
+ const highlightButton=panel.querySelector('[data-pdfjs-highlight]');
+ const clearHighlightsButton=panel.querySelector('[data-pdfjs-clear-highlights]');
+ const notesButton=panel.querySelector('[data-pdfjs-notes]');
+ const notesPanel=panel.querySelector('[data-pdfjs-notes-panel]');
+ const notesClose=panel.querySelector('[data-pdfjs-notes-close]');
+ const notePageSelect=panel.querySelector('[data-pdfjs-note-page]');
+ const noteText=panel.querySelector('[data-pdfjs-note-text]');
+ const noteStatus=panel.querySelector('[data-pdfjs-note-status]');
+ const noteClear=panel.querySelector('[data-pdfjs-note-clear]');
 
- function showLoading(message='Loading textbook page…'){
+ function loadAnnotations(){
+  try{
+   const all=JSON.parse(localStorage.getItem(PDF_ANNOTATION_STORE_KEY)||'{}');
+   const book=all&&typeof all==='object'?all[annotationKey]:null;
+   return book&&typeof book==='object'?{
+    highlights:book.highlights&&typeof book.highlights==='object'?book.highlights:{},
+    notes:book.notes&&typeof book.notes==='object'?book.notes:{}
+   }:{highlights:{},notes:{}};
+  }catch{return {highlights:{},notes:{}};}
+ }
+ let annotations=loadAnnotations();
+ function saveAnnotations(){
+  try{
+   const all=JSON.parse(localStorage.getItem(PDF_ANNOTATION_STORE_KEY)||'{}');
+   const safeAll=all&&typeof all==='object'?all:{};
+   safeAll[annotationKey]=annotations;
+   localStorage.setItem(PDF_ANNOTATION_STORE_KEY,JSON.stringify(safeAll));
+  }catch{showToast('PDF notes and highlights cannot be saved in this browser.');}
+ }
+ function visiblePageNumbers(){
+  if(!pdfDoc)return [page];
+  return [page,page+1<=pdfDoc.numPages?page+1:null].filter(Boolean);
+ }
+ function showLoading(message='Loading textbook pages…'){
   if(loading){loading.hidden=false;const strong=loading.querySelector('strong');if(strong)strong.textContent=message;}
-  if(canvas)canvas.hidden=true;
+  if(spread)spread.hidden=true;
   if(errorBox)errorBox.hidden=true;
  }
  function showError(error){
   if(loading)loading.hidden=true;
-  if(canvas)canvas.hidden=true;
+  if(spread)spread.hidden=true;
   if(!errorBox)return;
   const fallback=originalUrl?'<a href="'+safe(originalUrl)+'" target="_blank" rel="noopener noreferrer">Open the original NCERT PDF ↗</a>':'';
   errorBox.innerHTML='<strong>PDF.js could not load this chapter.</strong><p>The local textbook copy may still be syncing. Refresh shortly or use the original source.</p>'+fallback;
@@ -1871,54 +1936,197 @@ function hydrateOriginalPdfViewer(lesson){
  }
  function syncControls(){
   const total=pdfDoc?.numPages||0;
+  const pages=visiblePageNumbers();
   if(input){input.value=String(page);input.max=total?String(total):'';}
-  if(count)count.textContent=total?'/ '+total:'/ …';
+  if(count){
+   const range=pages.length>1?' · '+pages[0]+'–'+pages[1]:' · '+pages[0];
+   count.textContent=total?'/ '+total+range:'/ …';
+  }
   if(prev)prev.disabled=page<=1;
-  if(next)next.disabled=!!total&&page>=total;
+  if(next)next.disabled=!!total&&page+1>=total;
   if(zoomStatus)zoomStatus.textContent=(scaleMode==='fit-width'?'Fit ':'')+Math.round(currentScale*100)+'%';
  }
- async function renderPage(){
+ function highlightList(pageNumber){
+  const key=String(pageNumber);
+  if(!Array.isArray(annotations.highlights[key]))annotations.highlights[key]=[];
+  return annotations.highlights[key];
+ }
+ function renderHighlights(slot,pageNumber){
+  const overlay=slot.querySelector('[data-pdfjs-annotation-layer]');
+  if(!overlay)return;
+  overlay.innerHTML='';
+  overlay.dataset.page=String(pageNumber);
+  highlightList(pageNumber).forEach(mark=>{
+   const el=document.createElement('button');
+   el.type='button';
+   el.className='pdf-highlight';
+   el.dataset.highlightId=String(mark.id||'');
+   el.style.left=(Number(mark.x)||0)*100+'%';
+   el.style.top=(Number(mark.y)||0)*100+'%';
+   el.style.width=(Number(mark.w)||0)*100+'%';
+   el.style.height=(Number(mark.h)||0)*100+'%';
+   el.setAttribute('aria-label','Saved highlight. Enable Highlight and tap to remove.');
+   overlay.appendChild(el);
+  });
+ }
+ function setHighlightMode(enabled){
+  highlightMode=!!enabled;
+  panel.classList.toggle('pdf-highlight-mode',highlightMode);
+  if(highlightButton){
+   highlightButton.classList.toggle('active',highlightMode);
+   highlightButton.setAttribute('aria-pressed',String(highlightMode));
+   highlightButton.innerHTML=highlightMode?'✓ Highlight on':'🖍 Highlight';
+  }
+  if(readerStatus)readerStatus.textContent=highlightMode?'Highlight mode is on. Drag over either PDF page to highlight. Tap an existing highlight to remove it.':'Highlight mode is off.';
+ }
+ function bindHighlightLayer(slot){
+  const overlay=slot.querySelector('[data-pdfjs-annotation-layer]');
+  if(!overlay||overlay.dataset.bound==='true')return;
+  overlay.dataset.bound='true';
+  let draw=null;
+  overlay.addEventListener('pointerdown',event=>{
+   if(!highlightMode)return;
+   const pageNumber=Number(overlay.dataset.page);
+   if(!pageNumber)return;
+   const existing=event.target.closest('[data-highlight-id]');
+   if(existing){
+    const id=existing.dataset.highlightId;
+    annotations.highlights[String(pageNumber)]=highlightList(pageNumber).filter(mark=>String(mark.id)!==String(id));
+    saveAnnotations();
+    renderHighlights(slot,pageNumber);
+    showToast('Highlight removed.');
+    event.preventDefault();
+    return;
+   }
+   const rect=overlay.getBoundingClientRect();
+   if(!rect.width||!rect.height)return;
+   const x=Math.max(0,Math.min(rect.width,event.clientX-rect.left));
+   const y=Math.max(0,Math.min(rect.height,event.clientY-rect.top));
+   const preview=document.createElement('div');
+   preview.className='pdf-highlight pdf-highlight-preview';
+   overlay.appendChild(preview);
+   draw={pointerId:event.pointerId,startX:x,startY:y,preview};
+   try{overlay.setPointerCapture(event.pointerId);}catch{}
+   event.preventDefault();
+  });
+  overlay.addEventListener('pointermove',event=>{
+   if(!draw||draw.pointerId!==event.pointerId)return;
+   const rect=overlay.getBoundingClientRect();
+   const x=Math.max(0,Math.min(rect.width,event.clientX-rect.left));
+   const y=Math.max(0,Math.min(rect.height,event.clientY-rect.top));
+   const left=Math.min(draw.startX,x),top=Math.min(draw.startY,y);
+   const width=Math.abs(x-draw.startX),height=Math.abs(y-draw.startY);
+   draw.preview.style.left=left+'px';
+   draw.preview.style.top=top+'px';
+   draw.preview.style.width=width+'px';
+   draw.preview.style.height=height+'px';
+  });
+  const finish=event=>{
+   if(!draw||draw.pointerId!==event.pointerId)return;
+   const rect=overlay.getBoundingClientRect();
+   const x=Math.max(0,Math.min(rect.width,event.clientX-rect.left));
+   const y=Math.max(0,Math.min(rect.height,event.clientY-rect.top));
+   const left=Math.min(draw.startX,x),top=Math.min(draw.startY,y);
+   const width=Math.abs(x-draw.startX),height=Math.abs(y-draw.startY);
+   const pageNumber=Number(overlay.dataset.page);
+   draw.preview.remove();
+   draw=null;
+   if(pageNumber&&width>=6&&height>=5&&rect.width&&rect.height){
+    highlightList(pageNumber).push({
+     id:Date.now().toString(36)+Math.random().toString(36).slice(2,7),
+     x:left/rect.width,y:top/rect.height,w:width/rect.width,h:height/rect.height
+    });
+    saveAnnotations();
+    renderHighlights(slot,pageNumber);
+    showToast('Highlight saved.');
+   }
+   event.preventDefault();
+  };
+  overlay.addEventListener('pointerup',finish);
+  overlay.addEventListener('pointercancel',event=>{
+   if(draw&&draw.preview)draw.preview.remove();
+   draw=null;
+  });
+ }
+ function refreshNotes(){
+  const pages=visiblePageNumbers();
+  if(!pages.includes(notePage))notePage=pages[0]||page;
+  if(notePageSelect){
+   notePageSelect.innerHTML=pages.map(n=>'<option value="'+n+'" '+(n===notePage?'selected':'')+'>Page '+n+'</option>').join('');
+  }
+  if(noteText)noteText.value=String(annotations.notes[String(notePage)]||'');
+  if(noteStatus)noteStatus.textContent=annotations.notes[String(notePage)]?'Saved locally':'No note yet';
+ }
+ function saveCurrentNote(){
+  if(!noteText)return;
+  const value=noteText.value.trim();
+  if(value)annotations.notes[String(notePage)]=value;
+  else delete annotations.notes[String(notePage)];
+  saveAnnotations();
+  if(noteStatus)noteStatus.textContent=value?'Saved locally':'No note yet';
+ }
+ async function renderOne(slot,pdfPage,pageNumber,scale,slotIndex){
+  if(!slot)return;
+  const canvas=slot.querySelector('[data-pdfjs-canvas]');
+  const label=slot.querySelector('[data-pdfjs-page-label]');
+  const overlay=slot.querySelector('[data-pdfjs-annotation-layer]');
+  const baseViewport=pdfPage.getViewport({scale:1});
+  const outputScale=Math.min(2,Math.max(1,window.devicePixelRatio||1));
+  const renderViewport=pdfPage.getViewport({scale:scale*outputScale});
+  const cssWidth=Math.round(baseViewport.width*scale);
+  const cssHeight=Math.round(baseViewport.height*scale);
+  const ctx=canvas.getContext('2d',{alpha:false});
+
+  if(renderTasks[slotIndex]){try{renderTasks[slotIndex].cancel();}catch{}}
+  canvas.width=Math.max(1,Math.floor(renderViewport.width));
+  canvas.height=Math.max(1,Math.floor(renderViewport.height));
+  canvas.style.width=cssWidth+'px';
+  canvas.style.height=cssHeight+'px';
+  slot.style.width=cssWidth+'px';
+  slot.style.height=cssHeight+'px';
+  slot.dataset.page=String(pageNumber);
+  if(label)label.textContent='Page '+pageNumber;
+  if(overlay)overlay.dataset.page=String(pageNumber);
+  ctx.fillStyle='#fff';
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+
+  renderTasks[slotIndex]=pdfPage.render({canvasContext:ctx,viewport:renderViewport,background:'rgb(255,255,255)'});
+  await renderTasks[slotIndex].promise;
+  await maskRenderedPdfBarcodes(canvas,filename,pageNumber);
+  renderHighlights(slot,pageNumber);
+  bindHighlightLayer(slot);
+  slot.hidden=false;
+ }
+ async function renderSpread(){
   const serial=++renderSerial;
-  showLoading(pdfDoc?'Rendering page '+page+'…':'Loading textbook…');
+  showLoading(pdfDoc?'Rendering pages…':'Loading textbook…');
   try{
    if(!pdfDoc)pdfDoc=await getPdfDocument(url);
    if(serial!==renderSerial||!panel.isConnected)return;
    page=Math.min(Math.max(1,page),pdfDoc.numPages);
-   const pdfPage=await pdfDoc.getPage(page);
+   const pageNumbers=visiblePageNumbers();
+   const pdfPages=await Promise.all(pageNumbers.map(n=>pdfDoc.getPage(n)));
    if(serial!==renderSerial||!panel.isConnected)return;
 
-   const baseViewport=pdfPage.getViewport({scale:1});
-   const availableWidth=Math.max(260,(stage?.clientWidth||baseViewport.width)-24);
+   const baseViewports=pdfPages.map(p=>p.getViewport({scale:1}));
+   const stageWidth=Math.max(540,stage?.clientWidth||900);
+   const spreadGap=14;
+   const availablePerPage=Math.max(250,(stageWidth-44-spreadGap)/2);
+   const fitScale=Math.min(...baseViewports.map(viewport=>availablePerPage/viewport.width));
    currentScale=scaleMode==='fit-width'
-    ? Math.max(.35,Math.min(2.5,availableWidth/baseViewport.width))
-    : Math.max(.35,Math.min(3,manualScale));
+    ? Math.max(.28,Math.min(2.25,fitScale))
+    : Math.max(.28,Math.min(3,manualScale));
 
-   const outputScale=Math.min(2,Math.max(1,window.devicePixelRatio||1));
-   const renderViewport=pdfPage.getViewport({scale:currentScale*outputScale});
-   const cssWidth=Math.round(baseViewport.width*currentScale);
-   const cssHeight=Math.round(baseViewport.height*currentScale);
-   const ctx=canvas.getContext('2d',{alpha:false});
-
-   if(renderTask){try{renderTask.cancel();}catch{}}
-   canvas.width=Math.max(1,Math.floor(renderViewport.width));
-   canvas.height=Math.max(1,Math.floor(renderViewport.height));
-   canvas.style.width=cssWidth+'px';
-   canvas.style.height=cssHeight+'px';
-   ctx.fillStyle='#fff';
-   ctx.fillRect(0,0,canvas.width,canvas.height);
-
-   renderTask=pdfPage.render({canvasContext:ctx,viewport:renderViewport,background:'rgb(255,255,255)'});
-   await renderTask.promise;
+   slots.forEach((slot,index)=>{if(index>=pageNumbers.length)slot.hidden=true;});
+   await Promise.all(pdfPages.map((pdfPage,index)=>renderOne(slots[index],pdfPage,pageNumbers[index],currentScale,index)));
    if(serial!==renderSerial||!panel.isConnected)return;
 
-   await maskRenderedPdfBarcodes(canvas,filename,page);
-   if(serial!==renderSerial||!panel.isConnected)return;
-
-   canvas.hidden=false;
+   spread.hidden=false;
    if(loading)loading.hidden=true;
    if(errorBox)errorBox.hidden=true;
    syncControls();
-   if(readerStatus)readerStatus.textContent='Page '+page+' of '+pdfDoc.numPages+' rendered with PDF.js.';
+   refreshNotes();
+   if(readerStatus)readerStatus.textContent='Pages '+pageNumbers.join(' and ')+' of '+pdfDoc.numPages+' rendered in two-page landscape view.';
   }catch(error){
    if(error?.name==='RenderingCancelledException')return;
    showError(error);
@@ -1928,30 +2136,150 @@ function hydrateOriginalPdfViewer(lesson){
   const total=pdfDoc?.numPages||Number.MAX_SAFE_INTEGER;
   const nextPage=Math.min(Math.max(1,Number(target)||1),total);
   if(nextPage===page&&pdfDoc){syncControls();return;}
+  if(String(activeSpeech||'').startsWith('pdf:'))stopReadAloud();
   page=nextPage;
-  renderPage();
+  notePage=page;
+  renderSpread();
  }
  function zoomBy(factor){
   if(scaleMode==='fit-width')manualScale=currentScale;
   scaleMode='manual';
-  manualScale=Math.max(.35,Math.min(3,manualScale*factor));
-  renderPage();
+  manualScale=Math.max(.28,Math.min(3,manualScale*factor));
+  renderSpread();
+ }
+ function splitSpeechText(text,maxLength=1500){
+  const sentences=String(text||'').replace(/\s+/g,' ').trim().match(/[^.!?।]+[.!?।]?/g)||[];
+  const chunks=[];
+  let current='';
+  sentences.forEach(sentence=>{
+   const next=(current+' '+sentence).trim();
+   if(current&&next.length>maxLength){chunks.push(current);current=sentence.trim();}
+   else current=next;
+  });
+  if(current)chunks.push(current);
+  if(!chunks.length&&text)chunks.push(String(text).slice(0,maxLength));
+  return chunks;
+ }
+ async function visiblePdfText(){
+  if(!pdfDoc)pdfDoc=await getPdfDocument(url);
+  const pages=visiblePageNumbers();
+  const parts=[];
+  for(const pageNumber of pages){
+   const pdfPage=await pdfDoc.getPage(pageNumber);
+   const textContent=await pdfPage.getTextContent();
+   const text=textContent.items.map(item=>String(item.str||'')).join(' ').replace(/\s+/g,' ').trim();
+   if(text)parts.push('Page '+pageNumber+'. '+text);
+  }
+  return parts.join('. ');
+ }
+ async function readVisiblePages(){
+  if(!('speechSynthesis' in window)||typeof SpeechSynthesisUtterance==='undefined'){
+   showToast('Read Aloud is not supported in this browser.');
+   return;
+  }
+  const speechId='pdf:'+annotationKey+':'+visiblePageNumbers().join('-');
+  if(activeSpeech===speechId){
+   stopReadAloud();
+   return;
+  }
+  stopReadAloud();
+  if(readButton){readButton.disabled=true;readButton.innerHTML='Preparing…';}
+  try{
+   const text=await visiblePdfText();
+   if(!text){
+    if(readButton){readButton.disabled=false;readButton.innerHTML='🔊 Read aloud';}
+    showToast('No readable text was found on these PDF pages.');
+    return;
+   }
+   const chunks=splitSpeechText(text);
+   const lang=lessonSpeechLanguage(lesson);
+   const voices=window.speechSynthesis.getVoices();
+   const prefix=lang.split('-')[0].toLowerCase();
+   const voice=voices.find(v=>v.lang&&v.lang.toLowerCase()===lang.toLowerCase())||voices.find(v=>v.lang&&v.lang.toLowerCase().startsWith(prefix));
+   activeSpeech=speechId;
+   if(readButton){readButton.disabled=false;readButton.classList.add('speaking');readButton.innerHTML='⏹ Stop reading';}
+   const speakChunk=index=>{
+    if(activeSpeech!==speechId)return;
+    if(index>=chunks.length){
+     activeSpeech=null;
+     if(readButton?.isConnected){readButton.classList.remove('speaking');readButton.innerHTML='🔊 Read aloud';}
+     return;
+    }
+    const utterance=new SpeechSynthesisUtterance(chunks[index]);
+    utterance.lang=lang;
+    utterance.rate=lesson.grade<=0?.88:.96;
+    if(voice)utterance.voice=voice;
+    utterance.onend=()=>speakChunk(index+1);
+    utterance.onerror=()=>{
+     if(activeSpeech!==speechId)return;
+     activeSpeech=null;
+     if(readButton?.isConnected){readButton.classList.remove('speaking');readButton.innerHTML='🔊 Read aloud';}
+     showToast('PDF reading stopped.');
+    };
+    window.speechSynthesis.speak(utterance);
+   };
+   speakChunk(0);
+  }catch(error){
+   if(readButton?.isConnected){readButton.disabled=false;readButton.classList.remove('speaking');readButton.innerHTML='🔊 Read aloud';}
+   showToast('Could not read this PDF page aloud.');
+   console.error('PDF read aloud failed',error);
+  }
  }
 
- prev?.addEventListener('click',()=>go(page-1));
- next?.addEventListener('click',()=>go(page+1));
+ prev?.addEventListener('click',()=>go(page-2));
+ next?.addEventListener('click',()=>go(page+2));
  input?.addEventListener('change',()=>go(input.value));
  input?.addEventListener('keydown',event=>{if(event.key==='Enter'){event.preventDefault();go(input.value);}});
  zoomIn?.addEventListener('click',()=>zoomBy(1.2));
  zoomOut?.addEventListener('click',()=>zoomBy(1/1.2));
- fitWidth?.addEventListener('click',()=>{scaleMode='fit-width';renderPage();});
+ fitWidth?.addEventListener('click',()=>{scaleMode='fit-width';renderSpread();});
+ readButton?.addEventListener('click',readVisiblePages);
+ highlightButton?.addEventListener('click',()=>setHighlightMode(!highlightMode));
+ clearHighlightsButton?.addEventListener('click',()=>{
+  const pages=visiblePageNumbers();
+  const hasMarks=pages.some(n=>highlightList(n).length);
+  if(!hasMarks){showToast('No highlights on these pages.');return;}
+  if(!window.confirm('Clear highlights from the visible PDF pages?'))return;
+  pages.forEach(n=>{annotations.highlights[String(n)]=[];});
+  saveAnnotations();
+  slots.forEach(slot=>{const n=Number(slot.dataset.page);if(n)renderHighlights(slot,n);});
+  showToast('Visible-page highlights cleared.');
+ });
+ notesButton?.addEventListener('click',()=>{
+  const open=notesPanel?.hidden!==false;
+  if(notesPanel)notesPanel.hidden=!open;
+  notesButton.setAttribute('aria-expanded',String(open));
+  notesButton.classList.toggle('active',open);
+  if(open){refreshNotes();setTimeout(()=>noteText?.focus(),0);}
+ });
+ notesClose?.addEventListener('click',()=>{
+  if(notesPanel)notesPanel.hidden=true;
+  if(notesButton){notesButton.setAttribute('aria-expanded','false');notesButton.classList.remove('active');}
+ });
+ notePageSelect?.addEventListener('change',()=>{
+  saveCurrentNote();
+  notePage=Number(notePageSelect.value)||page;
+  refreshNotes();
+  noteText?.focus();
+ });
+ noteText?.addEventListener('input',()=>{
+  if(noteStatus)noteStatus.textContent='Saving…';
+  clearTimeout(noteSaveTimer);
+  noteSaveTimer=setTimeout(saveCurrentNote,350);
+ });
+ noteText?.addEventListener('blur',()=>{clearTimeout(noteSaveTimer);saveCurrentNote();});
+ noteClear?.addEventListener('click',()=>{
+  if(noteText)noteText.value='';
+  saveCurrentNote();
+  showToast('Page note cleared.');
+ });
  stage?.addEventListener('keydown',event=>{
-  if(event.key==='PageDown'||event.key==='ArrowRight'){event.preventDefault();go(page+1);}
-  if(event.key==='PageUp'||event.key==='ArrowLeft'){event.preventDefault();go(page-1);}
+  if(event.key==='PageDown'||event.key==='ArrowRight'){event.preventDefault();go(page+2);}
+  if(event.key==='PageUp'||event.key==='ArrowLeft'){event.preventDefault();go(page-2);}
  });
 
  syncControls();
- renderPage();
+ renderSpread();
 }
 
 let testGrade=null;
