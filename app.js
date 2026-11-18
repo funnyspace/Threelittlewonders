@@ -1550,48 +1550,37 @@ function readAloudLesson(id,button){
  window.speechSynthesis.speak(utterance);
 }
 function showToast(msg){const t=$('toast');t.textContent=msg;t.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),2400)}
-function setGrade(g){if(!Number.isInteger(g)||!GRADE_LEVELS.includes(g))return;stopReadAloud();state.grade=g;subject='';query='';currentTopicId='';currentSubtopicKey='';currentSubSubject='';currentBookPart=1;classChoicesOpen=false;$('searchInput').value='';persist();persistLearningContext();renderAll();requestAnimationFrame(()=>$('classSubjectSection')?.scrollIntoView({behavior:'smooth',block:'start'}))}
+function setGrade(g){if(!Number.isInteger(g)||!GRADE_LEVELS.includes(g))return;stopReadAloud();state.grade=g;subject='';query='';currentTopicId='';currentSubtopicKey='';currentSubSubject='';currentBookPart=1;classChoicesOpen=false;$('searchInput').value='';persist();persistLearningContext();renderAll();requestAnimationFrame(()=>$('exploreClassSummary')?.scrollIntoView({behavior:'smooth',block:'start'}))}
 function renderGradeSelectors(){
  $('classSelect').innerHTML=GRADE_GROUPS.map(group=>`<optgroup label="${safe(group.label)}">${group.grades.map(g=>`<option value="${g}" ${state.grade===g?'selected':''}>${gradeName(g)}</option>`).join('')}</optgroup>`).join('');
- const classPicker=document.querySelector('.class-picker');
- if(classPicker)classPicker.hidden=true;
- const exploreHeading=document.querySelector('.explore-heading');
- if(exploreHeading)exploreHeading.hidden=!classChoicesOpen;
- if(classChoicesOpen){
-  $('gradeShortcuts').classList.remove('selected-class-only');
-  $('gradeShortcuts').classList.add('class-hierarchy');
-  $('gradeShortcuts').innerHTML=`<div class="learning-stage-list">${GRADE_GROUPS.map((group,index)=>`
-   <section class="learning-stage-card learning-stage-${safe(group.key)}" aria-labelledby="stage-${safe(group.key)}">
-    <div class="learning-stage-heading">
-     <span class="learning-stage-step" aria-hidden="true">${index+1}</span>
-     <span class="learning-stage-icon" aria-hidden="true">${group.icon}</span>
-     <div><span class="learning-stage-kicker">Learning stage</span><h3 id="stage-${safe(group.key)}">${safe(group.label)}</h3><p>${safe(group.range)}</p></div>
-    </div>
-    <div class="learning-stage-classes" role="group" aria-label="${safe(group.label)} classes">
-     ${group.grades.map(g=>`<button class="grade-chip ${state.grade===g?'selected':''}" data-grade="${g}" aria-pressed="${state.grade===g}">${gradeName(g)}</button>`).join('')}
-    </div>
-   </section>`).join('')}</div>`;
- }else{
-  const group=GRADE_GROUPS.find(group=>group.grades.includes(state.grade));
-  $('gradeShortcuts').classList.remove('class-hierarchy');
-  $('gradeShortcuts').classList.add('selected-class-only');
-  $('gradeShortcuts').innerHTML=`<div class="selected-class-display">
-    <div class="selected-class-copy">
-      <span class="selected-class-stage">${group?group.icon+' '+safe(group.label):'Selected class'}</span>
-      <strong>${gradeName(state.grade)}</strong>
-      <span class="selected-class-hint">Choose a subject below to continue learning.</span>
-    </div>
-    <button type="button" class="change-class-btn" data-change-class>← Change class</button>
-   </div>`;
- }
+ $('classSelect').value=String(state.grade);
+ const host=$('gradeShortcuts');
+ if(!host)return;
+ host.className='grade-shortcuts explore-grade-nav';
+ host.innerHTML=`<div class="explore-grade-groups">${GRADE_GROUPS.map(group=>{
+  const selectedGroup=group.grades.includes(state.grade);
+  return `<details class="explore-grade-group explore-grade-${safe(group.key)}" ${selectedGroup?'open':''}>
+   <summary><span class="explore-grade-group-icon" aria-hidden="true">${group.icon}</span><span><strong>${safe(group.label)}</strong><small>${safe(group.range)}</small></span><i aria-hidden="true">⌄</i></summary>
+   <div class="explore-grade-list">${group.grades.map(g=>`<button type="button" class="explore-grade-button ${state.grade===g?'selected':''}" data-grade="${g}" aria-pressed="${state.grade===g}"><span class="explore-grade-dot" aria-hidden="true"></span><strong>${gradeName(g)}</strong></button>`).join('')}</div>
+  </details>`;
+ }).join('')}</div>`;
 }
 function renderSubjectFilters(){
- const subjects=[...new Set(LESSONS.filter(x=>x.grade===state.grade).map(x=>x.subject))];
- const preferredOrder={English:0,Hindi:1,Sanskrit:2,Urdu:3,Maths:4,Science:5,EVS:6,'Social Science':7,'Health and Physical Education':8,Computer:9,'General Knowledge':10};
+ const subjects=[...new Set(LESSONS.filter(x=>x.grade===state.grade&&!isBookPartRecord(x)).map(x=>x.subject))];
+ const preferredOrder={Science:0,Maths:1,Mathematics:1,English:2,Hindi:3,Sanskrit:4,Urdu:5,'Social Science':6,EVS:7,'Health and Physical Education':8,Computer:9,'General Knowledge':10};
  subjects.sort((a,b)=>(preferredOrder[a]??99)-(preferredOrder[b]??99)||a.localeCompare(b));
- const choices=['All Subjects',...subjects];
+ if(subject==='All Subjects'||(subject&&!subjects.includes(subject)))subject='';
  $('subjectGradeName').textContent=gradeName(state.grade);
- $('subjectFilters').innerHTML=choices.map(s=>`<button class="subject-btn subject-choice ${subject===s?'active':''}" data-subject="${safe(s)}" aria-pressed="${subject===s}"><span class="subject-choice-icon" aria-hidden="true">${s==='All Subjects'?'✦':subjectIcon(s)}</span><span class="subject-choice-name">${safe(s)}</span></button>`).join('');
+ $('subjectFilters').innerHTML=subjects.map(s=>{
+  const lessons=learningLessonsForGrade(state.grade).filter(l=>l.subject===s);
+  const total=lessons.length;
+  const done=lessons.filter(l=>state.completed.includes(l.id)).length;
+  return `<button class="subject-btn subject-choice ${subject===s?'active':''}" data-subject="${safe(s)}" aria-pressed="${subject===s}">
+   <span class="subject-choice-icon" aria-hidden="true">${subjectIcon(s)}</span>
+   <span class="subject-choice-copy"><strong class="subject-choice-name">${safe(s)}</strong><small>${done} / ${total} chapter${total===1?'':'s'}</small></span>
+   <span class="subject-choice-arrow" aria-hidden="true">›</span>
+  </button>`;
+ }).join('');
 }
 function sourcePdfFilename(lesson){
  const source=String(lesson&&lesson.sourcePdf||'').trim();
@@ -2979,6 +2968,7 @@ function renderClass9SocialScienceSubParts(){
  );
  if(chapters.length&&!chapters.some(chapter=>chapter.id===currentTopicId))currentTopicId=chapters[0].id;
  const chapter=chapters.find(item=>item.id===currentTopicId)||chapters[0]||null;
+ updateExploreBreadcrumb(chapter);
 
  const chapterHtml=chapter
   ? '<div class="social-chapter-browser">'+
@@ -3045,6 +3035,7 @@ function renderClass10SocialScienceSubSubjects(){
  );
  if(chapters.length&&!chapters.some(chapter=>chapter.id===currentTopicId))currentTopicId=chapters[0].id;
  const chapter=chapters.find(item=>item.id===currentTopicId)||chapters[0]||null;
+ updateExploreBreadcrumb(chapter);
 
  const chapterHtml=chapter
   ? '<div class="social-chapter-browser">'+
@@ -3112,8 +3103,45 @@ function renderBookPartSelector(parts,activePart){
   }).join('')+'</div>'+
  '</section>';
 }
+function updateExploreBreadcrumb(lesson=null){
+ const host=$('exploreBreadcrumb');if(!host)return;
+ const parts=[{label:'Home',href:'#home'},{label:'Classes',href:''},{label:gradeName(state.grade),href:''}];
+ if(subject)parts.push({label:subject,href:''});
+ if(lesson)parts.push({label:lesson.title,href:''});
+ host.innerHTML=parts.map((part,index)=>{
+  const last=index===parts.length-1;
+  const label=safe(part.label);
+  const body=part.href?'<a href="'+part.href+'">'+label+'</a>':'<span '+(last?'aria-current="page"':'')+'>'+label+'</span>';
+  return (index?'<i aria-hidden="true">›</i>':'')+body;
+ }).join('');
+}
+function renderExploreClassSummary(){
+ const host=$('exploreClassSummary');if(!host)return;
+ const lessons=learningLessonsForGrade(state.grade);
+ const subjects=[...new Set(lessons.map(l=>l.subject))];
+ const done=lessons.filter(l=>state.completed.includes(l.id)).length;
+ const pct=lessons.length?Math.round(done/lessons.length*100):0;
+ const avatar=state.grade>0?String(state.grade):'🌱';
+ host.innerHTML='<div class="explore-class-identity"><span class="explore-class-avatar">'+avatar+'</span><div><span class="explore-summary-kicker">'+safe(GRADE_GROUPS.find(g=>g.grades.includes(state.grade))?.label||'Learning')+'</span><h3>'+safe(gradeName(state.grade))+'</h3><p>'+subjects.length+' subject'+(subjects.length===1?'':'s')+' · '+lessons.length+' chapter'+(lessons.length===1?'':'s')+' · '+done+' completed</p></div></div>'+
+  '<div class="explore-class-progress"><div><span>Overall Progress</span><strong>'+pct+'%</strong></div><div class="explore-summary-track"><i style="width:'+pct+'%"></i></div></div>';
+}
+function renderExploreRecentActivity(){
+ const host=$('exploreRecentActivity');if(!host)return;
+ const lesson=LESSONS.find(l=>l.id===studyData.lastLessonId&&l.grade===state.grade&&!isBookPartRecord(l));
+ if(!lesson){host.hidden=true;host.innerHTML='';return;}
+ const topic=chapterTopics(lesson).find(t=>t.key===studyData.lastSubtopicKey)||null;
+ host.hidden=false;
+ host.innerHTML='<div class="explore-recent-head"><span>RECENT ACTIVITY</span><strong>Continue where you stopped</strong></div>'+
+  '<div class="explore-recent-card"><span class="explore-recent-icon" aria-hidden="true">'+subjectIcon(lesson.subject)+'</span>'+
+   '<div class="explore-recent-copy"><small>Last studied</small><strong>'+safe(topic?.title||lesson.title)+'</strong><span>'+safe(gradeName(lesson.grade))+' · '+safe(lesson.subject)+(Number.isInteger(lesson.sourceChapter)?' · Chapter '+lesson.sourceChapter:'')+'</span></div>'+
+   '<button type="button" class="btn btn-primary explore-continue-btn" data-explore-continue="'+safe(lesson.id)+'" data-explore-topic="'+safe(topic?.key||'')+'">Continue Studying <span aria-hidden="true">›</span></button>'+
+  '</div>';
+}
 function renderCourses(){
  const lessonSection=$('lessonResultsSection');
+ renderExploreClassSummary();
+ renderExploreRecentActivity();
+ updateExploreBreadcrumb();
  if(!subject){
   lessonSection.hidden=true;
   $('courseGrid').innerHTML='';
@@ -3122,7 +3150,7 @@ function renderCourses(){
   return;
  }
  lessonSection.hidden=false;
- const allSubjects=subject==='All Subjects';
+ const allSubjects=false;
  $('selectedSubjectTitle').textContent=subject;
  $('selectedSubjectPill').innerHTML=`<span aria-hidden="true">${allSubjects?'✦':subjectIcon(subject)}</span><strong>${safe(subject)}</strong> · ${gradeName(state.grade)}`;
  if(state.grade===9&&subject==='Social Science'){
@@ -3239,6 +3267,7 @@ function renderCourses(){
  $('emptyState').hidden=true;
  if(!lessons.some(l=>l.id===currentTopicId))currentTopicId=lessons[0].id;
  const selected=lessons.find(l=>l.id===currentTopicId)||lessons[0];
+ updateExploreBreadcrumb(selected);
  const done=state.completed.includes(selected.id);
  const hasActivities=Array.isArray(selected.activities)&&selected.activities.length;
  const hasRhymes=Array.isArray(selected.rhymes)&&selected.rhymes.length;
@@ -3357,7 +3386,7 @@ function renderAll(){
  renderCourses();
  renderProgress();
  const roadmap=$('curriculumSection');if(roadmap)roadmap.hidden=true;
- if(subjectSection)subjectSection.hidden=classChoicesOpen;
+ if(subjectSection)subjectSection.hidden=false;
  const learningNote=document.querySelector('.curriculum-note');
  if(learningNote)learningNote.hidden=classChoicesOpen;
  if(classChoicesOpen){$('lessonResultsSection').hidden=true;}
@@ -3724,6 +3753,11 @@ const video=e.target.closest('[data-topic-video]');if(video){const lesson=LESSON
  });
  window.addEventListener('hashchange',renderHomeLearningDashboard);
  document.addEventListener('visibilitychange',()=>{if(!document.hidden)renderHomeLearningDashboard();});
+ $('exploreRecentActivity')?.addEventListener('click',e=>{
+  const button=e.target.closest('[data-explore-continue]');
+  if(!button)return;
+  openDashboardLesson(button.dataset.exploreContinue,button.dataset.exploreTopic||'');
+ });
  $('clearFiltersBtn').addEventListener('click',()=>{query='';$('searchInput').value='';persistLearningContext();renderCourses()});
  $('continueBtn').addEventListener('click',continueLearning);
  $('closeLesson').addEventListener('click',closeLesson);
