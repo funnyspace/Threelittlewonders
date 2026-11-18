@@ -22,7 +22,6 @@ function persist(){
 }
 const gradeName=g=>g===-2?'Nursery':g===-1?'LKG':g===0?'UKG':`Class ${g}`;
 const subjectIcon=s=>SUBJECTS[s]?.icon||'📚';
-const isSeniorStudyGrade=g=>Number(g)>=9&&Number(g)<=10;
 const isBookPartRecord=lesson=>!!(lesson&&lesson.isBookPart);
 const learningLessonsForGrade=grade=>LESSONS.filter(l=>l.grade===grade&&!isBookPartRecord(l));
 function emptyStudyData(){
@@ -875,7 +874,6 @@ function chapterStepStatus(lesson){
 function renderChapterJourney(lesson){
  const status=chapterStepStatus(lesson);
  const mastery=chapterMastery(lesson);
- const senior=isSeniorStudyGrade(lesson.grade);
  const steps=[
   {n:1,key:'learn',icon:'📖',title:'Learn',sub:'Original NCERT PDF'},
   {n:2,key:'understand',icon:'▶',title:'Understand',sub:'Video · Read Aloud · illustrations'},
@@ -884,8 +882,8 @@ function renderChapterJourney(lesson){
   {n:5,key:'revise',icon:'🔁',title:'Revise',sub:'Flashcards · mistakes · weak topics'},
   {n:6,key:'mastered',icon:'🏆',title:'Mastery',sub:mastery+'% chapter mastery'}
  ];
- return '<nav class="chapter-learning-path '+(senior?'senior-study-sequence':'')+'" aria-label="Chapter learning path">'+
-  '<div class="chapter-learning-path-head"><span>'+(senior?'STUDY SEQUENCE':'LEARN → PRACTICE → EXAM → REVISE')+'</span><strong>'+(senior?mastery+'% mastery':'Your chapter path')+'</strong></div>'+
+ return '<nav class="chapter-learning-path" aria-label="Chapter learning path">'+
+  '<div class="chapter-learning-path-head"><span>LEARN → PRACTICE → EXAM → REVISE</span><strong>Your chapter path</strong></div>'+
   '<div class="chapter-learning-steps">'+steps.map(step=>
    '<button type="button" class="chapter-learning-step step-'+safe(status[step.key])+'" data-chapter-step="'+step.key+'">'+
     '<b>'+step.n+'</b><i aria-hidden="true">'+step.icon+'</i><span><strong>'+safe(step.title)+'</strong><small>'+safe(step.sub)+'</small></span>'+
@@ -1550,7 +1548,7 @@ function renderGradeSelectors(){
     <div class="selected-class-copy">
       <span class="selected-class-stage">${group?group.icon+' '+safe(group.label):'Selected class'}</span>
       <strong>${gradeName(state.grade)}</strong>
-      <span class="selected-class-hint">${isSeniorStudyGrade(state.grade)?'Choose a subject to open your Study Mode workspace.':'Choose a subject below to continue learning.'}</span>
+      <span class="selected-class-hint">Choose a subject below to continue learning.</span>
     </div>
     <button type="button" class="change-class-btn" data-change-class>← Change class</button>
    </div>`;
@@ -3083,7 +3081,6 @@ function renderBookPartSelector(parts,activePart){
 }
 function renderCourses(){
  const lessonSection=$('lessonResultsSection');
- const seniorStudy=isSeniorStudyGrade(state.grade);
  if(!subject){
   lessonSection.hidden=true;
   $('courseGrid').innerHTML='';
@@ -3093,10 +3090,8 @@ function renderCourses(){
  }
  lessonSection.hidden=false;
  const allSubjects=subject==='All Subjects';
- $('selectedSubjectTitle').textContent=seniorStudy?(subject+' Study Mode'):subject;
- $('selectedSubjectPill').innerHTML=seniorStudy
-  ?`<span class="study-mode-pill-label">STUDY MODE</span><strong>${gradeName(state.grade)} · ${safe(subject)}</strong>`
-  :`<span aria-hidden="true">${allSubjects?'✦':subjectIcon(subject)}</span><strong>${safe(subject)}</strong> · ${gradeName(state.grade)}`;
+ $('selectedSubjectTitle').textContent=subject;
+ $('selectedSubjectPill').innerHTML=`<span aria-hidden="true">${allSubjects?'✦':subjectIcon(subject)}</span><strong>${safe(subject)}</strong> · ${gradeName(state.grade)}`;
  if(state.grade===9&&subject==='Social Science'){
   currentTopicId='';
   renderClass9SocialScienceSubParts();
@@ -3240,29 +3235,9 @@ function renderCourses(){
  }
  if(!selected.sourcePdf&&!posterLesson&&!structuredLesson)topicStudyContent+='</section>';
  const richNote='';
- const chapterListTitle=bookPartMode?(safe(activeBookPart?.title||'BOOK')+' · CHAPTERS'):(seniorStudy?'SYLLABUS · CHAPTERS':'CHAPTERS');
+ const chapterListTitle=bookPartMode?(safe(activeBookPart?.title||'BOOK')+' · CHAPTERS'):'CHAPTERS';
  const chapterContext=bookPartMode?(safe(subject)+' · '+safe(activeBookPart?.title||'')):'';
- const selectedChapterNo=Number.isInteger(selected.sourceChapter)?selected.sourceChapter:(lessons.indexOf(selected)+1);
- const selectedMastery=chapterMastery(selected);
- const selectedTopics=chapterTopics(selected);
- const selectedQuestions=validLessonQuestions(selected).length;
- const seniorChapterHeader=seniorStudy?(
-  '<header class="senior-chapter-header">'+
-   '<div class="senior-study-breadcrumb"><span>'+safe(gradeName(state.grade))+'</span><b>/</b><span>'+safe(subject)+'</span>'+
-    (bookPartMode?'<b>/</b><span>'+safe(activeBookPart?.title||'')+'</span>':'')+
-   '</div>'+
-   '<div class="senior-chapter-title-row">'+
-    '<div class="senior-chapter-title-copy"><span>CHAPTER '+selectedChapterNo+'</span><h2>'+safe(selected.title)+'</h2><p>NCERT study workspace · Learn from the textbook, practise, test and revise.</p></div>'+
-    '<div class="senior-mastery-card"><span>CHAPTER MASTERY</span><strong>'+selectedMastery+'%</strong><div><i style="width:'+selectedMastery+'%"></i></div></div>'+
-   '</div>'+
-   '<div class="senior-chapter-metrics">'+
-    '<span><b>'+selectedTopics.length+'</b> topic'+(selectedTopics.length===1?'':'s')+'</span>'+
-    '<span><b>'+selectedQuestions+'</b> verified question'+(selectedQuestions===1?'':'s')+'</span>'+
-    '<span><b>'+(selected.sourcePdf?'NCERT':'Lesson')+'</b> primary source</span>'+
-    '<span><b>'+safe(topicStatusInfo(selectedMastery).label)+'</b> status</span>'+
-   '</div>'+
-  '</header>'
- ):'';
+
  $('courseGrid').innerHTML=`
   ${bookPartSelector}
   <div class="topic-browser">
@@ -3271,13 +3246,12 @@ function renderCourses(){
     <div class="topic-list">
      ${lessons.map((l,i)=>`<button type="button" class="topic-list-item ${l.id===selected.id?'active':''}" data-topic-id="${safe(l.id)}" aria-pressed="${l.id===selected.id}">
        <span class="topic-list-number">${Number.isInteger(l.sourceChapter)?l.sourceChapter:(i+1)}</span>
-       <span class="topic-list-copy">${seniorStudy?'<small>CHAPTER '+(Number.isInteger(l.sourceChapter)?l.sourceChapter:(i+1))+'</small>':(allSubjects?'<small>'+safe(l.subject)+'</small>':'')}<strong>${safe(l.title)}</strong></span>
+       <span class="topic-list-copy">${allSubjects?'<small>'+safe(l.subject)+'</small>':''}<strong>${safe(l.title)}</strong></span>
        ${(()=>{const m=chapterMastery(l),s=topicStatusInfo(m);return '<span class="topic-list-mastery mastery-'+s.key+'" title="'+s.label+'">'+m+'%</span>'})()}
       </button>`).join('')}
     </div>
    </aside>
-   <article class="topic-content-panel ${seniorStudy?'senior-study-content':''}" aria-live="polite">
-    ${seniorChapterHeader}
+   <article class="topic-content-panel" aria-live="polite">
     <div class="topic-content-top topic-content-top-simple ${posterLesson?'poster-topic-heading':''}">
      <div>${chapterContext?'<span class="chapter-book-part">'+chapterContext+'</span>':''}<span class="chapter-kicker">CHAPTER</span><h3 class="${posterLesson?'visually-hidden':''}">${safe(selected.title)}</h3></div>
     </div>
@@ -3325,35 +3299,32 @@ function renderProgress(){
  renderStudyDashboard();
 }
 function renderAll(){
- const seniorStudy=isSeniorStudyGrade(state.grade);
- document.body.classList.toggle('senior-study-mode',seniorStudy);
+ document.body.classList.remove('senior-study-mode');
  renderGradeSelectors();
  renderSubjectFilters();
  const subjectSection=$('classSubjectSection');
  if(subjectSection){
-  subjectSection.classList.toggle('senior-subject-selection',seniorStudy);
+  subjectSection.classList.remove('senior-subject-selection');
   const title=subjectSection.querySelector('.class-subject-heading h3');
   const copy=subjectSection.querySelector('.class-subject-heading p');
   const kicker=subjectSection.querySelector('.class-subject-heading .kicker');
-  if(title)title.textContent=seniorStudy?'Choose your subject':'Choose a subject';
-  if(copy)copy.textContent=seniorStudy?'Open the syllabus, textbook, practice, assessment and revision workspace.':'Select a subject below to see its interactive lessons.';
-  if(kicker)kicker.textContent=seniorStudy?'STUDY MODE · SUBJECTS':'✦ SUBJECTS';
+  if(title)title.textContent='Choose a subject';
+  if(copy)copy.textContent='Select a subject below to see its interactive lessons.';
+  if(kicker)kicker.textContent='✦ SUBJECTS';
  }
  const starter=document.querySelector('.starter-heading');
  if(starter){
   const kicker=starter.querySelector('.kicker');
   const copy=starter.querySelector('p');
-  if(kicker)kicker.textContent=seniorStudy?'FOCUSED STUDY WORKSPACE':'✿ LEARN AND PLAY';
-  if(copy)copy.textContent=seniorStudy?'Use the NCERT textbook as your source, then practise, test and revise with mastery tracking.':'Explore a lesson, try two fun questions and collect stars.';
+  if(kicker)kicker.textContent='✿ LEARN AND PLAY';
+  if(copy)copy.textContent='Explore a lesson, try two fun questions and collect stars.';
  }
  renderCourses();
  renderProgress();
  const roadmap=$('curriculumSection');if(roadmap)roadmap.hidden=true;
  if(subjectSection)subjectSection.hidden=classChoicesOpen;
  const learningNote=document.querySelector('.curriculum-note');
- if(learningNote){
-  learningNote.hidden=classChoicesOpen||seniorStudy;
- }
+ if(learningNote)learningNote.hidden=classChoicesOpen;
  if(classChoicesOpen){$('lessonResultsSection').hidden=true;}
 }
 function openLesson(id,difficulty='all'){
