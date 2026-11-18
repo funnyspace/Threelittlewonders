@@ -7,7 +7,7 @@
   <meta name="description" content="Threelittlewonders makes learning delightful with bite-sized lessons, fun quizzes and learning paths from Nursery through Class 10." />
   <title>Threelittlewonders | Little lessons, big wonders</title>
   <link rel="icon" href="favicon.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="styles.css?v=20261118-navigation-mockup2-v1" />
+  <link rel="stylesheet" href="styles.css?v=20261118-unified-class-design-v1" />
   <script src="content.js?v=20261118-remove-class11-12-v1" defer></script>
   <script src="class1-english-mridang-content.js?v=20261105-ncert-v1" defer></script>
   <script src="class1-maths-joyful-content.js?v=20261106-ncert-v1" defer></script>
@@ -42,7 +42,7 @@
   <script src="cloud-config.js?v=20261114-cloud-v1" defer></script>
   <script src="cloud-sync.js?v=20261114-cloud-v1" defer></script>
   <script src="pdf-barcode-masks.js?v=20261117-pdfjs-v1" defer></script>
-  <script src="app.js?v=20261118-navigation-mockup2-v1" defer></script>
+  <script src="app.js?v=20261118-refresh-state-v1" defer></script>
   <script src="curriculum-ui.js?v=20261030-hide-all-roadmaps" defer></script>
   <script src="contact-form.js" defer></script>
   <script src="site-navigation.js?v=20261118-refresh-state-v1" defer></script>
@@ -53,26 +53,18 @@
   <div class="announcement"><span>✨</span> Curious minds grow here. A little learning every day!</div>
   <header class="site-header">
     <div class="container nav-inner">
-      <a class="brand brand-v2" href="#home" aria-label="Threelittlewonders home">
+      <a class="brand" href="#home" aria-label="Threelittlewonders home">
         <span class="brand-mark" aria-hidden="true"><span class="rgb-bar"></span><span class="rgb-bar"></span><span class="rgb-bar"></span></span>
-        <span class="brand-lockup"><span class="brand-text">Three<span>little</span>wonders<span class="brand-dot">.</span></span><small>Learn · Practice · Revise · Grow</small></span>
+        <span class="brand-text">Three<span>little</span>wonders<span class="brand-dot">.</span></span>
       </a>
-      <nav class="main-nav main-nav-v2" aria-label="Main menu">
-        <a class="nav-link active" href="#home"><span class="nav-icon" aria-hidden="true">⌂</span>Home</a>
-        <a class="nav-link" href="#explore"><span class="nav-icon" aria-hidden="true">▦</span>Explore Courses</a>
-        <a class="nav-link" href="#test-series"><span class="nav-icon" aria-hidden="true">☷</span>Test Series</a>
-        <a class="nav-link" href="#my-learning"><span class="nav-icon" aria-hidden="true">▥</span><span id="learningNavLabel">My Learning</span><span id="navStars" class="nav-stars">0</span></a>
-        <details class="nav-more">
-          <summary>More <span aria-hidden="true">⌄</span></summary>
-          <div class="nav-more-menu">
-            <a href="#how-it-works">How it works</a>
-            <a href="#contact">Contact</a>
-            <a href="#faqs">FAQs</a>
-            <a href="#about">About</a>
-          </div>
-        </details>
+      <nav class="main-nav" aria-label="Main menu">
+        <a class="nav-link active" href="#home">Home</a>
+        <a class="nav-link" href="#explore">Explore courses</a>
+        <a class="nav-link" href="#test-series">Test Series</a>
+        <a class="nav-link" href="#contact">Contact</a>
+        <a class="nav-link" href="#how-it-works">How it works</a>
       </nav>
-      <button type="button" class="nav-search-button" id="navSearchButton" aria-label="Search chapters"><span aria-hidden="true">⌕</span><span>Search</span></button>
+      <a class="nav-progress" href="#my-learning"><span aria-hidden="true">🧠</span> <span id="learningNavLabel">My learning</span> <span id="navStars" class="nav-stars">0</span></a>
       <div class="nav-auth" id="navAuth">
         <button type="button" class="nav-auth-button" id="authButton" aria-haspopup="dialog"><span aria-hidden="true">👤</span><span id="authButtonLabel">Log in</span></button>
         <div class="auth-user-menu" id="authUserMenu" hidden>
@@ -84,15 +76,7 @@
       <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Open menu" aria-expanded="false" aria-controls="mobileMenu">☰</button>
     </div>
     <div id="mobileMenu" class="mobile-menu" hidden>
-      <a href="#home"><span aria-hidden="true">⌂</span> Home</a>
-      <a href="#explore"><span aria-hidden="true">▦</span> Explore Courses</a>
-      <div class="mobile-class-nav" id="mobileClassNav" aria-label="Choose class"></div>
-      <a href="#test-series"><span aria-hidden="true">☷</span> Test Series</a>
-      <a href="#my-learning"><span aria-hidden="true">▥</span> <span id="mobileLearningNavLabel">My Learning</span></a>
-      <a href="#how-it-works"><span aria-hidden="true">?</span> How it works</a>
-      <a href="#contact"><span aria-hidden="true">✉</span> Contact</a>
-      <a href="#faqs"><span aria-hidden="true">ⓘ</span> FAQs</a>
-      <button type="button" class="mobile-auth-button" id="mobileAuthButton">Log in / Sign up</button>
+      <a href="#home">Home</a><a href="#explore">Explore courses</a><a href="#test-series">Test Series</a><a href="#contact">Contact</a><a href="#how-it-works">How it works</a><a href="#my-learning"><span id="mobileLearningNavLabel">My learning</span> ⭐</a><button type="button" class="mobile-auth-button" id="mobileAuthButton">Log in / Sign up</button>
     </div>
   </header>
   <main id="main">
@@ -148,67 +132,46 @@
     </section>
     <section class="explore-section section-padding" id="explore" hidden>
       <div class="container">
-        <header class="explore-page-intro">
-          <div class="explore-page-title">
-            <span class="explore-page-icon" aria-hidden="true">📚</span>
-            <div><span class="kicker">EXPLORE COURSES</span><h2>Choose your class and subject</h2><p>Find your class, open a subject and continue chapter-wise learning.</p></div>
+        <div class="section-heading explore-heading"><div><span class="kicker">✿ FIND YOUR NEXT ADVENTURE</span><h2>What will you <em>explore</em> today?</h2><p>Choose your learning stage and class. Subjects will open on the next screen.</p></div><div class="class-picker"><label for="classSelect">I'm learning in</label><select id="classSelect" aria-label="Select your class"></select><span class="select-arrow">⌄</span></div></div>
+        <div class="grade-shortcuts" id="gradeShortcuts" role="group" aria-label="Select a class"></div>
+
+        <section class="class-subject-section" id="classSubjectSection" aria-labelledby="classSubjectTitle">
+          <div class="class-subject-heading">
+            <div>
+              <span id="subjectGradeName" class="visually-hidden"></span>
+              <span class="kicker">✦ SUBJECTS</span>
+              <h3 id="classSubjectTitle">Choose a subject</h3>
+              <p>Select a subject below to see its interactive lessons.</p>
+            </div>
           </div>
-          <label class="visually-hidden" for="classSelect">Select class</label>
-          <select id="classSelect" class="visually-hidden" aria-label="Select your class"></select>
-        </header>
+          <div class="subject-filters subject-choice-grid" id="subjectFilters" role="group" aria-label="Choose a subject"></div>
+        </section>
 
-        <div class="explore-shell">
-          <aside class="explore-class-sidebar" aria-label="Class navigation">
-            <div class="explore-sidebar-heading"><span aria-hidden="true">📖</span><div><strong>Explore Courses</strong><small>Find your class and start learning</small></div></div>
-            <div class="grade-shortcuts explore-grade-nav" id="gradeShortcuts" role="group" aria-label="Select a class"></div>
-            <div class="explore-sidebar-motto"><span aria-hidden="true">📚</span><p><strong>Small steps today,</strong><br>big dreams tomorrow!</p></div>
-          </aside>
 
-          <div class="explore-workspace">
-            <nav class="explore-breadcrumb" id="exploreBreadcrumb" aria-label="Current learning location"></nav>
-            <section class="explore-class-summary" id="exploreClassSummary" aria-label="Selected class summary"></section>
-
-            <section class="class-subject-section" id="classSubjectSection" aria-labelledby="classSubjectTitle">
-              <div class="class-subject-heading">
-                <div>
-                  <span id="subjectGradeName" class="visually-hidden"></span>
-                  <span class="kicker">SUBJECTS</span>
-                  <h3 id="classSubjectTitle">Choose a subject</h3>
-                  <p>Select a subject to see its chapter list and learning progress.</p>
-                </div>
-              </div>
-              <div class="subject-filters subject-choice-grid" id="subjectFilters" role="group" aria-label="Choose a subject"></div>
-            </section>
-
-            <section class="explore-recent-activity" id="exploreRecentActivity" hidden aria-label="Recent activity"></section>
-
-            <section class="curriculum-section" id="curriculumSection" aria-labelledby="curriculumHeading" hidden>
-              <div class="curriculum-heading">
-                <div><span class="kicker">✦ YOUR LEARNING ROADMAP</span>
-                  <h3 id="curriculumHeading"><span id="curriculumGrade"></span> learning areas</h3>
-                  <p id="topicSummary"></p>
-                </div>
-                <div class="curriculum-progress"><span id="topicProgress">0 topics practised</span>
-                  <div class="topic-progress-track" id="topicProgressTrack" role="progressbar" aria-label="Curriculum topics practised" aria-valuemin="0" aria-valuemax="0" aria-valuenow="0"><div id="topicProgressFill"></div></div>
-                </div>
-              </div>
-              <div class="curriculum-groups" id="curriculumGroups"></div>
-              <div class="topic-panel" id="topicPanel" tabindex="-1" role="region" aria-live="polite" aria-label="Selected learning topic" hidden></div>
-              <p class="curriculum-help">Explore a learning area, select a topic for a guided activity and mark it as practised. Progress stays in this browser.</p>
-            </section>
-
-            <section class="lesson-results-section" id="lessonResultsSection" hidden>
-              <div class="starter-heading"><div><span class="kicker">YOUR CHAPTERS</span><h3><span id="selectedSubjectTitle"></span></h3></div><p>Choose a chapter, then follow Learn → Understand → Practice → Test → Revise → Mastery.</p></div>
-              <div class="course-toolbar"><div class="selected-subject-pill" id="selectedSubjectPill"></div><div class="search-box"><span aria-hidden="true">⌕</span><input type="search" id="searchInput" placeholder="Search chapters..." aria-label="Search chapters in selected subject"></div></div>
-              <div class="course-grid" id="courseGrid" aria-live="polite"></div>
-              <div class="empty-state" id="emptyState" hidden><div>🔎</div><h3>No lessons found yet</h3><p>Try a different search.</p><button class="btn btn-secondary" id="clearFiltersBtn">Clear search</button></div>
-            </section>
+        <section class="curriculum-section" id="curriculumSection" aria-labelledby="curriculumHeading" hidden>
+          <div class="curriculum-heading">
+            <div><span class="kicker">✦ YOUR LEARNING ROADMAP</span>
+              <h3 id="curriculumHeading"><span id="curriculumGrade"></span> learning areas</h3>
+              <p id="topicSummary"></p>
+            </div>
+            <div class="curriculum-progress"><span id="topicProgress">0 topics practised</span>
+              <div class="topic-progress-track" id="topicProgressTrack" role="progressbar" aria-label="Curriculum topics practised" aria-valuemin="0" aria-valuemax="0" aria-valuenow="0"><div id="topicProgressFill"></div></div>
+            </div>
           </div>
-        </div>
-
-        <div class="curriculum-note"><span>💛</span><p><strong>Growing with you!</strong> New lessons, questions and subjects can be added as the website grows.</p></div>
+          <div class="curriculum-groups" id="curriculumGroups"></div>
+          <div class="topic-panel" id="topicPanel" tabindex="-1" role="region" aria-live="polite" aria-label="Selected learning topic" hidden></div>
+          <p class="curriculum-help">Explore a learning area, select a topic for a guided activity and mark it as practised. These are starter activities rather than full textbook chapters or graded tests. Progress stays in this browser.</p>
+        </section>
+        <section class="lesson-results-section" id="lessonResultsSection" hidden>
+          <div class="starter-heading"><div><span class="kicker">✿ LEARN AND PLAY</span><h3><span id="selectedSubjectTitle"></span> interactive lessons</h3></div><p>Explore a lesson, try two fun questions and collect stars.</p></div>
+          <div class="course-toolbar"><div class="selected-subject-pill" id="selectedSubjectPill"></div><div class="search-box"><span aria-hidden="true">⌕</span><input type="search" id="searchInput" placeholder="Search this subject..." aria-label="Search lessons in selected subject"></div></div>
+          <div class="course-grid" id="courseGrid" aria-live="polite"></div>
+          <div class="empty-state" id="emptyState" hidden><div>🔎</div><h3>No lessons found yet</h3><p>Try a different search.</p><button class="btn btn-secondary" id="clearFiltersBtn">Clear search</button></div>
+        </section>
+        <div class="curriculum-note"><span>💛</span><p><strong>Growing with you!</strong> These are sample starter lessons, not yet a complete school syllabus. New lessons and subjects can be added as the website grows.</p></div>
       </div>
     </section>
+
     <section class="test-series-section section-padding" id="test-series" hidden>
       <div class="container">
         <div class="test-series-heading">
