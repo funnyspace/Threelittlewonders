@@ -7,13 +7,12 @@ const LEGACY_STORE_KEY='threeelittlewonders-progress-v1';
 const STUDY_STORE_KEY='Threelittlewonders-study-dashboard-v1';
 const $=id=>document.getElementById(id);
 const safe=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const GRADE_LEVELS=[-2,-1,0,...Array.from({length:12},(_,i)=>i+1)];
+const GRADE_LEVELS=[-2,-1,0,...Array.from({length:10},(_,i)=>i+1)];
 const GRADE_GROUPS=[
  {key:'foundation',label:'Foundation',range:'Nursery · LKG · UKG',icon:'🌱',grades:[-2,-1,0]},
  {key:'primary',label:'Primary',range:'Classes 1–5',icon:'📘',grades:[1,2,3,4,5]},
  {key:'middle',label:'Middle School',range:'Classes 6–8',icon:'🧭',grades:[6,7,8]},
  {key:'secondary',label:'Secondary',range:'Classes 9–10',icon:'🎓',grades:[9,10]},
- {key:'senior-secondary',label:'Senior Secondary',range:'Classes 11–12',icon:'🏫',grades:[11,12]}
 ];
 function load(){try{const v=JSON.parse(localStorage.getItem(STORE_KEY)||localStorage.getItem(LEGACY_STORE_KEY)||'{}');return {grade:Number.isInteger(v.grade)&&GRADE_LEVELS.includes(v.grade)?v.grade:3,completed:Array.isArray(v.completed)?[...new Set(v.completed.filter(x=>typeof x==='string'))]:[]}}catch{return {grade:3,completed:[]}}}
 let state=load(),subject='',query='',classChoicesOpen=true,currentTopicId='',currentSubtopicKey='',currentSubSubject='',currentBookPart=1,currentLesson=null,currentQuestion=0,questionAnswered=false,currentQuizDifficulty='all',currentQuizQuestions=[],currentMistakeId='',currentPracticeSource='',currentFlashcardId='',returnFocus=null,toastTimer;
@@ -23,7 +22,7 @@ function persist(){
 }
 const gradeName=g=>g===-2?'Nursery':g===-1?'LKG':g===0?'UKG':`Class ${g}`;
 const subjectIcon=s=>SUBJECTS[s]?.icon||'📚';
-const isSeniorStudyGrade=g=>Number(g)>=9&&Number(g)<=12;
+const isSeniorStudyGrade=g=>Number(g)>=9&&Number(g)<=10;
 const isBookPartRecord=lesson=>!!(lesson&&lesson.isBookPart);
 const learningLessonsForGrade=grade=>LESSONS.filter(l=>l.grade===grade&&!isBookPartRecord(l));
 function emptyStudyData(){
@@ -2107,7 +2106,7 @@ function populateTestChapters(){
  const lessons=testLessonsForGrade().filter(l=>l.subject===subject);
  const select=$('testChapterSelect');
  if(!select)return;
- const grouped=(testGrade===11||testGrade===12)&&['Physics','Chemistry'].includes(subject)&&lessons.some(l=>Number(l.sourceBookPart)>0);
+ const grouped=false;
  if(grouped){
   const parts=[...new Set(lessons.map(l=>Number(l.sourceBookPart)).filter(Boolean))].sort((a,b)=>a-b);
   select.innerHTML='<option value="">All chapters</option>'+parts.map(part=>{
