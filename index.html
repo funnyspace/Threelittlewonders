@@ -7,7 +7,7 @@
   <meta name="description" content="Threelittlewonders makes learning delightful with bite-sized lessons, fun quizzes and learning paths from Nursery through Class 10." />
   <title>Threelittlewonders | Little lessons, big wonders</title>
   <link rel="icon" href="favicon.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="styles.css?v=20261118-navigation-v2" />
+  <link rel="stylesheet" href="styles.css?v=20261118-navigation-mockup2-v1" />
   <script src="content.js?v=20261118-remove-class11-12-v1" defer></script>
   <script src="class1-english-mridang-content.js?v=20261105-ncert-v1" defer></script>
   <script src="class1-maths-joyful-content.js?v=20261106-ncert-v1" defer></script>
@@ -42,7 +42,7 @@
   <script src="cloud-config.js?v=20261114-cloud-v1" defer></script>
   <script src="cloud-sync.js?v=20261114-cloud-v1" defer></script>
   <script src="pdf-barcode-masks.js?v=20261117-pdfjs-v1" defer></script>
-  <script src="app.js?v=20261118-navigation-v2" defer></script>
+  <script src="app.js?v=20261118-navigation-mockup2-v1" defer></script>
   <script src="curriculum-ui.js?v=20261030-hide-all-roadmaps" defer></script>
   <script src="contact-form.js" defer></script>
   <script src="site-navigation.js?v=20261118-refresh-state-v1" defer></script>
@@ -53,9 +53,9 @@
   <div class="announcement"><span>✨</span> Curious minds grow here. A little learning every day!</div>
   <header class="site-header">
     <div class="container nav-inner">
-      <a class="brand" href="#home" aria-label="Threelittlewonders home">
+      <a class="brand brand-v2" href="#home" aria-label="Threelittlewonders home">
         <span class="brand-mark" aria-hidden="true"><span class="rgb-bar"></span><span class="rgb-bar"></span><span class="rgb-bar"></span></span>
-        <span class="brand-text">Three<span>little</span>wonders<span class="brand-dot">.</span></span>
+        <span class="brand-lockup"><span class="brand-text">Three<span>little</span>wonders<span class="brand-dot">.</span></span><small>Learn · Practice · Revise · Grow</small></span>
       </a>
       <nav class="main-nav main-nav-v2" aria-label="Main menu">
         <a class="nav-link active" href="#home"><span class="nav-icon" aria-hidden="true">⌂</span>Home</a>
@@ -72,6 +72,7 @@
           </div>
         </details>
       </nav>
+      <button type="button" class="nav-search-button" id="navSearchButton" aria-label="Search chapters"><span aria-hidden="true">⌕</span><span>Search</span></button>
       <div class="nav-auth" id="navAuth">
         <button type="button" class="nav-auth-button" id="authButton" aria-haspopup="dialog"><span aria-hidden="true">👤</span><span id="authButtonLabel">Log in</span></button>
         <div class="auth-user-menu" id="authUserMenu" hidden>
@@ -85,6 +86,7 @@
     <div id="mobileMenu" class="mobile-menu" hidden>
       <a href="#home"><span aria-hidden="true">⌂</span> Home</a>
       <a href="#explore"><span aria-hidden="true">▦</span> Explore Courses</a>
+      <div class="mobile-class-nav" id="mobileClassNav" aria-label="Choose class"></div>
       <a href="#test-series"><span aria-hidden="true">☷</span> Test Series</a>
       <a href="#my-learning"><span aria-hidden="true">▥</span> <span id="mobileLearningNavLabel">My Learning</span></a>
       <a href="#how-it-works"><span aria-hidden="true">?</span> How it works</a>
