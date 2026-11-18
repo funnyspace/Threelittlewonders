@@ -2439,3 +2439,155 @@ body.senior-study-mode{
  .senior-study-mode .chapter-learning-steps{grid-template-columns:1fr}
  .senior-study-mode .senior-chapter-metrics{display:grid;grid-template-columns:1fr 1fr}
 }
+
+
+/* Space Optimization: compact layout without reducing readability */
+@media(min-width:781px){
+  .container{width:min(1220px,calc(100% - 36px))}
+  .announcement{min-height:28px;font-size:11px}
+  .nav-inner{height:68px;gap:18px}
+  .main-nav{gap:22px}
+  .nav-progress{padding:8px 11px 8px 12px}
+  .hero-grid{min-height:430px;padding-top:32px;padding-bottom:36px;gap:12px}
+  .hero-art{height:395px;transform:scale(.9);transform-origin:center}
+  .hero-copy{padding-bottom:0}
+  h1{margin:18px 0 15px}
+  .hero-description{margin-bottom:20px;line-height:1.7}
+  .hero-trust{margin-top:24px}
+  .hero-footer{min-height:58px}
+  .section-padding{padding:64px 0}
+  .grade-shortcuts{padding:10px 2px 14px;margin-top:11px}
+  .class-subject-section{margin:4px 0 20px;padding:17px}
+  .class-subject-heading{margin-bottom:11px}
+  .subject-choice-grid{gap:8px}
+  .subject-btn.subject-choice{min-height:54px;padding:9px 11px}
+  .selected-class-display{padding:12px 14px}
+  .course-toolbar{margin:10px 0 15px}
+  .topic-browser{gap:12px}
+  .topic-list-item{padding:10px 12px}
+  .topic-content-panel{padding:18px}
+  .chapter-learning-path{margin-bottom:12px;padding:12px}
+  .chapter-journey-section{margin-bottom:12px;padding:13px}
+  .journey-section-head{margin-bottom:10px}
+  .chapter-topics-block{margin-bottom:12px}
+  .home-learning-dashboard{margin-bottom:14px;padding:14px}
+  .home-learning-head{margin-bottom:10px}
+  .home-learning-grid{gap:7px}
+  .daily-grid{gap:60px}
+  .progress-card{padding:26px}
+  .progress-card-title{margin-top:20px}
+  .progress-pills{margin:18px 0}
+  .steps-grid{gap:20px;margin-top:34px}
+  .step-illustration{height:124px;margin-bottom:16px;font-size:62px}
+  .cta-section{padding:4px 0 58px}
+  .cta-banner{min-height:190px;padding:26px 18px}
+  .site-footer{padding:23px 0}
+}
+
+/* More efficient chapter workspace */
+.topic-list{max-height:560px}
+.topic-list-header{padding:12px 13px}
+.topic-list-item{gap:9px}
+.topic-list-number{width:27px;height:27px}
+.topic-content-top{padding-bottom:15px}
+.topic-content-block{margin-top:12px;padding:13px 14px}
+.topic-content-actions{margin-top:16px;padding-top:13px}
+.chapter-topic-buttons{gap:7px}
+.chapter-topic-button{padding:8px 9px 6px}
+.chapter-topic-meta{padding:0 9px 8px 42px}
+.quick-practice-card{padding:10px}
+.flashcard-study{padding:10px}
+.study-flashcard,.flashcard-side{min-height:145px}
+.flashcard-side{padding:18px}
+.chapter-revision-summary{margin-top:8px}
+
+/* Class 9-10 Study Mode: denser academic layout */
+.senior-study-mode .class-subject-section{padding:18px;margin-bottom:16px}
+.senior-study-mode .course-toolbar{margin:8px 0 11px;padding:8px 10px}
+.senior-study-mode .book-part-selector{margin-bottom:9px;padding:9px 11px}
+.senior-study-mode .topic-browser{grid-template-columns:minmax(220px,265px) minmax(0,1fr)}
+.senior-study-mode .topic-list{max-height:640px}
+.senior-study-mode .topic-list-item{padding:9px 11px}
+.senior-chapter-header{padding:19px 21px 15px}
+.senior-study-breadcrumb{margin-bottom:10px}
+.senior-chapter-title-row{gap:18px}
+.senior-chapter-title-copy p{margin-top:5px}
+.senior-chapter-metrics{margin-top:12px}
+.senior-study-mode .chapter-learning-path{margin:12px 16px;padding:0}
+.senior-study-mode .chapter-learning-path-head{padding:7px 9px}
+.senior-study-mode .chapter-learning-step{min-height:52px;padding:7px}
+.senior-study-mode .chapter-topics-block{margin:0 16px 12px}
+.senior-study-mode .chapter-topics-heading{padding:8px 10px}
+.senior-study-mode .chapter-topic-buttons{padding:8px}
+.senior-study-mode .chapter-journey-section{margin:0 16px 11px;padding:12px}
+.senior-study-mode .journey-section-head{margin-bottom:9px}
+.senior-study-mode .pdf-nav-bar{padding:7px 9px}
+
+@media(max-width:780px){
+  .container{width:min(100% - 24px,620px)}
+  .announcement{min-height:28px}
+  .hero-grid{padding:32px 0 12px}
+  .hero-trust{margin-top:18px}
+  .hero-footer{padding:11px 0;gap:10px}
+  .section-padding{padding:46px 0}
+  .grade-shortcuts{padding:8px 2px 12px}
+  .class-subject-section{margin-bottom:16px;padding:13px}
+  .class-subject-heading{margin-bottom:10px}
+  .course-toolbar{margin:7px 0 12px}
+  .topic-browser{gap:10px}
+  .topic-list{max-height:240px}
+  .topic-list-item{padding:10px}
+  .topic-content-panel{padding:14px}
+  .chapter-learning-path{padding:11px;margin-bottom:10px}
+  .chapter-journey-section{padding:12px;margin-bottom:10px}
+  .home-learning-dashboard{padding:13px}
+  .progress-card{padding:21px}
+  .steps-grid{margin-top:27px}
+  .cta-section{padding-bottom:42px}
+  .cta-banner{min-height:180px;padding:24px 15px}
+  .site-footer{padding:20px 0}
+
+  .senior-study-mode .topic-browser{grid-template-columns:1fr}
+  .senior-study-mode .topic-list{max-height:230px}
+  .senior-chapter-header{padding:15px 13px 12px}
+  .senior-study-mode .chapter-learning-path,
+  .senior-study-mode .chapter-topics-block,
+  .senior-study-mode .chapter-journey-section{margin-left:9px;margin-right:9px}
+}
+
+@media(max-width:520px){
+  .container{width:calc(100% - 20px)}
+  .announcement{padding:3px 8px}
+  .nav-inner{height:61px}
+  .hero-grid{padding-top:25px}
+  .hero-description{line-height:1.65;margin-bottom:18px}
+  .hero-actions{gap:8px}
+  .hero-trust{margin-top:16px}
+  .hero-footer{padding:9px 0}
+  .section-padding{padding:38px 0}
+  .class-subject-section{padding:11px}
+  .subject-choice-grid{gap:6px}
+  .subject-btn.subject-choice{min-height:50px;padding:9px}
+  .selected-class-display{padding:10px 11px}
+  .course-toolbar{margin:5px 0 10px}
+  .topic-content-panel{padding:11px}
+  .topic-content-block{padding:11px}
+  .chapter-learning-path{padding:9px}
+  .chapter-journey-section{padding:10px}
+  .progress-card{padding:18px}
+  .step-illustration{height:108px;margin-bottom:10px}
+  .cta-banner{min-height:165px;padding:20px 12px}
+  .site-footer{padding:17px 0}
+  .modal-header{padding:14px}
+  .lesson-steps{padding:10px 14px 0}
+  .lesson-body{padding:15px 14px}
+  .modal-footer{padding:10px 14px 14px}
+
+  .senior-study-mode .class-subject-section{padding:12px}
+  .senior-study-mode .course-toolbar{padding:7px}
+  .senior-chapter-header{padding:13px 11px 11px}
+  .senior-chapter-metrics{gap:5px;margin-top:9px}
+  .senior-study-mode .chapter-learning-path,
+  .senior-study-mode .chapter-topics-block,
+  .senior-study-mode .chapter-journey-section{margin-left:7px;margin-right:7px}
+}
