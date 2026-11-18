@@ -4,6 +4,7 @@
 const DATA=window.TLW_CURRICULUM||{};
 const STORE_KEY='Threelittlewonders-curriculum-progress-v1';
 const $=id=>document.getElementById(id);
+if(!$('curriculumSection'))return;
 const safe=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let practised=[];
 try{
