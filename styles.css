@@ -2591,3 +2591,16 @@ body.senior-study-mode{
   .senior-study-mode .chapter-topics-block,
   .senior-study-mode .chapter-journey-section{margin-left:7px;margin-right:7px}
 }
+
+
+/* Topics nested inside Understand step */
+.understand-topic-area{margin:2px 0 12px}
+.understand-topic-area .chapter-topics-block{margin:0 0 12px;border-radius:12px}
+.understand-topic-area .chapter-topics-heading{margin:0}
+.understand-topic-area .chapter-topic-buttons{margin:0}
+.understand-section .understand-actions{margin-top:8px}
+.senior-study-mode .understand-topic-area .chapter-topics-block{margin:0 0 10px}
+.senior-study-mode .understand-topic-area{margin-top:0}
+@media(max-width:720px){
+  .understand-topic-area{margin-bottom:10px}
+}
